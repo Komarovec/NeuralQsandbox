@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<ImportGroup Label="PropertySheets">
+		<Import Condition="$(gnutlsImported)!=true" Project="gnutls.props"/>
+		<Import Condition="$(hogweedImported)!=true" Project="hogweed.props"/>
+		<Import Condition="$(nettleImported)!=true" Project="nettle.props"/>
+		<Import Condition="$(CommonImported)!=true" Project="Common.props"/>
+	</ImportGroup>
+	<PropertyGroup Label="UserMacros"/>
+	<PropertyGroup>
+		<librtmpImported>true</librtmpImported>
+	</PropertyGroup>
+	<ItemDefinitionGroup>
+		<ClCompile>
+			<AdditionalIncludeDirectories>;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+		</ClCompile>
+		<Link>
+			<AdditionalLibraryDirectories>;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+			<AdditionalDependencies>gmp.lib;rtmp.lib;z.lib;%(AdditionalDependencies)</AdditionalDependencies>
+		</Link>
+	</ItemDefinitionGroup>
+	<ItemGroup/>
+</Project>

@@ -1,12 +1,37 @@
 #:kivy 1.0
 
-<MainMenu>:
+<MainMenuWindow>:
     GridLayout:
-        cols: 2
-        row_force_default: True, 
-        row_default_height: 40
-        spacing: 50
-        Button:
-            text: "Jahody"
-        Button:
-            text: "Maliny"
+        cols: 3
+        canvas:
+            Rectangle:
+                pos: self.pos
+                size: self.size
+                source: 'city.jpg'
+
+        GridLayout:
+            rows: 4
+            padding: root.width/100
+            spacing: root.height/100
+
+            canvas:
+                Color:
+                    rgba: 0, 0, 0, 0.6
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            Button:
+                text: "Unsupervised Learning"
+                font_size: (root.width + root.height) / 100
+            Button:
+                text: "Supervised Learning"
+                font_size: (root.width + root.height) / 100
+            Button:
+                text: "Exit"
+                font_size: (root.width + root.height) / 100
+                on_press: app.stop() 
+        Label:
+            text: ""
+        Label:
+            text: ""

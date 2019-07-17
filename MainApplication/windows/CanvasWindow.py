@@ -30,6 +30,7 @@ class Floor():
     def __init__(self, space, a, b, radius=1, color=(0.2,0.2,0.2,1), friction=1):
         self.segment = pymunk.Segment(space.static_body, a,b,radius)
         self.segment.friction = friction
+        self.segment.elasticity = 0.85
         self.points = (a[0],a[1],b[0],b[1])
         self.radius = radius
         self.space = space
@@ -41,7 +42,7 @@ class Floor():
     def draw(self, canvas):
         with canvas:
             Color(rgba=self.color)
-            self.ky = Line(points=self.points, width=self.radius)
+            self.segment.ky = Line(points=self.points, width=self.radius)
 
 class PymunkDemo(RelativeLayout):
     def box(self, space):
@@ -54,6 +55,7 @@ class PymunkDemo(RelativeLayout):
         shape = pymunk.Poly.create_box(body, size)
         body.position = pos
         shape.friction = 1
+        shape.elasticity = 0.4
 
         space.add(body, shape)
 
@@ -66,16 +68,16 @@ class PymunkDemo(RelativeLayout):
         self.touches = {}
 
     def start(self):
+        self.scaller = self.height/1080 + self.width/1920
         self.space = space = pymunk.Space()
-        space.gravity = 0, -600
+        space.gravity = 0, 0
         space.sleep_time_threshold = 0.3
         space.steps = 0
         
         wall_width = 10
-        floors = (Floor(space, (0,0), (900,0), wall_width), Floor(space, (0,0),(0,900),wall_width), Floor(space, (0,900),(900,900),wall_width), Floor(space, (900,0), (900,900), wall_width))
+        self.floors = (Floor(space, (0,0), (900,0), wall_width), Floor(space, (0,0),(0,900),wall_width), Floor(space, (0,900),(900,900),wall_width), Floor(space, (900,0), (900,900), wall_width))
 
-
-        for floor in floors:
+        for floor in self.floors:
             floor.add()
             floor.draw(self.canvas)
 
@@ -93,84 +95,83 @@ class PymunkDemo(RelativeLayout):
         self.start()
 
     def update(self, dt):
+    
+        #Scalling coeficient
+        scaller = self.height/2160 + self.width/3840
+        
+        #If resolution has changed change scaling on all shapes
+        if(scaller != self.scaller):
+            self.scaller = scaller
+            scallerChanged = True
+        else:
+            scallerChanged = False
+
+        #Physics simulation
         for x in range(2):
+            for shape in self.space.shapes:
+                if(not shape.body.is_sleeping):
+                    #Zero-out velocity vector if it is approaching 0
+                    if(shape.body.velocity.length < 0.001):
+                        shape.body.velocity = Vec2d(0,0)
+
+                    #Apply friction every frame *not frame dependent /dt/*
+                    shape.body.velocity *= 1 - (dt*0.80)
+                    shape.body.angular_velocity *= 1 - (dt*0.80)
+
+            #Stepping space simul
             self.space.step(dt)
             self.space.steps += 1
 
+        #Move all shapes in kivy based on bodies --> calculated objects, Also scale everything --> scaller
         for shape in self.space.shapes:
-            if hasattr(shape, "ky") and not shape.body.is_sleeping:
+            if(hasattr(shape, "ky") and (not shape.body.is_sleeping or scallerChanged)):
                 if isinstance(shape, pymunk.Circle):
                     body = shape.body
-                    shape.ky[0].pos = body.position - (shape.radius, shape.radius)
-                    circle_edge = body.position + Vec2d(shape.radius, 0).rotated(body.angle)
-                    shape.ky[1].points = [body.position.x, body.position.y, circle_edge.x,   circle_edge.y]
+                    shape.ky.size = [shape.radius*2*self.scaller, shape.radius*2*self.scaller]
+                    shape.ky.pos = (body.position - (shape.radius, shape.radius)) * (self.scaller, self.scaller)
                 if isinstance(shape, pymunk.Segment):
+                    for floor in self.floors:
+                        if(shape.ky == floor.segment.ky):
+                            shape.ky.width = floor.radius * self.scaller
+
                     body = shape.body
-                    p1 = body.position + shape.a.cpvrotate(body.rotation_vector)
+                    p1 = body.position + shape.a.cpvrotate(body.rotation_vector) 
                     p2 = body.position + shape.b.cpvrotate(body.rotation_vector)
-                    shape.ky.points = p1.x, p1.y, p2.x, p2.y
+                    shape.ky.points = p1.x * self.scaller, p1.y * self.scaller, p2.x * self.scaller, p2.y * self.scaller
                 if isinstance(shape, pymunk.Poly):
                     shape.ky.points = self.points_from_poly(shape)
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
             touch.ungrab(self)
-            p = self.to_local(*touch.pos)
-            d = self.touches[touch.uid]
-
-            d["line"].points = [d["start"][0] ,d["start"][1], p[0], p[1]]
-            self.canvas.remove(d["line"])
-
-            mass = 50
-            radius = 15
-            moment = pymunk.moment_for_circle(mass, 0, radius)
-            b = pymunk.Body(mass, moment)
-            s = pymunk.Circle(b, radius)
-            s.color = .86,.2,.6
-            s.friction = 1
-            b.position = d["start"]
-            self.space.add(b,s)
-            impulse = 200 * (Vec2d(p) - Vec2d(d["start"]))
-            b.apply_impulse_at_local_point(impulse)
-            with self.canvas:
-                Color(*s.color)
-                s.ky = self.ellipse_from_circle(s)
 
     def on_touch_move(self, touch):
         if touch.grab_current is self:
             p = self.to_local(*touch.pos)
-            d = self.touches[touch.uid]
-            d["line"].points = [d["start"][0], d["start"][1], p[0], p[1]]
+            self.touches[1] = p
+
+            self.pos[0] -= self.touches[0][0]-self.touches[1][0]
+            self.pos[1] -= self.touches[0][1]-self.touches[1][1]
 
     def on_touch_down(self, touch):
         touch.grab(self)
         
         p = self.to_local(*touch.pos)
-        self.touches[touch.uid] = {"start": p}
-            
-        with self.canvas:
-            Color(1,0,0,0.5)
-            line = Line(points = [p[0], p[1], p[0], p[1]], width = 15)
-            
-            self.touches[touch.uid]["line"] = line
-
-        return True
-
+        self.touches[0] = p
 
     def ellipse_from_circle(self, shape):
-        pos = shape.body.position - (shape.radius, shape.radius)
-        e = Ellipse(pos=pos, size=[shape.radius*2, shape.radius*2])
-        circle_edge = shape.body.position + Vec2d(shape.radius, 0).rotated(shape.body.angle)
+        body = shape.body
+        pos = body.position - (shape.radius, shape.radius)
+        e = Ellipse(pos=pos * (self.scaller, self.scaller), size=[shape.radius*2*self.scaller, shape.radius*2*self.scaller])
         Color(.17,.24,.31)
-        l = Line(points = [shape.body.position.x, shape.body.position.y, circle_edge.x, circle_edge.y])
-        return e,l
+        return e
 
     def points_from_poly(self, shape):
         body = shape.body
         ps = [p.rotated(body.angle) + body.position for p in shape.get_vertices()]
         vs = []
         for p in ps:
-            vs += [p.x, p.y]
+            vs += [p.x * self.scaller, p.y * self.scaller]
         return vs
 
 #Canvas class
@@ -179,7 +180,7 @@ class CanvasWindow(Screen):
         super(CanvasWindow, self).__init__(**kwargs)
         self.game = PymunkDemo()
         self.game.size_hint = 1,1
-        self.game.pos = 0,300
+        self.game.pos = 0,0
         self.add_widget(self.game)
         self.game.init()
 

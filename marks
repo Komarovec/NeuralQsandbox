@@ -1,4 +1,6 @@
-4.7.2019 - 4h
-11.7.2019 - 4h
-12.7.2019 - 5h
-15.7.2019 - 3h
+4.7.2019 - 4h - Kivy ?
+11.7.2019 - 4h - Kivy okna
+12.7.2019 - 5h - Kivy víc oken + Pymunk
+15.7.2019 - 3h - Pymunk implementace
+16.7.2019 - 9h - Fyzika Pymunk, Škálování kanvasu
+17.7.2019 - 8h - Škálování všech objektu, top-down fyzika (odpor), pohyb po kanvasu

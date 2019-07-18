@@ -8,13 +8,13 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
 from kivy.uix.screenmanager import ScreenManager, Screen
-
 from kivy.uix.label import Label
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.scatter import Scatter
 from kivy.uix.scatterlayout import ScatterLayout
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.anchorlayout import AnchorLayout
+from kivy.uix.actionbar import ActionBar
 from kivy.uix.image import Image
 from kivy.clock import Clock
 from kivy.graphics import Ellipse, Line, Color, Triangle, Quad, Rectangle, Mesh
@@ -178,11 +178,23 @@ class PymunkDemo(RelativeLayout):
 class CanvasWindow(Screen):
     def __init__(self, **kwargs):
         super(CanvasWindow, self).__init__(**kwargs)
+
+    def on_enter(self, **kwargs):
         self.game = PymunkDemo()
         self.game.size_hint = 1,1
         self.game.pos = 0,0
-        self.add_widget(self.game)
+        self.add_widget(self.game, 10)
         self.game.init()
+        self.game.start()
 
-    def on_enter(self, **kwargs):
+    def on_leave(self, **kwargs):
+        self.remove_widget(self.game)
+
+    def reset(self):
+        self.remove_widget(self.game)
+        self.game = PymunkDemo()
+        self.game.size_hint = 1,1
+        self.game.pos = 0,0
+        self.add_widget(self.game, 10)
+        self.game.init()
         self.game.start()

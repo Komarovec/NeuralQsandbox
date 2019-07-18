@@ -1,3 +1,18 @@
 #:kivy 1.0
 
 <CanvasWindow>:
+    ActionBar:
+        pos_hint: {'top':1}
+        ActionView:
+            use_separator: True
+            ActionPrevious:
+                important: True
+                text: 'Mainmenu'
+                on_press: 
+                    root.manager.transition.direction = 'right'
+                    root.manager.current = 'mainmenu'
+            ActionOverflow:
+            ActionButton:
+                text: 'Reset'
+                on_press: 
+                    root.reset()

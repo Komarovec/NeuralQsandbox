@@ -29,11 +29,12 @@ for screen in screens:
 
 sm.current = "mainmenu"
 
+#Turn off multitouch emulation
+from kivy.config import Config
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
+
 #Main class
 class NeuralApp(App):
-    def canvasButton(self):
-        sm.current = "canvas"
-
     def build(self):
         return sm
 

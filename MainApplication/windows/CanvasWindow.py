@@ -26,66 +26,45 @@ import pymunk
 import pymunk.autogeometry
 from pymunk.vec2d import Vec2d
 
-class Floor():
-    def __init__(self, space, a, b, radius=1, color=(0.2,0.2,0.2,1), friction=1):
-        self.segment = pymunk.Segment(space.static_body, a,b,radius)
-        self.segment.friction = friction
-        self.segment.elasticity = 0.85
-        self.points = (a[0],a[1],b[0],b[1])
-        self.radius = radius
-        self.space = space
-        self.color = color
+import math
 
-    def add(self):
-        self.space.add(self.segment)
+#Custom function and classes
+from objs.Car import Car
+from objs.Barrier import Barrier
+from objs.kivyObjs import ellipse_from_circle, points_from_poly
 
-    def draw(self, canvas):
-        with canvas:
-            Color(rgba=self.color)
-            self.segment.ky = Line(points=self.points, width=self.radius)
 
 class PymunkDemo(RelativeLayout):
-    def box(self, space):
-        mass = 10
-        size = (100,50)
-        pos = (100,200)
-
-        moment = pymunk.moment_for_box(mass, size)
-        body = pymunk.Body(mass, moment)          
-        shape = pymunk.Poly.create_box(body, size)
-        body.position = pos
-        shape.friction = 1
-        shape.elasticity = 0.4
-
-        space.add(body, shape)
-
-        with self.canvas:
-            Color(1,0,0)
-            shape.ky = Quad(points=self.points_from_poly(shape))
-
     def init(self):
         self.step = 1/60.
         self.touches = {}
 
     def start(self):
-        self.scaller = self.height/1080 + self.width/1920
+        #Setting up few things
+        self.scaller = self.height/2160 + self.width/3840
         self.space = space = pymunk.Space()
         space.gravity = 0, 0
         space.sleep_time_threshold = 0.3
         space.steps = 0
-        
-        wall_width = 10
-        self.floors = (Floor(space, (0,0), (900,0), wall_width), Floor(space, (0,0),(0,900),wall_width), Floor(space, (0,900),(900,900),wall_width), Floor(space, (900,0), (900,900), wall_width))
 
-        for floor in self.floors:
-            floor.add()
-            floor.draw(self.canvas)
+        #Keyboard listener
+        self._keyboard = Window.request_keyboard(self._keyboard_closed, self, 'text')
+        self._keyboard.bind(on_key_down=self._on_keyboard_down)
 
-        self.box(space)
+        #Spawning objects
+        car = Car(self.canvas, self.scaller, 10, (100,50), (500,250))
+        barriers = [Barrier(self.canvas, (0,0), (1000,0), 20), Barrier(self.canvas, (1000,0), (1000,500), 20), Barrier(self.canvas, (1000,500), (0,500), 20), Barrier(self.canvas, (0,0), (0,500), 20)]
 
+        for barrier in barriers:
+            self.space.add(barrier)
+
+        self.space.add(car.body, car)
+
+        #No idea
         def wrap(f):
             return lambda dt: f(space)
 
+        #Set time clock
         Clock.schedule_interval(self.update, 1.0 / 1000.)
 
     def reset(self, *args):
@@ -95,7 +74,6 @@ class PymunkDemo(RelativeLayout):
         self.start()
 
     def update(self, dt):
-    
         #Scalling coeficient
         scaller = self.height/2160 + self.width/3840
         
@@ -129,18 +107,21 @@ class PymunkDemo(RelativeLayout):
                     body = shape.body
                     shape.ky.size = [shape.radius*2*self.scaller, shape.radius*2*self.scaller]
                     shape.ky.pos = (body.position - (shape.radius, shape.radius)) * (self.scaller, self.scaller)
+
                 if isinstance(shape, pymunk.Segment):
-                    for floor in self.floors:
-                        if(shape.ky == floor.segment.ky):
-                            shape.ky.width = floor.radius * self.scaller
+                    #If Is barrier class than increase width by scaller
+                    if isinstance(shape, Barrier):
+                        shape.ky.width = shape.rad * self.scaller
 
                     body = shape.body
                     p1 = body.position + shape.a.cpvrotate(body.rotation_vector) 
                     p2 = body.position + shape.b.cpvrotate(body.rotation_vector)
                     shape.ky.points = p1.x * self.scaller, p1.y * self.scaller, p2.x * self.scaller, p2.y * self.scaller
-                if isinstance(shape, pymunk.Poly):
-                    shape.ky.points = self.points_from_poly(shape)
 
+                if isinstance(shape, pymunk.Poly):
+                    shape.ky.points = points_from_poly(shape, scaller)
+
+    #Interface functions
     def on_touch_up(self, touch):
         if touch.grab_current is self:
             touch.ungrab(self)
@@ -159,22 +140,30 @@ class PymunkDemo(RelativeLayout):
         p = self.to_local(*touch.pos)
         self.touches[0] = p
 
-    def ellipse_from_circle(self, shape):
-        body = shape.body
-        pos = body.position - (shape.radius, shape.radius)
-        e = Ellipse(pos=pos * (self.scaller, self.scaller), size=[shape.radius*2*self.scaller, shape.radius*2*self.scaller])
-        Color(.17,.24,.31)
-        return e
+    def _keyboard_closed(self):
+        print('My keyboard have been closed!')
+        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        self._keyboard = None
 
-    def points_from_poly(self, shape):
-        body = shape.body
-        ps = [p.rotated(body.angle) + body.position for p in shape.get_vertices()]
-        vs = []
-        for p in ps:
-            vs += [p.x * self.scaller, p.y * self.scaller]
-        return vs
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        for shape in self.space.shapes:
+            if isinstance(shape, Car):
+                if(keycode[1] == 'up'):
+                    shape.body.apply_force_at_local_point(Vec2d(100000*self.scaller,0), (0,0))
+                if(keycode[1] == 'down'):
+                    shape.body.apply_force_at_local_point(Vec2d(-100000*self.scaller,0), (0,0))
+                if(keycode[1] == 'left'):
+                    shape.body.angle += (math.pi/20)
+                    self.space.reindex_shapes_for_body(shape.body)
+                if(keycode[1] == 'right'):
+                    shape.body.angle -= (math.pi/20)
+                    self.space.reindex_shapes_for_body(shape.body)
 
-#Canvas class
+
+
+
+
+#Main class
 class CanvasWindow(Screen):
     def __init__(self, **kwargs):
         super(CanvasWindow, self).__init__(**kwargs)

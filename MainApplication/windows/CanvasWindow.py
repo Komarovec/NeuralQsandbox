@@ -36,13 +36,22 @@ from objs.kivyObjs import ellipse_from_circle, points_from_poly
 
 class PymunkDemo(RelativeLayout):
     def init(self):
+        #Important values
         self.step = 1/60.
         self.touches = {}
+        self.keys = {"up" : 0, "down" : 0, "left" : 0, "right" : 0}
 
     def start(self):
         #Setting up few things
         self.scaller = self.height/2160 + self.width/3840
         self.space = space = pymunk.Space()
+
+        self.handler = space.add_default_collision_handler()
+        self.handler.begin = self.coll_begin
+        self.handler.pre_solve = self.coll_pre
+        self.handler.post_solve = self.coll_post
+        self.handler.separate = self.coll_separate
+
         space.gravity = 0, 0
         space.sleep_time_threshold = 0.3
         space.steps = 0
@@ -50,10 +59,11 @@ class PymunkDemo(RelativeLayout):
         #Keyboard listener
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self, 'text')
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
+        self._keyboard.bind(on_key_up=self._on_keyboard_up)
 
         #Spawning objects
-        car = Car(self.canvas, self.scaller, 10, (100,50), (500,250))
-        barriers = [Barrier(self.canvas, (0,0), (1000,0), 20), Barrier(self.canvas, (1000,0), (1000,500), 20), Barrier(self.canvas, (1000,500), (0,500), 20), Barrier(self.canvas, (0,0), (0,500), 20)]
+        car = Car(self.canvas, self.scaller, 10, (100,50), (300,250), ground_friction=1, angular_friction=3)
+        barriers = [Barrier(self.canvas, (0,0), (10000,0), 20), Barrier(self.canvas, (10000,0), (10000,5000), 20), Barrier(self.canvas, (10000,5000), (0,5000), 20), Barrier(self.canvas, (0,0), (0,5000), 20)]
 
         for barrier in barriers:
             self.space.add(barrier)
@@ -65,7 +75,7 @@ class PymunkDemo(RelativeLayout):
             return lambda dt: f(space)
 
         #Set time clock
-        Clock.schedule_interval(self.update, 1.0 / 1000.)
+        Clock.schedule_interval(self.update, 1.0 / 10000)
 
     def reset(self, *args):
         self.clear_widgets()
@@ -74,6 +84,24 @@ class PymunkDemo(RelativeLayout):
         self.start()
 
     def update(self, dt):
+        #Debug vypis
+        if(self.space.steps % 100 == 0):
+            print(self.keys)
+
+        #Controls
+        for shape in self.space.shapes:
+            if isinstance(shape, Car):
+                if(self.keys["up"] == 1):
+                    shape.body.apply_force_at_local_point(Vec2d(shape.forward_speed*dt*100,0), (0,0))
+                if(self.keys["down"] == 1):
+                    shape.body.apply_force_at_local_point(Vec2d(-shape.backward_speed*dt*100,0), (0,0))
+                if(self.keys["left"] == 1):
+                    shape.body.apply_force_at_local_point(Vec2d(-shape.angular_speed*dt*100,0), (0,shape.size[0]))
+                    shape.body.apply_force_at_local_point(Vec2d(shape.angular_speed*dt*100,0), (0,-shape.size[0]))
+                if(self.keys["right"] == 1):
+                    shape.body.apply_force_at_local_point(Vec2d(shape.angular_speed*dt*100,0), (0,shape.size[0]))
+                    shape.body.apply_force_at_local_point(Vec2d(-shape.angular_speed*dt*100,0), (0,-shape.size[0]))
+
         #Scalling coeficient
         scaller = self.height/2160 + self.width/3840
         
@@ -88,13 +116,21 @@ class PymunkDemo(RelativeLayout):
         for x in range(2):
             for shape in self.space.shapes:
                 if(not shape.body.is_sleeping):
+                    #If there is friction set by class use it
+                    if(isinstance(shape, Car)):
+                        friction = shape.ground_friction
+                        angular_friction = shape.angular_friction
+                    else:
+                        friction = 0.9
+                        angular_friction = 0.9
+
                     #Zero-out velocity vector if it is approaching 0
                     if(shape.body.velocity.length < 0.001):
                         shape.body.velocity = Vec2d(0,0)
 
                     #Apply friction every frame *not frame dependent /dt/*
-                    shape.body.velocity *= 1 - (dt*0.80)
-                    shape.body.angular_velocity *= 1 - (dt*0.80)
+                    shape.body.velocity *= 1 - (dt*friction)
+                    shape.body.angular_velocity *= 1 - (dt*angular_friction)
 
             #Stepping space simul
             self.space.step(dt)
@@ -121,6 +157,21 @@ class PymunkDemo(RelativeLayout):
                 if isinstance(shape, pymunk.Poly):
                     shape.ky.points = points_from_poly(shape, scaller)
 
+    #Collistions handlers
+    def coll_begin(self, arbiter, space, data):
+        print("Begin")
+        return True
+
+    def coll_pre(self, arbiter, space, data):
+        print("Pre solve")
+        return True
+
+    def coll_post(self, arbiter, space, data):
+        print("Post solve")
+
+    def coll_separate(self, arbiter, space, date):
+        print("Separated")
+
     #Interface functions
     def on_touch_up(self, touch):
         if touch.grab_current is self:
@@ -145,22 +196,11 @@ class PymunkDemo(RelativeLayout):
         self._keyboard.unbind(on_key_down=self._on_keyboard_down)
         self._keyboard = None
 
+    def _on_keyboard_up(self, keyboard, keycode):
+        self.keys[keycode[1]] = 0
+
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        for shape in self.space.shapes:
-            if isinstance(shape, Car):
-                if(keycode[1] == 'up'):
-                    shape.body.apply_force_at_local_point(Vec2d(100000*self.scaller,0), (0,0))
-                if(keycode[1] == 'down'):
-                    shape.body.apply_force_at_local_point(Vec2d(-100000*self.scaller,0), (0,0))
-                if(keycode[1] == 'left'):
-                    shape.body.angle += (math.pi/20)
-                    self.space.reindex_shapes_for_body(shape.body)
-                if(keycode[1] == 'right'):
-                    shape.body.angle -= (math.pi/20)
-                    self.space.reindex_shapes_for_body(shape.body)
-
-
-
+        self.keys[keycode[1]] = 1
 
 
 #Main class

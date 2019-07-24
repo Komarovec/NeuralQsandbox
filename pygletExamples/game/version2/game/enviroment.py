@@ -1,2 +1,0 @@
-
-resistance = 50

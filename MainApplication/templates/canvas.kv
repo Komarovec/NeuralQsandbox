@@ -1,7 +1,32 @@
 #:kivy 1.0
 
 <CanvasWindow>:
+    mainActionBar: mainActionBar
+    levelEditActionBar: levelEditActionBar
+
     ActionBar:
+        id: levelEditActionBar
+        pos_hint: {'top':1}
+
+        ActionView:
+            use_separator: True
+            ActionPrevious:
+                important: True
+                text: 'Game menu'
+                on_press: 
+                    root.add_widget(mainActionBar)
+            ActionOverflow:
+            ActionButton:
+                text: 'Add Barrier'
+                on_press:
+                    root.game.addBarrier()
+            ActionButton:
+                text: 'Delete'
+                on_press:
+                    root.game.deleteObject()
+
+    ActionBar:
+        id: mainActionBar
         pos_hint: {'top':1}
         ActionView:
             use_separator: True
@@ -16,3 +41,7 @@
                 text: 'Reset'
                 on_press: 
                     root.reset()
+            ActionButton:
+                text: 'Level Editor'
+                on_press:
+                    root.remove_widget(mainActionBar)

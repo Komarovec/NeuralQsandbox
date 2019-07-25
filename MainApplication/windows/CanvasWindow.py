@@ -29,8 +29,8 @@ from pymunk.vec2d import Vec2d
 import math
 
 #Custom function and classes
+from objs.GameObjects import Barrier, Start, Finish
 from objs.Car import Car
-from objs.Barrier import Barrier
 from objs.kivyObjs import ellipse_from_circle, points_from_poly
 
 
@@ -47,7 +47,11 @@ class PymunkDemo(RelativeLayout):
         self.adding_barrier = False
         self.temp_barrier = None
         
-        self.delete = False
+        self.deleteObject = False
+        self.moveObject = False
+        self.movingObject = False
+        self.movingVar = None
+        self.movingPoint = None
 
     def start(self):
         #Setting up few things
@@ -70,12 +74,17 @@ class PymunkDemo(RelativeLayout):
         self._keyboard.bind(on_key_up=self._on_keyboard_up)
 
         #Spawning objects
-        car = Car(self.canvas, self.scaller, 10, (100,50), (300,250), ground_friction=1, angular_friction=3)
         barriers = [Barrier(self.canvas, (0,0), (2000,0), 20), Barrier(self.canvas, (2000,0), (2000,1000), 20), Barrier(self.canvas, (2000,1000), (0,1000), 20), Barrier(self.canvas, (0,0), (0,1000), 20)]
+        start = Start(self.canvas, (500,500), (500,600), 20, rgba=(0,0.6,0,0.6))
+        finish = Finish(self.canvas, (1000,600), (1000,650), 20, rgba=(0.6,0,0,0.6))
+        car = Car(self.canvas, self.scaller, 10, (100,50), ((start.points[0]+start.points[1])/2, (start.points[2]+start.points[3])/2), ground_friction=1, angular_friction=3)
+
+        print(start.body.position)
 
         for barrier in barriers:
             self.space.add(barrier)
-
+        self.space.add(start.body, start)
+        self.space.add(finish.body, finish)
         self.space.add(car.body, car)
 
         #No idea
@@ -93,19 +102,19 @@ class PymunkDemo(RelativeLayout):
 
     def update(self, dt):
         #Debug vypis
-        if(self.space.steps % 100 == 0):
-            print(self.keys)
+        #if(self.space.steps % 100 == 0):
+        #    print(self.keys)
 
         #--- Controls ----
         #Barrier editing
-        if(self.adding_barrier):
+        if(self.temp_barrier != None):
             if(self.keys["up"] == 1):
                 if(self.temp_barrier.width < 100):
                     self.temp_barrier.width += 1
             elif(self.keys["down"] == 1):
                 if(self.temp_barrier.width > 1):
                     self.temp_barrier.width -= 1
-        
+
         #Car control <---- MOVE TO CAR CLASS
         else:
             for shape in self.space.shapes:
@@ -165,7 +174,7 @@ class PymunkDemo(RelativeLayout):
 
                 if isinstance(shape, pymunk.Segment):
                     #If Is barrier class than increase width by scaller
-                    if isinstance(shape, Barrier):
+                    if isinstance(shape, Barrier) or isinstance(shape, Start) or isinstance(shape, Finish):
                         shape.ky.width = shape.rad * self.scaller
 
                     body = shape.body
@@ -177,32 +186,32 @@ class PymunkDemo(RelativeLayout):
                     shape.ky.points = points_from_poly(shape, scaller)
 
     #Level editor
-    def addBarrier(self):
+    def addObject(self, obj):
         self.add_barrier = True
-
-    def deleteObject(self):
-        self.delete = True
 
     #Collistions handlers
     def coll_begin(self, arbiter, space, data):
-        print(arbiter.shapes)
+        if((isinstance(arbiter.shapes[0], Car) and isinstance(arbiter.shapes[1], Finish)) or (isinstance(arbiter.shapes[1], Car) and isinstance(arbiter.shapes[0], Finish))):
+            pass
         return True
 
     def coll_pre(self, arbiter, space, data):
-        print("Pre solve")
         return True
 
     def coll_post(self, arbiter, space, data):
-        print("Post solve")
+        pass
 
     def coll_separate(self, arbiter, space, date):
-        print("Separated")
+        pass
 
 
     #Interface functions
     def on_touch_up(self, touch):
+        #Ungrab screen when stopped touching
         if touch.grab_current is self:
             touch.ungrab(self)
+        
+        #Create body for barrier and place it in place
         elif(self.adding_barrier):
             #Delete temp line when cursor removed
             self.add_barrier = False
@@ -215,20 +224,42 @@ class PymunkDemo(RelativeLayout):
                                                 self.temp_barrier.width/self.scaller))
 
             self.canvas.remove(self.temp_barrier)
+            self.temp_barrier = None
+
+        #Stop moving
+        elif(self.movingObject):
+            self.moveObject = False
+            self.movingObject = False
+            self.movingVar = None
+            self.movingPoint = None
+            self.temp_barrier = None
 
     def on_touch_move(self, touch):
-        if touch.grab_current is self:
-            p = self.to_local(*touch.pos)
-            self.touches[1] = p
+        p = self.to_local(*touch.pos)
+        self.touches[1] = p
 
+        #Move screen when grabbed
+        if touch.grab_current is self:
             self.pos[0] -= self.touches[0][0]-self.touches[1][0]
             self.pos[1] -= self.touches[0][1]-self.touches[1][1]
+        
+        #If adding_barrier then show "pre barrier"
         elif(self.adding_barrier):
-            p = self.to_local(*touch.pos)
-            self.touches[1] = p
-
             #Update line when moved
             self.temp_barrier.points = [self.touches[0][0], self.touches[0][1], p[0], p[1]]
+
+        #If move, move clicked on object
+        elif(self.movingObject):
+            if(isinstance(self.movingVar, Car)):
+                p_scaled = (p[0]/self.scaller,p[1]/self.scaller)
+                self.movingVar.body.position = p_scaled 
+            if(isinstance(self.movingVar, pymunk.Segment)):
+                if(self.movingPoint == "a"):
+                    self.movingVar.unsafe_set_endpoints((p[0]/self.scaller, p[1]/self.scaller) ,self.movingVar.b)
+                else:
+                    self.movingVar.unsafe_set_endpoints(self.movingVar.a, (p[0]/self.scaller, p[1]/self.scaller))
+                self.space.reindex_shapes_for_body(self.movingVar.body)
+
 
     def on_touch_down(self, touch):
         #Scale screen if mouse scroll
@@ -251,7 +282,9 @@ class PymunkDemo(RelativeLayout):
                 line = Line(points = [p[0], p[1], p[0], p[1]], width = 15)
             
             self.temp_barrier = line
-        elif(self.delete):
+
+        #Delete Object
+        elif(self.deleteObject):
             deletePoint = (p[0]/self.scaller, p[1]/self.scaller)
 
             for shape in self.space.shapes:
@@ -259,7 +292,37 @@ class PymunkDemo(RelativeLayout):
                     self.space.remove(shape)
                     self.canvas.remove(shape.ky)
 
-            self.delete = False
+            self.deleteObject = False
+
+        #Move object
+        elif(self.moveObject):
+            self.movingObject = True
+            movePoint = (p[0]/self.scaller, p[1]/self.scaller)
+
+            for shape in self.space.shapes:
+                if(shape.point_query(movePoint)[0] < 0):
+                    #Move depending on the type
+                    if(isinstance(shape, Car)):
+                        self.movingVar = shape
+                    if(isinstance(shape, pymunk.Segment)):
+                        #Use nearest endpoint
+                        self.movingVar = shape
+                        p1 = movePoint
+                        p2 = shape.a
+                        p3 = shape.b
+                        distance1 = math.sqrt(((p1[0]-p2[0])**2)+((p1[1]-p2[1])**2))
+                        distance2 = math.sqrt(((p1[0]-p3[0])**2)+((p1[1]-p3[1])**2))
+                        if(distance1 < distance2):
+                            self.movingPoint = "a"
+                        else:
+                            self.movingPoint = "b"
+
+            #If clicked on void turn off moving
+            if(self.movingVar == None):
+                self.movingObject = False
+                self.moveObject = False
+
+        #If no special actions then just move screen
         else:    
             touch.grab(self)
 

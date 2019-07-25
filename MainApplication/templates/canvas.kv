@@ -19,11 +19,15 @@
             ActionButton:
                 text: 'Add Barrier'
                 on_press:
-                    root.game.addBarrier()
+                    root.game.addObject("barrier")
+            ActionButton:
+                text: 'Move'
+                on_press:
+                    root.game.moveObject = True
             ActionButton:
                 text: 'Delete'
                 on_press:
-                    root.game.deleteObject()
+                    root.game.deleteObject = True
 
     ActionBar:
         id: mainActionBar

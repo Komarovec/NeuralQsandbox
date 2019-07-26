@@ -10,9 +10,12 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
 from kivy.uix.screenmanager import ScreenManager, Screen
-
 from windows.CanvasWindow import CanvasWindow
 
+from kivy.config import Config
+Config.set('graphics', 'width', '1280')
+Config.set('graphics', 'height', '720')
+Config.write()
 #Window classes
 class MainMenuWindow(Screen):
     pass

@@ -1,0 +1,7 @@
+('D:\\Entertaiment\\Programy\\Python\\NeuralSandbox2\\venv\\share\\glew\\bin',
+ None,
+ [],
+ 'DATA',
+ [('glew32.dll',
+   'D:\\Entertaiment\\Programy\\Python\\NeuralSandbox2\\venv\\share\\glew\\bin\\glew32.dll',
+   'DATA')])

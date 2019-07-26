@@ -15,19 +15,20 @@
                 text: 'Game menu'
                 on_press: 
                     root.add_widget(mainActionBar)
+                    root.game.state = "game"
             ActionOverflow:
-            ActionButton:
-                text: 'Add Barrier'
-                on_press:
-                    root.game.addObject("barrier")
-            ActionButton:
-                text: 'Move'
-                on_press:
-                    root.game.moveObject = True
-            ActionButton:
-                text: 'Delete'
-                on_press:
-                    root.game.deleteObject = True
+            ActionGroup:
+                id: App_ActionGroup
+                mode: 'spinner'
+                text: 'Tools'
+                ActionButton:
+                    text: 'Add Barrier'
+                    on_press:
+                        root.game.addObject("barrier")
+                ActionButton:
+                    text: 'Delete'
+                    on_press:
+                        root.game.deleteObject = True
 
     ActionBar:
         id: mainActionBar
@@ -49,3 +50,4 @@
                 text: 'Level Editor'
                 on_press:
                     root.remove_widget(mainActionBar)
+                    root.game.state = "editor"

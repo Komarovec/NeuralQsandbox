@@ -1,53 +1,107 @@
 #:kivy 1.0
 
-<CanvasWindow>:
+<StateBar>:
+    id: statebar
+    canvas:
+        Color:
+            rgba: .1, .1, .1, 1
+        Rectangle:
+            size: (root.width,root.height/20)
+            pos: (0,0)
+
+    GridLayout:
+        size: (root.width,root.height/20)
+        pos: (0,0)
+        cols: 3
+
+        Label:
+            id: steps
+            text: "Steps: 0"
+            font_size: (root.width + root.height) / root.scaleFactor
+
+        Label:
+            id: tool
+            text: "Game state"
+            font_size: (root.width + root.height) / root.scaleFactor
+
+        Label:
+            id: idk
+            text: ""
+            font_size: (root.width + root.height) / root.scaleFactor
+
+<ToolBar>:
     mainActionBar: mainActionBar
     levelEditActionBar: levelEditActionBar
 
     ActionBar:
         id: levelEditActionBar
-        pos_hint: {'top':1}
+        size: (root.width, root.height/20)
+        pos: (0,root.height-self.height)
 
         ActionView:
             use_separator: True
             ActionPrevious:
                 important: True
                 text: 'Game menu'
+                font_size: (root.width + root.height) / root.scaleFactor
                 on_press: 
                     root.add_widget(mainActionBar)
-                    root.game.state = "game"
+                    root.game.changeState("game")
             ActionOverflow:
             ActionGroup:
                 id: App_ActionGroup
                 mode: 'spinner'
+                text: 'File'
+                font_size: (root.width + root.height) / root.scaleFactor
+                ActionButton:
+                    text: 'Save File'
+                    font_size: (root.width + root.height) / root.scaleFactor
+                    on_press:
+                        #root.game.exportFile()
+                ActionButton:
+                    text: 'Load File'
+                    font_size: (root.width + root.height) / root.scaleFactor
+                    on_press:
+                        #root.game.importFile()
+            ActionGroup:
+                id: App_ActionGroup
+                mode: 'spinner'
                 text: 'Tools'
+                font_size: (root.width + root.height) / root.scaleFactor
                 ActionButton:
                     text: 'Add Barrier'
+                    font_size: (root.width + root.height) / root.scaleFactor
                     on_press:
-                        root.game.addObject("barrier")
+                        root.game.changeTool("barrier")
                 ActionButton:
                     text: 'Delete'
+                    font_size: (root.width + root.height) / root.scaleFactor
                     on_press:
-                        root.game.deleteObject = True
+                        root.game.changeTool("delete")
 
     ActionBar:
         id: mainActionBar
-        pos_hint: {'top':1}
+        size: (root.width, root.height/20)
+        pos: (0,root.height-self.height)
+
         ActionView:
             use_separator: True
             ActionPrevious:
                 important: True
                 text: 'Mainmenu'
+                font_size: (root.width + root.height) / root.scaleFactor
                 on_press: 
                     root.manager.transition.direction = 'right'
                     root.manager.current = 'mainmenu'
             ActionOverflow:
             ActionButton:
                 text: 'Reset'
+                font_size: (root.width + root.height) / root.scaleFactor
                 on_press: 
-                    root.reset()
+                    root.game.reset()
             ActionButton:
                 text: 'Level Editor'
+                font_size: (root.width + root.height) / root.scaleFactor
                 on_press:
                     root.remove_widget(mainActionBar)
-                    root.game.state = "editor"
+                    root.game.changeState("editor")

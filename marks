@@ -11,6 +11,7 @@
 24.7.2019 - 3h - Kolize, Arbiter, Škálování pomocí myš. kolečka, Základy level editoru (GUI, Barikády)
 25.7.2019 - 9h - Start a Finish class, Kolizní masky, Level editor (pohyb Auta, Segmentu)
 26.7.2019 - 9h - Level editor, zvyraznění těles, pohyb segmentu (celých), úprava kódu, test textur, build do exe
+29.7.2019 - 6h - Rozdeleni hlavnich trid, zlepseni prehlednosti kodu, stavovy bar, serializace objektu (zacatek)
 
 
 

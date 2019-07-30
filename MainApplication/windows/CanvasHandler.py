@@ -21,19 +21,17 @@ from kivy.graphics import Ellipse, Line, Color, Triangle, Quad, Rectangle, Mesh
 from kivy.core.window import Window
 from kivy.core.image import Image as CoreImage
 
-import pickle
-
-#Custom simul object right here nice mnam
-from windows.Simulation import Simulation
-
 import pymunk
-
 import math
+
+import json
 
 #Custom function and classes
 from objs.GameObjects import Barrier, Start, Finish
 from objs.Car import Car
 from objs.kivyObjs import ellipse_from_circle, points_from_poly, newRectangle
+from windows.Simulation import Simulation
+from windows.Level import Level
 
 class CanvasHandler(RelativeLayout):
     def init(self, window):
@@ -184,17 +182,12 @@ class CanvasHandler(RelativeLayout):
                     shape.ky.points = points_from_poly(shape, scaller)
 
     #Pickle export
-    """def exportFile(self):
-        object_sim = self.simulation
-        file_sim = open('simulation.obj', 'w') 
-        pickle.dump(object_sim, file_sim)
+    def exportFile(self):
+        Level.exportLevel(self.simulation.space)
 
     #Pickle import
     def importFile(self):
-        file_sim = open('simulation.obj', 'r') 
-        object_sim = pickle.load(file_sim)
-        self.simulation = object_sim
-"""
+        Level.importLevel(self.simulation)
     #Change tool
     def changeTool(self, tool):
         self.window.statebar.ids["tool"].text = "Tool: "+str(tool)
@@ -224,11 +217,13 @@ class CanvasHandler(RelativeLayout):
             self.adding_barrier = False
 
             #Nice
-            self.simulation.space.add(Barrier(self, (self.temp_barrier.points[0]/self.scaller, 
-                                                self.temp_barrier.points[1]/self.scaller), 
-                                                (self.temp_barrier.points[2]/self.scaller, 
-                                                self.temp_barrier.points[3]/self.scaller), 
-                                                self.temp_barrier.width/self.scaller))
+            new_barrier = Barrier((self.temp_barrier.points[0]/self.scaller, 
+                                    self.temp_barrier.points[1]/self.scaller), 
+                                    (self.temp_barrier.points[2]/self.scaller, 
+                                    self.temp_barrier.points[3]/self.scaller), 
+                                    self.temp_barrier.width/self.scaller)
+            self.simulation.space.add(new_barrier)
+            new_barrier.paint(self)
 
             self.canvas.remove(self.temp_barrier)
             self.temp_barrier = None

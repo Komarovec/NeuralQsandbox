@@ -20,7 +20,7 @@ class Simulation():
         self.step = 1/60.
         self.canvasWindow = canvasWindow
 
-    def start(self):
+    def setupSpace(self):
         self.space = space = pymunk.Space()
 
         self.handler = space.add_default_collision_handler()
@@ -33,15 +33,20 @@ class Simulation():
         space.sleep_time_threshold = 0.3
         space.steps = 0
 
-        #Spawning objects
-        barriers = [Barrier(self.canvasWindow, (0,0), (2000,0), 20), Barrier(self.canvasWindow, 
-                    (2000,0), (2000,1000), 20), Barrier(self.canvasWindow, (2000,1000), (0,1000), 20), 
-                    Barrier(self.canvasWindow, (0,0), (0,1000), 20)]
+        return space
 
-        start = Start(self.canvasWindow, (100,400), (100,600), 30, rgba=(0,0.6,0,0.6))
-        finish = Finish(self.canvasWindow, (1800,400), (1800,600), 30, rgba=(0.6,0,0,0.6))
+    def start(self):
+        space = self.setupSpace()
+
+        #Spawning objects
+        barriers = [Barrier((0,0), (2000,0), 20), Barrier((2000,0), (2000,1000), 20), 
+                    Barrier((2000,1000), (0,1000), 20), 
+                    Barrier((0,0), (0,1000), 20)]
+
+        start = Start((100,400), (100,600), 30, rgba=(0,0.6,0,0.6))
+        finish = Finish((1800,400), (1800,600), 30, rgba=(0.6,0,0,0.6))
         
-        car = Car(self.canvasWindow, None, 10, (100,50), ((start.a[0]+start.b[0])/2, 
+        car = Car(10, (100,50), ((start.a[0]+start.b[0])/2, 
                   (start.a[1]+start.b[1])/2), ground_friction=1, angular_friction=3)
 
         for barrier in barriers:
@@ -49,6 +54,10 @@ class Simulation():
         self.space.add(start.body, start)
         self.space.add(finish.body, finish)
         self.space.add(car.body, car)
+
+        #Draw objects
+        for shapes in self.space.shapes:
+            shapes.paint(self.canvasWindow)
 
         #No idea
         def wrap(f):

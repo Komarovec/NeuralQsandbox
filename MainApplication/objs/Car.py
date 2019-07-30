@@ -8,13 +8,11 @@ from kivy.graphics import Color, Quad
 from objs.kivyObjs import points_from_poly
 
 class Car(pymunk.Poly):
-    def __init__(self, canvasHandler, texture, mass=10, size=(100,50), pos=(100,100), friction=1, ground_friction=0.9, angular_friction=0.9, forward_speed = 5000, backward_speed = 5000, angular_speed = 500, elasticity=0.4, rgba=(0.8,0,0,1)):
+    def __init__(self, mass=10, size=(100,50), pos=(100,100), friction=1, ground_friction=0.9, angular_friction=0.9, forward_speed = 5000, backward_speed = 5000, angular_speed = 500, elasticity=0.4, rgba=(0.8,0,0,1), texture=None):
         body = pymunk.Body(mass, pymunk.moment_for_box(mass, size))
-        shape = pymunk.Poly.create_box(body, size);
+        shape = pymunk.Poly.create_box(body, (size[0],size[1]))
         super(Car, self).__init__(shape._get_body(), shape.get_vertices())
-
-        self.canvasHandler = canvasHandler
-
+        
         self.rgba = rgba
         self.forward_speed = forward_speed
         self.backward_speed = backward_speed
@@ -30,14 +28,12 @@ class Car(pymunk.Poly):
 
         self.filter = pymunk.ShapeFilter(categories=1, mask=(1 and 2))
 
-        self.paint()
-        
     #Paint Car
-    def paint(self):
-        with self.canvasHandler.canvas:
+    def paint(self, canvasHandler):
+        with canvasHandler.canvas:
             Color(rgba=self.rgba)
             #self.ky = Quad(points=points_from_poly(self, scaller), texture=self.texture)
-            self.ky = Quad(points=points_from_poly(self, self.canvasHandler.scaller))
+            self.ky = Quad(points=points_from_poly(self, canvasHandler.scaller))
 
     #Control methods
     def forward(self, vel):

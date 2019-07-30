@@ -12,6 +12,7 @@
 25.7.2019 - 9h - Start a Finish class, Kolizní masky, Level editor (pohyb Auta, Segmentu)
 26.7.2019 - 9h - Level editor, zvyraznění těles, pohyb segmentu (celých), úprava kódu, test textur, build do exe
 29.7.2019 - 6h - Rozdeleni hlavnich trid, zlepseni prehlednosti kodu, stavovy bar, serializace objektu (zacatek)
+30.7.2019 - 8h - Serializace pomocí pickle, a nakonec ukladani do XML
 
 
 

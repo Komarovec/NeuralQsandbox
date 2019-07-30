@@ -57,12 +57,12 @@
                     text: 'Save File'
                     font_size: (root.width + root.height) / root.scaleFactor
                     on_press:
-                        #root.game.exportFile()
+                        root.game.exportFile()
                 ActionButton:
                     text: 'Load File'
                     font_size: (root.width + root.height) / root.scaleFactor
                     on_press:
-                        #root.game.importFile()
+                        root.game.importFile()
             ActionGroup:
                 id: App_ActionGroup
                 mode: 'spinner'

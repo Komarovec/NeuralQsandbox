@@ -15,7 +15,19 @@ class Level():
         shapes = ET.SubElement(level, "shapes")
         for shape in space.shapes:
             if(isinstance(shape, Barrier)):
-                item = ET.SubElement(shapes, "pymunk.Segment")
+                item = ET.SubElement(shapes, "Barrier")
+                item.set("a", str(tuple(shape.a)))
+                item.set("b", str(tuple(shape.b)))
+                item.set("radius", str(shape.radius))
+                item.set("rgba", str(tuple(shape.rgba)))
+            if(isinstance(shape, Start)):
+                item = ET.SubElement(shapes, "Barrier")
+                item.set("a", str(tuple(shape.a)))
+                item.set("b", str(tuple(shape.b)))
+                item.set("radius", str(shape.radius))
+                item.set("rgba", str(tuple(shape.rgba)))
+            if(isinstance(shape, Finish)):
+                item = ET.SubElement(shapes, "Barrier")
                 item.set("a", str(tuple(shape.a)))
                 item.set("b", str(tuple(shape.b)))
                 item.set("radius", str(shape.radius))

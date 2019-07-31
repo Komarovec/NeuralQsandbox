@@ -2,60 +2,62 @@ import cffi
 import pymunk
 import pymunk.autogeometry
 from pymunk.vec2d import Vec2d
-from kivy.graphics import Color, Line
+from kivy.graphics import Color, Line, Ellipse
+from objs.kivyObjs import ellipse_from_circle, newRectangle
 
-class Barrier(pymunk.Segment):
-    def __init__(self, a, b, radius=1, rgba=(0.2,0.2,0.2,1), friction=1, elasticity=0.85):
-        body = pymunk.Body(mass=0, moment=0, body_type=pymunk.Body.STATIC)
-        super(Barrier, self).__init__(body, a, b, radius)
+class StaticGameObject():
+    BARRIER = "barrier"
+    NOBARRIER = "nobarrier"
+    START = "start"
+    FINISH = "finish"
 
-        #Init
+    def __init__(self, objectType, rgba=(0.2,0.2,0.2,1), friction=1, elasticity=0.85, texture=None):
+        #Common attrs
+        self.objectType = objectType
         self.rgba = rgba
         self.friction = friction
         self.elasticity = elasticity
 
-        #Custom
-        self.points = (a[0],a[1],b[0],b[1])
-
-    def paint(self, canvasHandler):
-        with canvasHandler.canvas:
-            Color(rgba=self.rgba)
-            scalled_points = (self.points[0]*canvasHandler.scaller,self.points[1]*canvasHandler.scaller,
-                              self.points[2]*canvasHandler.scaller,self.points[3]*canvasHandler.scaller)
-            self.ky = Line(points=scalled_points, width=self.radius*canvasHandler.scaller)
-
-
-class Start(pymunk.Segment):
-    def __init__(self, a, b, radius=1, rgba=(0,0.8,0,1), friction=1, elasticity=0.85):
+    def createSegment(self, a, b, radius, canvasHandler):
         body = pymunk.Body(mass=0, moment=0, body_type=pymunk.Body.STATIC)
-        super(Start, self).__init__(body, a, b, radius)
-        self.friction = friction
-        self.elasticity = elasticity
-        self.points = (a[0],a[1],b[0],b[1])
-        self.rgba = rgba
+        self.shape = pymunk.Segment(body, a, b, radius)
+        self.addAttrs(self.shape)
+        self.paint(canvasHandler)
+        canvasHandler.simulation.space.add(self.shape.body, self.shape)
 
-        self.filter = pymunk.ShapeFilter(categories=2, mask=(1 and 2))
-
-    def paint(self, canvasHandler):
-        with canvasHandler.canvas:
-            Color(rgba=self.rgba)
-            scalled_points = (self.points[0]*canvasHandler.scaller,self.points[1]*canvasHandler.scaller,
-                              self.points[2]*canvasHandler.scaller,self.points[3]*canvasHandler.scaller)
-            self.ky = Line(points=scalled_points, width=self.radius*canvasHandler.scaller)
-
-class Finish(pymunk.Segment):
-    def __init__(self, a, b, radius=1, rgba=(0.8,0,0,1), friction=1, elasticity=0.85):
+    def createCircle(self, pos, radius, canvasHandler):
         body = pymunk.Body(mass=0, moment=0, body_type=pymunk.Body.STATIC)
-        super(Finish, self).__init__(body, a, b, radius)
+        body.position = pos
+        self.shape = pymunk.Circle(body, radius)
+        self.addAttrs(self.shape)
+        self.paint(canvasHandler)
+        canvasHandler.simulation.space.add(self.shape.body, self.shape)
 
-        self.friction = friction
-        self.elasticity = elasticity
-        self.points = (a[0],a[1],b[0],b[1])
-        self.rgba = rgba
+    def createBox(self, pos, size, canvasHandler):
+        body = pymunk.Body(mass=0, moment=0, body_type=pymunk.Body.STATIC)
+        body.position = pos
+        self.shape = pymunk.Poly.create_box(body, (size[0],size[1]))
+        self.addAttrs(self.shape)
+        self.paint(canvasHandler)
+        canvasHandler.simulation.space.add(self.shape.body, self.shape)
+
+    def addAttrs(self, shape):
+        self.shape.friction = self.friction
+        self.shape.elasticity = self.elasticity
+        self.shape.rgba = self.rgba
+        self.shape.objectType = self.objectType
+
+        if(self.objectType == self.START or self.objectType == self.NOBARRIER):
+            self.shape.sensor = True
 
     def paint(self, canvasHandler):
         with canvasHandler.canvas:
             Color(rgba=self.rgba)
-            scalled_points = (self.points[0]*canvasHandler.scaller,self.points[1]*canvasHandler.scaller,
-                              self.points[2]*canvasHandler.scaller,self.points[3]*canvasHandler.scaller)
-            self.ky = Line(points=scalled_points, width=self.radius*canvasHandler.scaller)
+            if(isinstance(self.shape, pymunk.Segment)):
+                scalled_points = (self.shape.a[0]*canvasHandler.scaller,self.shape.a[1]*canvasHandler.scaller,
+                                self.shape.b[0]*canvasHandler.scaller,self.shape.b[1]*canvasHandler.scaller)
+                self.shape.ky = Line(points=scalled_points, width=self.shape.radius*canvasHandler.scaller)
+            elif(isinstance(self.shape, pymunk.Circle)):
+                self.shape.ky = ellipse_from_circle(self.shape, canvasHandler.scaller)
+            elif(isinstance(self.shape, pymunk.Poly)):
+                self.shape.ky = newRectangle(self.shape, canvasHandler.scaller)

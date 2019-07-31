@@ -1,1 +1,1 @@
-<level><shapes><pymunk.Segment a="(1752.5, 1067.5)" b="(957.5, 622.5)" radius="25.0" rgba="(0.2, 0.2, 0.2, 1)" /></shapes></level>
+<level><shapes><pymunk.Segment a="(0.0, 0.0)" b="(2000.0, 0.0)" radius="20.0" rgba="(0.2, 0.2, 0.2, 1)" /><pymunk.Segment a="(2000.0, 0.0)" b="(2000.0, 1000.0)" radius="20.0" rgba="(0.2, 0.2, 0.2, 1)" /><pymunk.Segment a="(2000.0, 1000.0)" b="(0.0, 1000.0)" radius="20.0" rgba="(0.2, 0.2, 0.2, 1)" /><pymunk.Segment a="(0.0, 0.0)" b="(0.0, 1000.0)" radius="20.0" rgba="(0.2, 0.2, 0.2, 1)" /></shapes></level>

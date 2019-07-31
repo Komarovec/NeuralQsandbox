@@ -1,6 +1,6 @@
 import cffi
 import pymunk
-from objs.GameObjects import Barrier, Start, Finish
+from objs.GameObjects import StaticGameObject
 from objs.Car import Car
 
 from xml.dom import minidom

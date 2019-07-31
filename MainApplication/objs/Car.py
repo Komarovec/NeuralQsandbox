@@ -26,8 +26,6 @@ class Car(pymunk.Poly):
         self.friction = friction
         self.elasticity = elasticity
 
-        self.filter = pymunk.ShapeFilter(categories=1, mask=(1 and 2))
-
     #Paint Car
     def paint(self, canvasHandler):
         with canvasHandler.canvas:

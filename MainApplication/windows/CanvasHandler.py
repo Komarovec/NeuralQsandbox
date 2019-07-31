@@ -27,7 +27,7 @@ import math
 import json
 
 #Custom function and classes
-from objs.GameObjects import Barrier, Start, Finish
+from objs.GameObjects import StaticGameObject
 from objs.Car import Car
 from objs.kivyObjs import ellipse_from_circle, points_from_poly, newRectangle
 from windows.Simulation import Simulation
@@ -136,10 +136,14 @@ class CanvasHandler(RelativeLayout):
                             with self.canvas:
                                 Color(0.6,0.6,0.6,0.6)
                                 self.tempHighlight = Line(points=shape.ky.points, width=shape.ky.width)
-                        if(isinstance(shape, Car)):
+                        elif(isinstance(shape, Car) or isinstance(shape, pymunk.Poly)):
                             with self.canvas:
                                 Color(0.6,0.6,0.6,0.6)
-                                self.tempHighlight = newRectangle(shape, scaller)
+                                self.tempHighlight = newRectangle(shape, self.scaller)
+                        elif(isinstance(shape, pymunk.Circle)):
+                            with self.canvas:
+                                Color(0.6,0.6,0.6,0.6)
+                                self.tempHighlight = ellipse_from_circle(shape, self.scaller)
                         break
 
                     #Cleanup
@@ -217,13 +221,11 @@ class CanvasHandler(RelativeLayout):
             self.adding_barrier = False
 
             #Nice
-            new_barrier = Barrier((self.temp_barrier.points[0]/self.scaller, 
+            self.simulation.addStaticGameObject((self.temp_barrier.points[0]/self.scaller, 
                                     self.temp_barrier.points[1]/self.scaller), 
                                     (self.temp_barrier.points[2]/self.scaller, 
                                     self.temp_barrier.points[3]/self.scaller), 
                                     self.temp_barrier.width/self.scaller)
-            self.simulation.space.add(new_barrier)
-            new_barrier.paint(self)
 
             self.canvas.remove(self.temp_barrier)
             self.temp_barrier = None
@@ -253,7 +255,7 @@ class CanvasHandler(RelativeLayout):
 
         #If move, move clicked on object
         elif(self.movingObject):
-            if(isinstance(self.movingVar, Car)):
+            if(isinstance(self.movingVar, Car) or isinstance(self.movingVar, pymunk.Circle) or isinstance(self.movingVar, pymunk.Poly)):
                 p_scaled = (p[0]/self.scaller,p[1]/self.scaller)
                 self.movingVar.body.position = p_scaled 
             if(isinstance(self.movingVar, pymunk.Segment)):
@@ -268,8 +270,8 @@ class CanvasHandler(RelativeLayout):
                 else:
                     center_vector = ((self.movingVar.a[0]-self.movingVar.b[0])/2, (self.movingVar.a[1]-self.movingVar.b[1])/2)
                     self.movingVar.unsafe_set_endpoints(((p[0]/self.scaller)+center_vector[0], (p[1]/self.scaller)+center_vector[1]), ((p[0]/self.scaller)-center_vector[0], (p[1]/self.scaller)-center_vector[1]))
-                
-                self.simulation.space.reindex_shapes_for_body(self.movingVar.body)
+            
+            self.simulation.space.reindex_shapes_for_body(self.movingVar.body)
 
 
     def on_touch_down(self, touch):
@@ -319,7 +321,7 @@ class CanvasHandler(RelativeLayout):
                         self.movingObject = True
 
                         #Move depending on the type
-                        if(isinstance(shape, Car)):
+                        if(isinstance(shape, Car) or isinstance(shape, pymunk.Circle) or isinstance(shape, pymunk.Poly)):
                             self.movingVar = shape
                         if(isinstance(shape, pymunk.Segment)):
                             #Use nearest endpoint

@@ -26,7 +26,6 @@ def ellipse_from_circle(shape, scaller):
     body = shape.body
     pos = body.position - (shape.radius, shape.radius)
     e = Ellipse(pos=pos * (scaller, scaller), size=[shape.radius*2*scaller, shape.radius*2*scaller])
-    Color(.17,.24,.31)
     return e
 
 def points_from_poly(shape, scaller):

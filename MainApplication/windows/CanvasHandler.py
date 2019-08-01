@@ -201,6 +201,8 @@ class CanvasHandler(RelativeLayout):
     def changeState(self, state):
         if(state == "game"):
             self.window.statebar.ids["tool"].text = "Game state"
+            self.window.remove_widget(self.window.objectMenu)
+            self.window.objectMenu.visible = False
         elif(state == "editor"):
             self.window.statebar.ids["tool"].text = "Tool: "+str(self.editorTool)
 
@@ -217,15 +219,21 @@ class CanvasHandler(RelativeLayout):
         
         #Create body for barrier and place it in place
         elif(self.adding_barrier):
+            data = self.window.objectMenu.getData()
+
             #Delete temp line when cursor removed
             self.adding_barrier = False
 
             #Nice
-            self.simulation.addStaticGameObject((self.temp_barrier.points[0]/self.scaller, 
-                                    self.temp_barrier.points[1]/self.scaller), 
-                                    (self.temp_barrier.points[2]/self.scaller, 
-                                    self.temp_barrier.points[3]/self.scaller), 
-                                    self.temp_barrier.width/self.scaller)
+            if(self.addingShape == "Segment"):
+                self.simulation.addSegment((self.temp_barrier.points[0]/self.scaller, 
+                                        self.temp_barrier.points[1]/self.scaller), 
+                                        (self.temp_barrier.points[2]/self.scaller, 
+                                        self.temp_barrier.points[3]/self.scaller), 
+                                        self.temp_barrier.width/self.scaller, typeVal=data["type"], collisions=data["collisions"] ,rgba=data["color"])
+            elif(self.addingShape == "Circle"):
+                self.simulation.addCircle(((self.temp_barrier.pos[0]+self.temp_barrier.size[0]/2)/self.scaller,(self.temp_barrier.pos[1]+self.temp_barrier.size[0]/2)/self.scaller), (self.temp_barrier.size[0]/2)/self.scaller, typeVal=data["type"], collisions=data["collisions"] ,rgba=data["color"])
+                
 
             self.canvas.remove(self.temp_barrier)
             self.temp_barrier = None
@@ -251,7 +259,12 @@ class CanvasHandler(RelativeLayout):
         #If adding_barrier then show "pre barrier"
         elif(self.adding_barrier):
             #Update line when moved
-            self.temp_barrier.points = [self.touches[0][0], self.touches[0][1], p[0], p[1]]
+            if(self.addingShape == "Segment"):
+                self.temp_barrier.points = [self.touches[0][0], self.touches[0][1], p[0], p[1]]
+            elif(self.addingShape == "Circle"):
+                radius = math.sqrt(((p[0]-self.touches[0][0])**2)+((p[1]-self.touches[0][1])**2))
+                self.temp_barrier.size = (radius*2, radius*2)
+                self.temp_barrier.pos = (self.touches[0][0]-radius, self.touches[0][1]-radius)
 
         #If move, move clicked on object
         elif(self.movingObject):
@@ -285,7 +298,7 @@ class CanvasHandler(RelativeLayout):
 
         #Cancel if right button
         if(touch.button == "right"):
-            self.changeTool("move")
+            self.window.toggleObjectMenu()
 
         #Save current pos
         p = self.to_local(*touch.pos)
@@ -294,13 +307,20 @@ class CanvasHandler(RelativeLayout):
 
         if(self.state == "editor" and touch.button == "left"):
             #If AddBarrier was clicked on, draw a line
-            if(self.editorTool == "barrier"):
+            if(self.editorTool == "add"):
                 self.adding_barrier = True
+                self.addingShape = self.window.objectMenu.getData()["shape"]
+
+                temp_shape = None
+
                 with self.canvas:
                     Color(1,0,0,0.5)
-                    line = Line(points = [p[0], p[1], p[0], p[1]], width = 10)
+                    if(self.addingShape == "Segment"):
+                        temp_shape = Line(points = [p[0], p[1], p[0], p[1]], width = 10)
+                    elif(self.addingShape == "Circle"):
+                        temp_shape = Ellipse(pos=(p[0]+1, p[1]+1), size=(1,1))
                 
-                self.temp_barrier = line
+                self.temp_barrier = temp_shape
 
             #Delete Object
             elif(self.editorTool == "delete"):

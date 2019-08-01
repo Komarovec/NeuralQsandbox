@@ -1,4 +1,58 @@
 #:kivy 1.0
+<PopupColor>:
+    title: 'Pick a Color'
+    size_hint: 1.0, 0.6
+    id: popupcolor
+
+    BoxLayout:
+        orientation: 'vertical'
+
+        ColorPicker:
+            id: colorpicker
+            size_hint: 1.0, 1.0
+
+        Button:
+            text: 'PICK AND CLOSE'
+            color: 0.435, 0.725, 0.56, 1
+            background_color: 0, 0.26, 0.27, 1
+            size_hint: 1.0, 0.2
+            on_press: popupcolor.on_press_dismiss(colorpicker)
+
+<Separator>:
+    size_hint_y: None
+    thickness: 4
+    margin: 4
+    height: self.thickness + 2 * self.margin
+    color: .8, .8, .8
+    canvas:
+        Color:
+            rgb: self.color
+        Rectangle:
+            pos: self.x + self.margin, self.y + self.margin + 1
+            size: self.width - 2 * self.margin , self.thickness
+
+
+<ObjectMenu>:
+    id: objectMenu
+    Widget:
+        size: (root.width/(root.scaleFactor/35),root.height*0.5)
+        pos: (root.width-self.width,(root.height-self.height)/2)
+        canvas:
+            Color:
+                rgba: .1, .1, .1, 1
+            RoundedRectangle:
+                size: self.size
+                pos: self.pos
+                radius: [(root.width+root.height)/ root.scaleFactor,]
+
+        GridLayout:
+            id: inObjectMenu
+            rows: 4
+            spacing: 2
+            #padding: 0,50,0,50
+            size: self.parent.size
+            pos: self.parent.pos
+
 
 <StateBar>:
     id: statebar
@@ -6,11 +60,11 @@
         Color:
             rgba: .1, .1, .1, 1
         Rectangle:
-            size: (root.width,root.height/20)
+            size: (root.width,root.height/(root.scaleFactor/10))
             pos: (0,0)
 
     GridLayout:
-        size: (root.width,root.height/20)
+        size: (root.width,root.height/(root.scaleFactor/10))
         pos: (0,0)
         cols: 3
 
@@ -29,13 +83,11 @@
             text: ""
             font_size: (root.width + root.height) / root.scaleFactor
 
-<ToolBar>:
-    mainActionBar: mainActionBar
-    levelEditActionBar: levelEditActionBar
-
+<ToolBarEditor>:
+    #Level editor action bar
     ActionBar:
         id: levelEditActionBar
-        size: (root.width, root.height/20)
+        size: (root.width, root.height/(root.scaleFactor/10))
         pos: (0,root.height-self.height)
 
         ActionView:
@@ -45,11 +97,18 @@
                 text: 'Game menu'
                 font_size: (root.width + root.height) / root.scaleFactor
                 on_press: 
-                    root.add_widget(mainActionBar)
-                    root.game.changeState("game")
+                    root.screen.endLevelEditor()
             ActionOverflow:
+            
+            #Obect menu
+            ActionButton:
+                text: 'Objects'
+                font_size: (root.width + root.height) / root.scaleFactor
+                on_press:
+                    root.screen.toggleObjectMenu()
+
+            #File interaction buttons
             ActionGroup:
-                id: App_ActionGroup
                 mode: 'spinner'
                 text: 'File'
                 font_size: (root.width + root.height) / root.scaleFactor
@@ -63,25 +122,24 @@
                     font_size: (root.width + root.height) / root.scaleFactor
                     on_press:
                         root.game.importFile()
+
+            #Tools
             ActionGroup:
-                id: App_ActionGroup
                 mode: 'spinner'
                 text: 'Tools'
                 font_size: (root.width + root.height) / root.scaleFactor
-                ActionButton:
-                    text: 'Add Barrier'
-                    font_size: (root.width + root.height) / root.scaleFactor
-                    on_press:
-                        root.game.changeTool("barrier")
                 ActionButton:
                     text: 'Delete'
                     font_size: (root.width + root.height) / root.scaleFactor
                     on_press:
                         root.game.changeTool("delete")
 
+
+<ToolBarGame>:
+    #Game action bar
     ActionBar:
-        id: mainActionBar
-        size: (root.width, root.height/20)
+        id: mainActionBarGame
+        size: (root.width, root.height/(root.scaleFactor/10))
         pos: (0,root.height-self.height)
 
         ActionView:
@@ -103,5 +161,4 @@
                 text: 'Level Editor'
                 font_size: (root.width + root.height) / root.scaleFactor
                 on_press:
-                    root.remove_widget(mainActionBar)
-                    root.game.changeState("editor")
+                    root.screen.startLevelEditor()

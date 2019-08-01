@@ -44,10 +44,10 @@ class Simulation():
         StaticGameObject(StaticGameObject.BARRIER).createSegment((2000,1000), (0,1000), 20, self.canvasWindow)
         StaticGameObject(StaticGameObject.BARRIER).createSegment((0,0), (0,1000), 20, self.canvasWindow)
         
-        start = StaticGameObject(StaticGameObject.START, rgba=(0,.8,0,.8))
+        start = StaticGameObject(StaticGameObject.START, rgba=(0,.8,0,1))
         start.createSegment((100,400), (100,600), 20, self.canvasWindow)
 
-        finish = StaticGameObject(StaticGameObject.FINISH, rgba=(.8,0,0,.8))
+        finish = StaticGameObject(StaticGameObject.FINISH, rgba=(.8,0,0,1))
         finish.createSegment((1800,400), (1800,600), 20, self.canvasWindow)
         
         car = Car(10, (100,50), (100,100), ground_friction=1, angular_friction=3)
@@ -84,10 +84,30 @@ class Simulation():
             self.space.steps += 1
 
     #Adding
-    def addStaticGameObject(self, a, b, radius):
-        #StaticGameObject(StaticGameObject.BARRIER).createSegment(a, b, radius, self.canvasWindow)
-        #StaticGameObject(StaticGameObject.BARRIER).createCircle(a, radius, self.canvasWindow)
-        StaticGameObject(StaticGameObject.BARRIER).createBox(a, (100,50), self.canvasWindow)
+    def addSegment(self, a, b, radius, typeVal, collisions, rgba):
+        if(typeVal == "Finish"):
+            segment = StaticGameObject(StaticGameObject.FINISH, rgba=rgba)
+        elif(typeVal == "Start"):
+            segment = StaticGameObject(StaticGameObject.START, rgba=rgba)
+        elif(collisions == False):
+            segment = StaticGameObject(StaticGameObject.NOBARRIER, rgba=rgba)
+        else:
+            segment = StaticGameObject(StaticGameObject.BARRIER, rgba=rgba)
+
+        segment.createSegment(a, b, radius, self.canvasWindow)
+
+    def addCircle(self, a, radius, typeVal, collisions, rgba):
+        if(typeVal == "Finish"):
+            circle = StaticGameObject(StaticGameObject.FINISH, rgba=rgba)
+        elif(typeVal == "Start"):
+            circle = StaticGameObject(StaticGameObject.START, rgba=rgba)
+        elif(collisions == False):
+            circle = StaticGameObject(StaticGameObject.NOBARRIER, rgba=rgba)
+        else:
+            circle = StaticGameObject(StaticGameObject.BARRIER, rgba=rgba)
+        
+        circle.createCircle(a, radius, self.canvasWindow)
+        #StaticGameObject(StaticGameObject.BARRIER, rgba=rgba).createBox(a, (100,50), self.canvasWindow)
 
     #Collistions handlers
     def coll_begin(self, arbiter, space, data):

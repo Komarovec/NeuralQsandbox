@@ -14,5 +14,5 @@
 29.7.2019 - 6h - Rozdeleni hlavnich trid, zlepseni prehlednosti kodu, stavovy bar, serializace objektu (zacatek)
 30.7.2019 - 8h - Serializace pomocí pickle, a nakonec ukladani do XML
 31.7.2019 - 9h - Kompletní přepsání statických herních objektů za účelem jednodušího kódu a větší modulárnosti
-
-
+1.8.2019 - 11h - Uživatelské rozhraní, přídávání objektu pomocí ObjectMenu, vyber barev pomoci popupu a ColorPickeru.
+2.8.2019 - 9h - přidavaní boxu, Pickle binární export a import levelu, grafické vytvarení boxu, oprava bugů

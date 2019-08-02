@@ -2,54 +2,70 @@ import cffi
 import pymunk
 from objs.GameObjects import StaticGameObject
 from objs.Car import Car
+from objs.kivyObjs import paintObject
 
-from xml.dom import minidom
-import xml.etree.ElementTree as ET
+import tkinter as tk
+from tkinter import filedialog
 
-from ast import literal_eval
+import pickle
+import sys, os
 
 class Level():
     @classmethod
-    def exportLevel(self, space):
-        level = ET.Element("level")
-        shapes = ET.SubElement(level, "shapes")
-        for shape in space.shapes:
-            if(isinstance(shape, Barrier)):
-                item = ET.SubElement(shapes, "Barrier")
-                item.set("a", str(tuple(shape.a)))
-                item.set("b", str(tuple(shape.b)))
-                item.set("radius", str(shape.radius))
-                item.set("rgba", str(tuple(shape.rgba)))
-            if(isinstance(shape, Start)):
-                item = ET.SubElement(shapes, "Barrier")
-                item.set("a", str(tuple(shape.a)))
-                item.set("b", str(tuple(shape.b)))
-                item.set("radius", str(shape.radius))
-                item.set("rgba", str(tuple(shape.rgba)))
-            if(isinstance(shape, Finish)):
-                item = ET.SubElement(shapes, "Barrier")
-                item.set("a", str(tuple(shape.a)))
-                item.set("b", str(tuple(shape.b)))
-                item.set("radius", str(shape.radius))
-                item.set("rgba", str(tuple(shape.rgba)))
+    def exportLevel(self, simulation):          
+        pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\levels"   
+        if not os.path.exists(pathname):
+            os.makedirs(pathname)
 
-        leveldata = ET.tostring(level)
-        with open('level.xml', 'w') as file:
-            file.write(leveldata.decode("utf-8"))
+        #Create filedialog
+        root = tk.Tk()
+        root.withdraw()
+
+        file_path = filedialog.asksaveasfilename(initialdir = pathname,title = "Save level")
+
+        if(file_path != ""):
+            space = simulation.space
+            for shape in space.shapes:
+                if(isinstance(shape, Car)):
+                    car = shape
+
+                simulation.canvasWindow.canvas.remove(shape.ky)
+                shape.ky = None
+
+            simulation.removeCallbacks()
+
+            space.remove(car.body, car)
+            with open(file_path, "wb") as f:
+                pickle.dump(space, f, pickle.HIGHEST_PROTOCOL)
+            
+            simulation.addCallbacks()
+
+            space.add(car.body, car)
+            for shape in space.shapes:
+                paintObject(shape, simulation.canvasWindow)
 
     @classmethod
     def importLevel(self, simulation):
-        for shape in simulation.space.shapes:
-            simulation.canvasWindow.canvas.remove(shape.ky)
+        pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\levels"   
+        if not os.path.exists(pathname):
+            os.makedirs(pathname) 
 
-        simulation.setupSpace()
-        level = minidom.parse('level.xml')
+        #Create filedialog
+        root = tk.Tk()
+        root.withdraw()
+        file_path = filedialog.askopenfilename(initialdir = pathname,title = "Load level")
 
-        items = level.getElementsByTagName('Barrier')
-        for item in items:
-            a, b = literal_eval(item.attributes["a"].value), literal_eval(item.attributes["b"].value)
-            rgba = literal_eval(item.attributes["rgba"].value)
-            newBarrier = Barrier(a, b, float(item.attributes["radius"].value))
-            newBarrier.rgba = rgba
-            simulation.space.add(newBarrier)
-            newBarrier.paint(simulation.canvasWindow)
+        if(file_path != ""):
+            space = simulation.space
+
+            simulation.deleteSpace()
+
+            with open(file_path, "rb") as f:
+                loaded_space = pickle.load(f)
+
+            simulation.loadSpace(loaded_space)
+
+            for shape in space.shapes:
+                paintObject(shape, simulation.canvasWindow)
+        
+        

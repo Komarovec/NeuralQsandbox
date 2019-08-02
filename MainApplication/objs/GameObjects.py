@@ -41,6 +41,13 @@ class StaticGameObject():
         self.paint(canvasHandler)
         canvasHandler.simulation.space.add(self.shape.body, self.shape)
 
+    def createBoxPoints(self, points, canvasHandler):
+        body = pymunk.Body(mass=0, moment=0, body_type=pymunk.Body.STATIC)
+        self.shape = pymunk.Poly(body, points)
+        self.addAttrs(self.shape)
+        self.paint(canvasHandler)
+        canvasHandler.simulation.space.add(self.shape.body, self.shape)
+
     def addAttrs(self, shape):
         self.shape.friction = self.friction
         self.shape.elasticity = self.elasticity

@@ -121,7 +121,7 @@ class ObjectMenu(GameWidget):
         self.colorButton.background_color = self.colorVal
 
     def resultColor(self, color):
-        self.colorVal = color
+        self.colorVal = (color[0],color[1],color[2],1)
         self.colorButton.background_color = color
 
     def resultCollisions(self, val):
@@ -263,6 +263,10 @@ class CanvasWindow(Screen):
         else:
             self.remove_widget(self.objectMenu)
             self.game.changeTool("move")
+
+    def disableObjectMenu(self):
+        self.remove_widget(self.objectMenu)
+        self.objectMenu.visible = False
 
     def endLevelEditor(self):
         self.remove_widget(self.editorToolbar)

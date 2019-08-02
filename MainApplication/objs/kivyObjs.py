@@ -22,6 +22,19 @@ import pymunk
 import pymunk.autogeometry
 from pymunk.vec2d import Vec2d
 
+
+def paintObject(shape, canvasHandler):
+    with canvasHandler.canvas:
+        Color(rgba=shape.rgba)
+        if(isinstance(shape, pymunk.Segment)):
+            scalled_points = (shape.a[0]*canvasHandler.scaller,shape.a[1]*canvasHandler.scaller,
+                            shape.b[0]*canvasHandler.scaller,shape.b[1]*canvasHandler.scaller)
+            shape.ky = Line(points=scalled_points, width=shape.radius*canvasHandler.scaller)
+        elif(isinstance(shape, pymunk.Circle)):
+            shape.ky = ellipse_from_circle(shape, canvasHandler.scaller)
+        elif(isinstance(shape, pymunk.Poly)):
+            shape.ky = newRectangle(shape, canvasHandler.scaller)
+
 def ellipse_from_circle(shape, scaller):
     body = shape.body
     pos = body.position - (shape.radius, shape.radius)

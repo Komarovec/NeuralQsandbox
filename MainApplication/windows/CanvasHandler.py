@@ -24,8 +24,6 @@ from kivy.core.image import Image as CoreImage
 import pymunk
 import math
 
-import json
-
 #Custom function and classes
 from objs.GameObjects import StaticGameObject
 from objs.Car import Car
@@ -45,10 +43,13 @@ class CanvasHandler(RelativeLayout):
         #Level editor vals
         self.editorTool = "move"
 
-        #Adding barrier
+        #Adding object
         self.adding_barrier = False
         self.temp_barrier = None
-        
+        self.temp_rect = None
+        self.addingStage = 0
+        self.addingIndication = None
+
         #Deleting objects
         self.deleteObject = False
 
@@ -95,66 +96,13 @@ class CanvasHandler(RelativeLayout):
 
     #Main loop method
     def draw(self, dt):
+        #Game mode
         if(self.state != "editor"):
             self.simulation.update(dt)
             self.window.statebar.ids["steps"].text = "Steps: "+str(self.simulation.space.steps)
 
-        #Scalling coeficient
-        scaller = self.height/self.scallerVar + self.width/self.scallerVar
-        
-        #If resolution has changed change scaling on all shapes
-        if(scaller != self.scaller):
-            self.scaller = scaller
-            scallerChanged = True
-        else:
-            scallerChanged = False
-
-        #Barrier adding
-        if(self.temp_barrier != None):
-            if(self.keys["up"] == 1):
-                if(self.temp_barrier.width/self.scaller < 100):
-                    self.temp_barrier.width += 1
-            elif(self.keys["down"] == 1):
-                if(self.temp_barrier.width/self.scaller > 1 and self.temp_barrier.width > 1):
-                    self.temp_barrier.width -= 1
-
-        #Car control + Highligting
-        else:
-            pos = self.to_local(*Window.mouse_pos)
-            pos = (pos[0]/self.scaller, pos[1]/self.scaller)
-
+            #Car control
             for shape in self.simulation.space.shapes:
-                #Highlight object ONLY in level editor
-                if(self.state == "editor" and not self.movingObject):
-                    #Highlight hover objects
-                    if(shape.point_query(pos)[0] < 0):
-                        if(self.tempHighlight != None):
-                            self.canvas.remove(self.tempHighlight)
-                            self.tempHighlight = None
-
-                        if(isinstance(shape, pymunk.Segment)):
-                            with self.canvas:
-                                Color(0.6,0.6,0.6,0.6)
-                                self.tempHighlight = Line(points=shape.ky.points, width=shape.ky.width)
-                        elif(isinstance(shape, Car) or isinstance(shape, pymunk.Poly)):
-                            with self.canvas:
-                                Color(0.6,0.6,0.6,0.6)
-                                self.tempHighlight = newRectangle(shape, self.scaller)
-                        elif(isinstance(shape, pymunk.Circle)):
-                            with self.canvas:
-                                Color(0.6,0.6,0.6,0.6)
-                                self.tempHighlight = ellipse_from_circle(shape, self.scaller)
-                        break
-
-                    #Cleanup
-                    elif(self.tempHighlight != None):
-                        self.canvas.remove(self.tempHighlight)
-                        self.tempHighlight = None
-                elif(self.tempHighlight != None):
-                    self.canvas.remove(self.tempHighlight)
-                    self.tempHighlight = None
-
-                #Car control
                 if isinstance(shape, Car):
                     if(self.keys["up"] == 1):
                         shape.forward(dt*100)
@@ -164,6 +112,109 @@ class CanvasHandler(RelativeLayout):
                         shape.left(dt*100)
                     if(self.keys["right"] == 1):
                         shape.right(dt*100)
+
+        #Editor mode
+        elif(self.state == "editor"):
+            if(self.editorTool == "add"):
+                pos = self.to_local(*Window.mouse_pos)
+
+                #Mouse indication shape
+                if(self.addingIndication == None):
+                    with self.canvas:
+                        Color(0,0.8,0,0.6)
+                        self.addingIndication = Ellipse(pos=(pos[0]-5, pos[1]-5), size=(10,10))
+                else:
+                    self.addingIndication.pos = (pos[0]-5, pos[1]-5)
+
+                #When adding rectangle show its graphical representation
+                if(self.addingStage == 1):
+                    c = (pos[0]*self.scaller, pos[1]*self.scaller)
+                    a = (self.temp_rect.points[0]*self.scaller, self.temp_rect.points[1]*self.scaller)
+                    b = (self.temp_rect.points[2]*self.scaller, self.temp_rect.points[3]*self.scaller)
+
+                    a, b, c, d = self.calculateRectangle(a,b,c)
+
+                    if(self.temp_barrier == None):
+                        if(a != None):
+                            with self.canvas:
+                                Color(0.8,0,0,0.6)
+                                self.temp_barrier = Quad(points=(a[0], a[1], b[0], b[1], d[0], d[1], c[0], c[1]))
+                    else:
+                        if(a != None):
+                            self.temp_barrier.points = (a[0], a[1], b[0], b[1], d[0], d[1], c[0], c[1])
+
+            #Deleting mouse indication
+            elif(self.editorTool == "delete"):
+                pos = self.to_local(*Window.mouse_pos)
+                pos = (pos[0]-5, pos[1]-5)
+
+                if(self.addingIndication == None):
+                    with self.canvas:
+                        Color(0.8,0,0,0.6)
+                        self.addingIndication = Ellipse(pos=pos, size=(10,10))
+                else:
+                    self.addingIndication.pos = pos
+            else:
+                if(self.addingIndication != None):
+                    self.canvas.remove(self.addingIndication)
+                    self.addingIndication = None
+
+            #Barrier adding width change
+            if(self.temp_barrier != None and isinstance(self.temp_barrier, Line)):
+                if(self.keys["up"] == 1):
+                    if(self.temp_barrier.width/self.scaller < 100):
+                        self.temp_barrier.width += 1
+                elif(self.keys["down"] == 1):
+                    if(self.temp_barrier.width/self.scaller > 1 and self.temp_barrier.width > 1):
+                        self.temp_barrier.width -= 1
+    
+            #Highligting
+            else:
+                pos = self.to_local(*Window.mouse_pos)
+                pos = (pos[0]/self.scaller, pos[1]/self.scaller)
+
+                for shape in self.simulation.space.shapes:
+                    #Highlight object when no moving
+                    if(not self.movingObject):
+                        #Highlight hover objects
+                        if(shape.point_query(pos)[0] < 0):
+                            if(self.tempHighlight != None):
+                                self.canvas.remove(self.tempHighlight)
+                                self.tempHighlight = None
+
+                            if(isinstance(shape, pymunk.Segment)):
+                                with self.canvas:
+                                    Color(0.6,0.6,0.6,0.6)
+                                    self.tempHighlight = Line(points=shape.ky.points, width=shape.ky.width)
+                            elif(isinstance(shape, Car) or isinstance(shape, pymunk.Poly)):
+                                with self.canvas:
+                                    Color(0.6,0.6,0.6,0.6)
+                                    self.tempHighlight = newRectangle(shape, self.scaller)
+                            elif(isinstance(shape, pymunk.Circle)):
+                                with self.canvas:
+                                    Color(0.6,0.6,0.6,0.6)
+                                    self.tempHighlight = ellipse_from_circle(shape, self.scaller)
+                            break
+
+                        #Cleanup highlight
+                        elif(self.tempHighlight != None):
+                            self.canvas.remove(self.tempHighlight)
+                            self.tempHighlight = None
+                    #Cleanup highlight
+                    elif(self.tempHighlight != None):
+                        self.canvas.remove(self.tempHighlight)
+                        self.tempHighlight = None
+
+        #------ Common draw -------
+        #Scalling coeficient
+        scaller = self.height/self.scallerVar + self.width/self.scallerVar
+        
+        #If resolution has changed change scaling on all shapes
+        if(scaller != self.scaller):
+            self.scaller = scaller
+            scallerChanged = True
+        else:
+            scallerChanged = False
 
         #Repaint all graphics
         for shape in self.simulation.space.shapes:
@@ -187,26 +238,60 @@ class CanvasHandler(RelativeLayout):
 
     #Pickle export
     def exportFile(self):
-        Level.exportLevel(self.simulation.space)
+        Level.exportLevel(self.simulation)
 
     #Pickle import
     def importFile(self):
         Level.importLevel(self.simulation)
+
     #Change tool
     def changeTool(self, tool):
+        if(self.editorTool == "add" and tool != "add"):
+            self.window.disableObjectMenu()
+
         self.window.statebar.ids["tool"].text = "Tool: "+str(tool)
         self.editorTool = tool
+
+        if(self.addingIndication != None):
+            self.canvas.remove(self.addingIndication)
+            self.addingIndication = None
 
     #Change state
     def changeState(self, state):
         if(state == "game"):
             self.window.statebar.ids["tool"].text = "Game state"
-            self.window.remove_widget(self.window.objectMenu)
-            self.window.objectMenu.visible = False
         elif(state == "editor"):
             self.window.statebar.ids["tool"].text = "Tool: "+str(self.editorTool)
 
         self.state = state
+
+    #Math functions
+    def distXY(self, a, b):
+        return math.sqrt(((a[0]-b[0])**2)+((a[1]-b[1])**2))
+
+    def calculateRectangle(self, a, b, c):
+        if(self.distXY(a,b) <= 0 or self.distXY(a,c) <= 0 or self.distXY(b,c) <= 0):
+            return (None,None,None,None)
+
+        #Calculate remaining points for Rectangle !!!MATH WARNING!!!
+        alpha = math.atan2(c[1]-a[1], c[0]-a[0]) - math.atan2(b[1]-a[1], b[0]-a[0])
+        distAT = self.distXY(a, c) * math.cos(alpha)
+        t = distAT/self.distXY(a,b)
+        vectAT = ((b[0] - a[0])*t, (b[1] - a[1])*t)
+
+        T = (a[0]+vectAT[0],a[1]+vectAT[1])
+        vectTC = (c[0]-T[0], c[1]-T[1])
+
+        Cdash = (a[0]+vectTC[0], a[1]+vectTC[1])
+        D = (b[0]+vectTC[0], b[1]+vectTC[1])
+        
+        #Scale calculated
+        a = (a[0]/self.scaller, a[1]/self.scaller)
+        b = (b[0]/self.scaller, b[1]/self.scaller)
+        c = (Cdash[0]/self.scaller, Cdash[1]/self.scaller)
+        d = (D[0]/self.scaller, D[1]/self.scaller)
+        return (a,b,c,d)
+
 
     #Interface functions
     def on_touch_up(self, touch):
@@ -233,10 +318,27 @@ class CanvasHandler(RelativeLayout):
                                         self.temp_barrier.width/self.scaller, typeVal=data["type"], collisions=data["collisions"] ,rgba=data["color"])
             elif(self.addingShape == "Circle"):
                 self.simulation.addCircle(((self.temp_barrier.pos[0]+self.temp_barrier.size[0]/2)/self.scaller,(self.temp_barrier.pos[1]+self.temp_barrier.size[0]/2)/self.scaller), (self.temp_barrier.size[0]/2)/self.scaller, typeVal=data["type"], collisions=data["collisions"] ,rgba=data["color"])
-                
 
-            self.canvas.remove(self.temp_barrier)
-            self.temp_barrier = None
+            #If adding box, do not delete Line from canvas
+            elif(self.addingShape == "Box"):
+                if(self.addingStage == 0):
+                    self.temp_rect = self.temp_barrier
+                    self.addingStage = 1
+                    self.adding_barrier = True
+                elif(self.addingStage == 1):
+                    self.addingStage = 0
+                    c = self.touches[0]
+                    a = (self.temp_rect.points[0], self.temp_rect.points[1])
+                    b = (self.temp_rect.points[2], self.temp_rect.points[3])
+
+                    a, b, c, d = self.calculateRectangle(a,b,c)
+
+                    if(a != None):
+                        self.simulation.addBox((a,b,c,d), typeVal=data["type"], collisions=data["collisions"] ,rgba=data["color"])
+
+            if(self.temp_barrier != None):
+                self.canvas.remove(self.temp_barrier)
+                self.temp_barrier = None
 
         #Stop moving
         elif(self.movingObject):
@@ -265,24 +367,46 @@ class CanvasHandler(RelativeLayout):
                 radius = math.sqrt(((p[0]-self.touches[0][0])**2)+((p[1]-self.touches[0][1])**2))
                 self.temp_barrier.size = (radius*2, radius*2)
                 self.temp_barrier.pos = (self.touches[0][0]-radius, self.touches[0][1]-radius)
+            elif(self.addingShape == "Box"):
+                if(self.addingStage == 0):
+                    self.temp_barrier.points = [self.touches[0][0], self.touches[0][1], p[0], p[1]]
 
         #If move, move clicked on object
         elif(self.movingObject):
-            if(isinstance(self.movingVar, Car) or isinstance(self.movingVar, pymunk.Circle) or isinstance(self.movingVar, pymunk.Poly)):
+            if(isinstance(self.movingVar, Car) or isinstance(self.movingVar, pymunk.Circle)):
                 p_scaled = (p[0]/self.scaller,p[1]/self.scaller)
                 self.movingVar.body.position = p_scaled 
-            if(isinstance(self.movingVar, pymunk.Segment)):
-                #Move whole thing
+            elif(isinstance(self.movingVar, pymunk.Poly)):
+                #Measure change in distance and apply vector to all points
+                p1_scaled = (p[0]/self.scaller,p[1]/self.scaller)
+                p0_scaled = (self.touches[0][0]/self.scaller,self.touches[0][1]/self.scaller)
+                moveVector = (p1_scaled[0] - p0_scaled[0], p1_scaled[1] - p0_scaled[1])
+                self.touches[0] = self.touches[1]
+
+                vert = self.movingVar.get_vertices()
+                self.movingVar.unsafe_set_vertices(((vert[0][0]+moveVector[0],vert[0][1]+moveVector[1]),
+                                                    (vert[1][0]+moveVector[0],vert[1][1]+moveVector[1]),
+                                                    (vert[2][0]+moveVector[0],vert[2][1]+moveVector[1]),
+                                                    (vert[3][0]+moveVector[0],vert[3][1]+moveVector[1])))
+                self.simulation.space.reindex_shapes_for_body(self.movingVar.body)
+
+            elif(isinstance(self.movingVar, pymunk.Segment)):
+                #Move only one point (closest)
                 if(touch.is_double_tap):
                     if(self.movingPoint == "a"):
                         self.movingVar.unsafe_set_endpoints((p[0]/self.scaller, p[1]/self.scaller), self.movingVar.b)
                     else:
                         self.movingVar.unsafe_set_endpoints(self.movingVar.a, (p[0]/self.scaller, p[1]/self.scaller))
                 
-                #Move only one point (closest)
+                #Move whole thing
                 else:
-                    center_vector = ((self.movingVar.a[0]-self.movingVar.b[0])/2, (self.movingVar.a[1]-self.movingVar.b[1])/2)
-                    self.movingVar.unsafe_set_endpoints(((p[0]/self.scaller)+center_vector[0], (p[1]/self.scaller)+center_vector[1]), ((p[0]/self.scaller)-center_vector[0], (p[1]/self.scaller)-center_vector[1]))
+                    p1_scaled = (p[0]/self.scaller,p[1]/self.scaller)
+                    p0_scaled = (self.touches[0][0]/self.scaller,self.touches[0][1]/self.scaller)
+                    moveVector = (p1_scaled[0] - p0_scaled[0], p1_scaled[1] - p0_scaled[1])
+                    self.touches[0] = self.touches[1]
+                    self.movingVar.unsafe_set_endpoints(
+                                                        (self.movingVar.a[0]+moveVector[0],self.movingVar.a[1]+moveVector[1]),
+                                                        (self.movingVar.b[0]+moveVector[0],self.movingVar.b[1]+moveVector[1]))
             
             self.simulation.space.reindex_shapes_for_body(self.movingVar.body)
 
@@ -298,12 +422,17 @@ class CanvasHandler(RelativeLayout):
 
         #Cancel if right button
         if(touch.button == "right"):
-            self.window.toggleObjectMenu()
-
+            if(self.state == "editor"):
+                if(self.editorTool == "add"):
+                    self.window.toggleObjectMenu()
+                elif(self.editorTool == "delete"):
+                    self.changeTool("move")
+                elif(self.editorTool == "move"):
+                    self.window.endLevelEditor()
+            
         #Save current pos
         p = self.to_local(*touch.pos)
         self.touches[0] = p
-
 
         if(self.state == "editor" and touch.button == "left"):
             #If AddBarrier was clicked on, draw a line
@@ -319,6 +448,11 @@ class CanvasHandler(RelativeLayout):
                         temp_shape = Line(points = [p[0], p[1], p[0], p[1]], width = 10)
                     elif(self.addingShape == "Circle"):
                         temp_shape = Ellipse(pos=(p[0]+1, p[1]+1), size=(1,1))
+                    elif(self.addingShape == "Box"):
+                        if(self.addingStage == 0):
+                            temp_shape = Line(points = [p[0], p[1], p[0], p[1]], width = 10)
+                        else:
+                            temp_shape = self.temp_barrier
                 
                 self.temp_barrier = temp_shape
 
@@ -328,8 +462,9 @@ class CanvasHandler(RelativeLayout):
 
                 for shape in self.simulation.space.shapes:
                     if(shape.point_query(deletePoint)[0] < 0):
-                        self.simulation.space.remove(shape)
-                        self.canvas.remove(shape.ky)
+                        if(not isinstance(shape, Car)):
+                            self.simulation.space.remove(shape)
+                            self.canvas.remove(shape.ky)
 
                 self.deleteObject = False
 
@@ -361,6 +496,7 @@ class CanvasHandler(RelativeLayout):
         else:
             touch.grab(self)
 
+    #Keyboard
     def _keyboard_closed(self):
         print('My keyboard have been closed!')
         self._keyboard.unbind(on_key_down=self._on_keyboard_down)

@@ -13,7 +13,6 @@ import math
 from objs.GameObjects import StaticGameObject
 from objs.Car import Car
 
-
 class Simulation():
     def __init__(self, canvasWindow):
         #Important values
@@ -24,16 +23,38 @@ class Simulation():
         self.space = space = pymunk.Space()
 
         self.handler = space.add_default_collision_handler()
-        self.handler.begin = self.coll_begin
-        self.handler.pre_solve = self.coll_pre
-        self.handler.post_solve = self.coll_post
-        self.handler.separate = self.coll_separate
+        self.addCallbacks()
 
         space.gravity = 0, 0
         space.sleep_time_threshold = 0.3
         space.steps = 0
 
         return space
+
+    def addCallbacks(self):
+        self.handler.begin = self.coll_begin
+        self.handler.pre_solve = self.coll_pre
+        self.handler.post_solve = self.coll_post
+        self.handler.separate = self.coll_separate
+
+    def removeCallbacks(self):
+        self.handler.begin = None
+        self.handler.pre_solve = None
+        self.handler.post_solve = None
+        self.handler.separate = None
+
+    def deleteSpace(self):
+        for shape in self.space.shapes:
+            self.canvasWindow.canvas.remove(shape.ky)
+            shape.ky = None
+            self.space.remove(shape.body, shape)
+
+    def loadSpace(self, loadedSpace):
+        for shape in loadedSpace.shapes:
+            self.space.add(shape.copy().body, shape.copy())
+
+        self.addCallbacks()
+        self.addPlayer()
 
     def start(self):
         space = self.setupSpace()
@@ -49,14 +70,10 @@ class Simulation():
 
         finish = StaticGameObject(StaticGameObject.FINISH, rgba=(.8,0,0,1))
         finish.createSegment((1800,400), (1800,600), 20, self.canvasWindow)
-        
-        car = Car(10, (100,50), (100,100), ground_friction=1, angular_friction=3)
-        self.space.add(car.body, car)
-        car.paint(self.canvasWindow)
 
-        #No idea
-        def wrap(f):
-            return lambda dt: f(space)
+        car = self.addPlayer()
+        if(car != None):
+            car.paint(self.canvasWindow)
 
     def update(self, dt):
         #Physics simulation
@@ -95,6 +112,7 @@ class Simulation():
             segment = StaticGameObject(StaticGameObject.BARRIER, rgba=rgba)
 
         segment.createSegment(a, b, radius, self.canvasWindow)
+        self.repaintObjects()
 
     def addCircle(self, a, radius, typeVal, collisions, rgba):
         if(typeVal == "Finish"):
@@ -107,11 +125,64 @@ class Simulation():
             circle = StaticGameObject(StaticGameObject.BARRIER, rgba=rgba)
         
         circle.createCircle(a, radius, self.canvasWindow)
-        #StaticGameObject(StaticGameObject.BARRIER, rgba=rgba).createBox(a, (100,50), self.canvasWindow)
+        self.repaintObjects()
+
+    def addBox(self, points, typeVal, collisions, rgba):
+        if(typeVal == "Finish"):
+            box = StaticGameObject(StaticGameObject.FINISH, rgba=rgba)
+        elif(typeVal == "Start"):
+            box = StaticGameObject(StaticGameObject.START, rgba=rgba)
+        elif(collisions == False):
+            box = StaticGameObject(StaticGameObject.NOBARRIER, rgba=rgba)
+        else:
+            box = StaticGameObject(StaticGameObject.BARRIER, rgba=rgba)
+
+        box.createBoxPoints(points, self.canvasWindow)
+        self.repaintObjects()
+
+    #Momentally only paint car on top of everything
+    def repaintObjects(self):
+        car = None
+        for shape in self.space.shapes:
+            if(isinstance(shape, Car)):
+                car = shape
+                self.canvasWindow.canvas.remove(car.ky)
+
+        car.paint(self.canvasWindow)
+        
+    #Add one car as a player
+    def addPlayer(self):
+        point = self.findSpawnpoint()
+        if(point != None):
+            car = Car(10, (100,50), self.findSpawnpoint(), ground_friction=1, angular_friction=3)
+            self.space.add(car.body, car)
+            return car
+        else:
+            return None
+
+    #Find spawnpoint for car
+    def findSpawnpoint(self):
+        spawnPoint = None
+
+        def middlePoint(a, b):
+            return (((a[0]+b[0])/2), ((a[1]+b[1])/2))
+
+        for shape in self.space.shapes:
+            if(hasattr(shape, "objectType")):
+                if(shape.objectType == StaticGameObject.START):
+                    if(isinstance(shape, pymunk.Segment)):
+                        spawnPoint = middlePoint(shape.a, shape.b)
+                    elif(isinstance(shape, pymunk.Circle)):
+                        spawnPoint = shape.body.position
+                    elif(isinstance(shape, pymunk.Poly)):
+                        vertices = shape.get_vertices()
+                        spawnPoint = middlePoint(middlePoint(vertices[0], vertices[1]), middlePoint(vertices[2], vertices[3]))
+        
+        return spawnPoint
 
     #Collistions handlers
     def coll_begin(self, arbiter, space, data):
-        if((isinstance(arbiter.shapes[0], Car) and isinstance(arbiter.shapes[1], pymunk.Segment)) or (isinstance(arbiter.shapes[1], Car) and isinstance(arbiter.shapes[0], pymunk.Segment))):        
+        if(isinstance(arbiter.shapes[0], Car) or isinstance(arbiter.shapes[1], Car)):        
             car = None
             if(isinstance(arbiter.shapes[0], Car)):
                 car = arbiter.shapes[0]
@@ -122,10 +193,9 @@ class Simulation():
                 if(arbiter.shapes[0].objectType != StaticGameObject.FINISH):
                     return True
 
-            for shape in self.space.shapes:
-                if(hasattr(shape, "objectType")):
-                    if(shape.objectType == StaticGameObject.START):
-                        car.body.position = ((shape.a[0]+shape.b[0])/2, (shape.a[1]+shape.b[1])/2)
+                point = self.findSpawnpoint()
+                if(point != None):
+                    car.body.position = point
 
         return True
 

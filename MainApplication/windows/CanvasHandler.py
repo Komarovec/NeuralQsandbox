@@ -236,14 +236,22 @@ class CanvasHandler(RelativeLayout):
                 if isinstance(shape, pymunk.Poly):
                     shape.ky.points = points_from_poly(shape, scaller)
 
+    #Camera change
+    def changeCamera(self, state):
+        if(state == "center"):
+            self.pos = (0,0)
+
+
     #Pickle export
     def exportFile(self):
         Level.exportLevel(self.simulation)
+        self.focus = True
 
     #Pickle import
     def importFile(self):
         Level.importLevel(self.simulation)
-
+        self.focus = True
+        
     #Change tool
     def changeTool(self, tool):
         if(self.editorTool == "add" and tool != "add"):

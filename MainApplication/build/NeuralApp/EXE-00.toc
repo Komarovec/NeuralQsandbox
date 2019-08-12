@@ -27,6 +27,9 @@
   ('pyiboot01_bootstrap',
    'd:\\entertaiment\\programy\\python\\neuralsandbox2\\venv\\lib\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
    'PYSOURCE'),
+  ('pyi_rth__tkinter',
+   'd:\\entertaiment\\programy\\python\\neuralsandbox2\\venv\\lib\\site-packages\\PyInstaller\\loader\\rthooks\\pyi_rth__tkinter.py',
+   'PYSOURCE'),
   ('pyi_rth_pkgres',
    'd:\\entertaiment\\programy\\python\\neuralsandbox2\\venv\\lib\\site-packages\\PyInstaller\\loader\\rthooks\\pyi_rth_pkgres.py',
    'PYSOURCE'),
@@ -51,7 +54,7 @@
  [],
  False,
  False,
- 1564164128,
+ 1564765025,
  [('run.exe',
    'd:\\entertaiment\\programy\\python\\neuralsandbox2\\venv\\lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit\\run.exe',
    'EXECUTABLE')])

@@ -16,3 +16,4 @@
 31.7.2019 - 9h - Kompletní přepsání statických herních objektů za účelem jednodušího kódu a větší modulárnosti
 1.8.2019 - 11h - Uživatelské rozhraní, přídávání objektu pomocí ObjectMenu, vyber barev pomoci popupu a ColorPickeru.
 2.8.2019 - 9h - přidavaní boxu, Pickle binární export a import levelu, grafické vytvarení boxu, oprava bugů
+12.8.2019 - 4h - Oprava bugů, centrovaní kamery, fokus na dialog, alpha canal na vyberu barvy 

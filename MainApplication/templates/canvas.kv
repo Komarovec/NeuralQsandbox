@@ -99,7 +99,20 @@
                 on_press: 
                     root.screen.endLevelEditor()
             ActionOverflow:
-            
+
+            #Change the view
+            ActionGroup:
+                mode: 'spinner'
+                text: 'View'
+                font_size: (root.width + root.height) / root.scaleFactor
+                ActionButton:
+                    text: 'Center Camera'
+                    minimum_width: ((root.width + root.height) / root.scaleFactor) * 20
+                    minimum_height: ((root.width + root.height) / root.scaleFactor) * 20
+                    font_size: (root.width + root.height) / root.scaleFactor
+                    on_press:
+                        root.game.changeCamera("center")
+
             #Obect menu
             ActionButton:
                 text: 'Objects'
@@ -152,6 +165,17 @@
                     root.manager.transition.direction = 'right'
                     root.manager.current = 'mainmenu'
             ActionOverflow:
+            ActionGroup:
+                mode: 'spinner'
+                text: 'View'
+                font_size: (root.width + root.height) / root.scaleFactor
+                ActionButton:
+                    text: 'Center Camera'
+                    minimum_width: ((root.width + root.height) / root.scaleFactor) * 20
+                    minimum_height: ((root.width + root.height) / root.scaleFactor) * 20
+                    font_size: (root.width + root.height) / root.scaleFactor
+                    on_press:
+                        root.game.changeCamera("center")
             ActionButton:
                 text: 'Reset'
                 font_size: (root.width + root.height) / root.scaleFactor

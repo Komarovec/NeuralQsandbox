@@ -103,6 +103,7 @@ class ObjectMenu(GameWidget):
     def showColorpicker(self):
         popup = PopupColor(self)
         popup_color = ColorPicker()
+        popup.color = self.colorVal
         popup.open()
 
     #Resulting callbacks
@@ -121,7 +122,10 @@ class ObjectMenu(GameWidget):
         self.colorButton.background_color = self.colorVal
 
     def resultColor(self, color):
-        self.colorVal = (color[0],color[1],color[2],1)
+        if(color[3] != None and color[3] != 0):
+            self.colorVal = (color[0],color[1],color[2],color[3])
+        else:    
+            self.colorVal = (color[0],color[1],color[2],1)
         self.colorButton.background_color = color
 
     def resultCollisions(self, val):

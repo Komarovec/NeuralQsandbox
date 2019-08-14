@@ -35,15 +35,21 @@
 <ObjectMenu>:
     id: objectMenu
     Widget:
-        size: (root.width/(root.scaleFactor/35),root.height*0.5)
-        pos: (root.width-self.width,(root.height-self.height)/2)
+        size: root.scaleFactor,root.scaleFactor*2
+        pos: (root.width-self.width,(root.height-self.height)-48)
         canvas:
             Color:
                 rgba: .1, .1, .1, 1
-            RoundedRectangle:
+            Rectangle:
+                size: self.size[0]+4,self.size[1]+4
+                pos: self.pos[0]-4,self.pos[1]-4
+
+            Color:
+                rgba: .142, .142, .142, 1
+            Rectangle:
                 size: self.size
                 pos: self.pos
-                radius: [(root.width+root.height)/ root.scaleFactor,]
+                #radius: [(root.width+root.height)/ root.scaleFactor,]
 
         GridLayout:
             id: inObjectMenu
@@ -56,133 +62,140 @@
 
 <StateBar>:
     id: statebar
+
     canvas:
         Color:
             rgba: .1, .1, .1, 1
         Rectangle:
-            size: (root.width,root.height/(root.scaleFactor/10))
-            pos: (0,0)
+            pos: 0,0
+            size: root.width, root.scaleFactor/5
 
     GridLayout:
-        size: (root.width,root.height/(root.scaleFactor/10))
-        pos: (0,0)
+        pos: 0,0
+        size: root.width, root.scaleFactor/5
         cols: 3
 
         Label:
             id: steps
             text: "Steps: 0"
-            font_size: (root.width + root.height) / root.scaleFactor
+            font_size: root.scaleFactor/12.5
 
         Label:
             id: tool
             text: "Game state"
-            font_size: (root.width + root.height) / root.scaleFactor
+            font_size: root.scaleFactor/12.5
 
         Label:
             id: idk
             text: ""
-            font_size: (root.width + root.height) / root.scaleFactor
+            font_size: root.scaleFactor/12.5
 
 <ToolBarEditor>:
-    #Level editor action bar
-    ActionBar:
-        id: levelEditActionBar
-        size: (root.width, root.height/(root.scaleFactor/10))
-        pos: (0,root.height-self.height)
+    #Editor action bar
+    BoxLayout:
+        orientation: "horizontal"
+        size: root.width, root.height
 
-        ActionView:
-            use_separator: True
-            ActionPrevious:
-                important: True
-                text: 'Game menu'
-                font_size: (root.width + root.height) / root.scaleFactor
-                on_press: 
-                    root.screen.endLevelEditor()
-            ActionOverflow:
+        ActionBar:
+            id: mainActionBarGame
+            pos_hint: {"top": 1}
 
-            #Change the view
-            ActionGroup:
-                mode: 'spinner'
-                text: 'View'
-                font_size: (root.width + root.height) / root.scaleFactor
+            ActionView:
+                use_separator: True
+                ActionPrevious:
+                    important: True
+                    text: 'Game menu'
+                    font_size: root.scaleFactor/12.5
+                    on_press: 
+                        root.screen.endLevelEditor()
+                ActionOverflow:
+
+                #Change the view
+                ActionGroup:
+                    mode: 'spinner'
+                    text: 'View'
+                    font_size: root.scaleFactor/12.5
+                    ActionButton:
+                        text: 'Center Camera'
+                        minimum_width: root.scaleFactor*0.8
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.changeCamera("center")
+
+                #Obect menu
                 ActionButton:
-                    text: 'Center Camera'
-                    minimum_width: ((root.width + root.height) / root.scaleFactor) * 20
-                    minimum_height: ((root.width + root.height) / root.scaleFactor) * 20
-                    font_size: (root.width + root.height) / root.scaleFactor
+                    text: 'Objects'
+                    font_size: root.scaleFactor/12.5
                     on_press:
-                        root.game.changeCamera("center")
+                        root.screen.toggleObjectMenu()
 
-            #Obect menu
-            ActionButton:
-                text: 'Objects'
-                font_size: (root.width + root.height) / root.scaleFactor
-                on_press:
-                    root.screen.toggleObjectMenu()
-
-            #File interaction buttons
-            ActionGroup:
-                mode: 'spinner'
-                text: 'File'
-                font_size: (root.width + root.height) / root.scaleFactor
-                ActionButton:
-                    text: 'Save File'
-                    font_size: (root.width + root.height) / root.scaleFactor
-                    on_press:
-                        root.game.exportFile()
-                ActionButton:
-                    text: 'Load File'
-                    font_size: (root.width + root.height) / root.scaleFactor
-                    on_press:
-                        root.game.importFile()
-
-            #Tools
-            ActionGroup:
-                mode: 'spinner'
-                text: 'Tools'
-                font_size: (root.width + root.height) / root.scaleFactor
-                ActionButton:
-                    text: 'Delete'
-                    font_size: (root.width + root.height) / root.scaleFactor
-                    on_press:
-                        root.game.changeTool("delete")
+                #Tools
+                ActionGroup:
+                    mode: 'spinner'
+                    text: 'Tools'
+                    font_size: root.scaleFactor/12.5
+                    ActionButton:
+                        text: 'Delete'
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.changeTool("delete")
 
 
 <ToolBarGame>:
     #Game action bar
-    ActionBar:
-        id: mainActionBarGame
-        size: (root.width, root.height/(root.scaleFactor/10))
-        pos: (0,root.height-self.height)
+    BoxLayout:
+        orientation: "horizontal"
+        size: root.width, root.height
 
-        ActionView:
-            use_separator: True
-            ActionPrevious:
-                important: True
-                text: 'Mainmenu'
-                font_size: (root.width + root.height) / root.scaleFactor
-                on_press: 
-                    root.manager.transition.direction = 'right'
-                    root.manager.current = 'mainmenu'
-            ActionOverflow:
-            ActionGroup:
-                mode: 'spinner'
-                text: 'View'
-                font_size: (root.width + root.height) / root.scaleFactor
+        ActionBar:
+            id: mainActionBarGame
+            pos_hint: {"top": 1}
+
+            ActionView:
+                use_separator: True
+                ActionPrevious:
+                    important: True
+                    text: 'Mainmenu'
+                    font_size: root.scaleFactor/12.5
+                    on_press: 
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = 'mainmenu'
+                ActionOverflow:
+
+                ActionGroup:
+                    mode: 'spinner'
+                    text: 'View'
+                    font_size: root.scaleFactor/12.5
+                    ActionButton:
+                        text: 'Center Camera'
+                        minimum_width: root.scaleFactor*0.8
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.changeCamera("center")
+
+                #File interaction buttons
+                ActionGroup:
+                    mode: 'spinner'
+                    text: 'File'
+                    font_size: root.scaleFactor/12.5
+                    ActionButton:
+                        text: 'Save File'
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.exportFile()
+                    ActionButton:
+                        text: 'Load File'
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.importFile()
+
                 ActionButton:
-                    text: 'Center Camera'
-                    minimum_width: ((root.width + root.height) / root.scaleFactor) * 20
-                    minimum_height: ((root.width + root.height) / root.scaleFactor) * 20
-                    font_size: (root.width + root.height) / root.scaleFactor
+                    text: 'Reset'
+                    font_size: root.scaleFactor/12.5
+                    on_press: 
+                        root.game.reset()
+                ActionButton:
+                    text: 'Level Editor'
+                    font_size: root.scaleFactor/12.5
                     on_press:
-                        root.game.changeCamera("center")
-            ActionButton:
-                text: 'Reset'
-                font_size: (root.width + root.height) / root.scaleFactor
-                on_press: 
-                    root.game.reset()
-            ActionButton:
-                text: 'Level Editor'
-                font_size: (root.width + root.height) / root.scaleFactor
-                on_press:
-                    root.screen.startLevelEditor()
+                        root.screen.startLevelEditor()

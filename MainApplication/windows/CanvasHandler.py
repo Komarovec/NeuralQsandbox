@@ -35,10 +35,14 @@ class CanvasHandler(RelativeLayout):
     def init(self, window):
         #Important values
         self.touches = {}
-        self.keys = {"up" : 0, "down" : 0, "left" : 0, "right" : 0}
-        self.scallerVar = 5000
+        self.keys = {"up" : 0, "down" : 0, "left" : 0, "right" : 0, 'lctrl': 0, 'z': 0}
+        self.scallerVar = 10000
         self.state = "game"
         self.window = window
+
+        #Undo field
+        self.changes = []
+        self.undoDone = False
 
         #Level editor vals
         self.editorTool = "move"
@@ -79,6 +83,12 @@ class CanvasHandler(RelativeLayout):
         self.simulation.start()
 
         #Set time clock
+        self.startDrawing()
+
+    def stopDrawing(self):
+        Clock.unschedule(self.update_event)
+
+    def startDrawing(self):
         self.update_event = Clock.schedule_interval(self.draw, 1.0 / 10000)
 
     #Reset enviroment
@@ -115,6 +125,34 @@ class CanvasHandler(RelativeLayout):
 
         #Editor mode
         elif(self.state == "editor"):
+            #Undo action
+            if(self.keys["lctrl"] == 1 and self.keys["z"] == 1 and not self.undoDone):
+                #Do undo //Delete and create only
+                if(self.changes.__len__() != 0):
+                    change = self.changes[self.changes.__len__()-1]
+                    match = None
+                    for shape in self.simulation.space.shapes:
+                        if(shape == change):
+                            self.simulation.deleteObject(shape, "nochange")
+                            self.changes.remove(shape)
+                            match = "found"
+
+                    if(match == None):
+                        self.simulation.space.add(change)
+
+                        self.canvas.add(Color(rgba=change.rgba))
+                        self.canvas.add(change.ky)
+
+                        self.simulation.repaintObjects()
+                        self.changes.remove(change)
+
+                self.undoDone = True
+                
+            #Reset undo action
+            if(self.keys["z"] == 0 and self.undoDone):
+                self.undoDone = False
+
+            #Adding tool indication + rectangle adding grap rep
             if(self.editorTool == "add"):
                 pos = self.to_local(*Window.mouse_pos)
 
@@ -241,7 +279,6 @@ class CanvasHandler(RelativeLayout):
         if(state == "center"):
             self.pos = (0,0)
 
-
     #Pickle export
     def exportFile(self):
         Level.exportLevel(self.simulation)
@@ -268,6 +305,11 @@ class CanvasHandler(RelativeLayout):
     def changeState(self, state):
         if(state == "game"):
             self.window.statebar.ids["tool"].text = "Game state"
+            #Delete highlight
+            if(self.tempHighlight != None):
+                self.canvas.remove(self.tempHighlight)
+                self.tempHighlight = None
+
         elif(state == "editor"):
             self.window.statebar.ids["tool"].text = "Tool: "+str(self.editorTool)
 
@@ -292,7 +334,8 @@ class CanvasHandler(RelativeLayout):
 
         Cdash = (a[0]+vectTC[0], a[1]+vectTC[1])
         D = (b[0]+vectTC[0], b[1]+vectTC[1])
-        
+        #END OF !!!MATH WARNING!!!
+
         #Scale calculated
         a = (a[0]/self.scaller, a[1]/self.scaller)
         b = (b[0]/self.scaller, b[1]/self.scaller)
@@ -303,7 +346,10 @@ class CanvasHandler(RelativeLayout):
 
     #Interface functions
     def on_touch_up(self, touch):
-        if(touch.button == "scrolldown" or touch.button == "scrollup"):
+        #Scale screen if mouse scroll
+        if(touch.button == "scrolldown"):
+            return
+        elif(touch.button == "scrollup"):
             return
 
         #Ungrab screen when stopped touching
@@ -422,10 +468,10 @@ class CanvasHandler(RelativeLayout):
     def on_touch_down(self, touch):
         #Scale screen if mouse scroll
         if(touch.button == "scrolldown"):
-            if(self.scallerVar > 100):
+            if(self.scallerVar > 1000):
                 self.scallerVar -= 100
         elif(touch.button == "scrollup"):
-            if(self.scallerVar < 10000):
+            if(self.scallerVar < 30000):
                 self.scallerVar += 100
 
         #Cancel if right button
@@ -471,8 +517,7 @@ class CanvasHandler(RelativeLayout):
                 for shape in self.simulation.space.shapes:
                     if(shape.point_query(deletePoint)[0] < 0):
                         if(not isinstance(shape, Car)):
-                            self.simulation.space.remove(shape)
-                            self.canvas.remove(shape.ky)
+                            self.simulation.deleteObject(shape)
 
                 self.deleteObject = False
 

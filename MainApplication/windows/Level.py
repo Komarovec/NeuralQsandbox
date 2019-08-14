@@ -12,7 +12,9 @@ import sys, os
 
 class Level():
     @classmethod
-    def exportLevel(self, simulation):          
+    def exportLevel(self, simulation):     
+        simulation.canvasWindow.stopDrawing()
+
         pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\levels"   
         if not os.path.exists(pathname):
             os.makedirs(pathname)
@@ -33,19 +35,25 @@ class Level():
                 shape.ky = None
 
             simulation.removeCallbacks()
+            simulation.space.remove(car.body, car)
 
-            space.remove(car.body, car)
-            with open(file_path, "wb") as f:
-                pickle.dump(space, f, pickle.HIGHEST_PROTOCOL)
-            
+            space_copy = simulation.space.copy()
+
             simulation.addCallbacks()
+            simulation.space.add(car.body, car)
 
-            space.add(car.body, car)
+            with open(file_path, "wb") as f:
+                pickle.dump(space_copy, f, pickle.HIGHEST_PROTOCOL)
+
             for shape in space.shapes:
                 paintObject(shape, simulation.canvasWindow)
 
+        simulation.canvasWindow.startDrawing()
+
     @classmethod
     def importLevel(self, simulation):
+        simulation.canvasWindow.stopDrawing()
+
         pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\levels"   
         if not os.path.exists(pathname):
             os.makedirs(pathname) 
@@ -65,7 +73,9 @@ class Level():
 
             simulation.loadSpace(loaded_space)
 
-            for shape in space.shapes:
+            for shape in simulation.space.shapes:
                 paintObject(shape, simulation.canvasWindow)
+
+            simulation.canvasWindow.startDrawing()
         
         

@@ -22,7 +22,6 @@ class Simulation():
     def setupSpace(self):
         self.space = space = pymunk.Space()
 
-        self.handler = space.add_default_collision_handler()
         self.addCallbacks()
 
         space.gravity = 0, 0
@@ -32,6 +31,7 @@ class Simulation():
         return space
 
     def addCallbacks(self):
+        self.handler = self.space.add_collision_handler(0,0)
         self.handler.begin = self.coll_begin
         self.handler.pre_solve = self.coll_pre
         self.handler.post_solve = self.coll_post
@@ -42,12 +42,13 @@ class Simulation():
         self.handler.pre_solve = None
         self.handler.post_solve = None
         self.handler.separate = None
+        self.handler = None
 
     def deleteSpace(self):
         for shape in self.space.shapes:
             self.canvasWindow.canvas.remove(shape.ky)
-            shape.ky = None
-            self.space.remove(shape.body, shape)
+
+        self.setupSpace()
 
     def loadSpace(self, loadedSpace):
         for shape in loadedSpace.shapes:
@@ -76,7 +77,7 @@ class Simulation():
             car.paint(self.canvasWindow)
 
     def update(self, dt):
-        #Physics simulation
+       #Physics simulation
         for x in range(2):
             for shape in self.space.shapes:
                 if(not shape.body.is_sleeping):
@@ -101,7 +102,7 @@ class Simulation():
             self.space.steps += 1
 
     #Adding
-    def addSegment(self, a, b, radius, typeVal, collisions, rgba):
+    def addSegment(self, a, b, radius, typeVal, collisions, rgba, change="change"):
         if(typeVal == "Finish"):
             segment = StaticGameObject(StaticGameObject.FINISH, rgba=rgba)
         elif(typeVal == "Start"):
@@ -114,7 +115,11 @@ class Simulation():
         segment.createSegment(a, b, radius, self.canvasWindow)
         self.repaintObjects()
 
-    def addCircle(self, a, radius, typeVal, collisions, rgba):
+        #Undo system
+        if(change == "change"):
+            self.canvasWindow.changes.append(segment.shape)
+
+    def addCircle(self, a, radius, typeVal, collisions, rgba, change="change"):
         if(typeVal == "Finish"):
             circle = StaticGameObject(StaticGameObject.FINISH, rgba=rgba)
         elif(typeVal == "Start"):
@@ -127,7 +132,11 @@ class Simulation():
         circle.createCircle(a, radius, self.canvasWindow)
         self.repaintObjects()
 
-    def addBox(self, points, typeVal, collisions, rgba):
+        #Undo system
+        if(change == "change"):
+            self.canvasWindow.changes.append(circle.shape)
+
+    def addBox(self, points, typeVal, collisions, rgba, change="change"):
         if(typeVal == "Finish"):
             box = StaticGameObject(StaticGameObject.FINISH, rgba=rgba)
         elif(typeVal == "Start"):
@@ -139,6 +148,18 @@ class Simulation():
 
         box.createBoxPoints(points, self.canvasWindow)
         self.repaintObjects()
+
+        #Undo system
+        if(change == "change"):
+            self.canvasWindow.changes.append(box.shape)
+
+    def deleteObject(self, obj, change="change"):
+        self.space.remove(obj)
+        self.canvasWindow.canvas.remove(obj.ky)
+
+        #Undo system
+        if(change == "change"):
+            self.canvasWindow.changes.append(obj)
 
     #Momentally only paint car on top of everything
     def repaintObjects(self):

@@ -291,12 +291,19 @@ class CanvasHandler(RelativeLayout):
         
     #Change tool
     def changeTool(self, tool):
-        if(self.editorTool == "add" and tool != "add"):
-            self.window.disableObjectMenu()
-
         self.window.statebar.ids["tool"].text = "Tool: "+str(tool)
         self.editorTool = tool
 
+        #Changes buttons on object menu --> Add toogle, delete toggle etc..
+        if(tool == "add"):
+            self.window.objectMenu.changeButtonState("normal", "delete")
+        elif(tool == "delete"):
+            self.window.objectMenu.changeButtonState("normal", "add")
+        elif(tool == "move"):
+            self.window.objectMenu.changeButtonState("normal", "delete")
+            self.window.objectMenu.changeButtonState("normal", "add")
+
+        #Removing mouse indication
         if(self.addingIndication != None):
             self.canvas.remove(self.addingIndication)
             self.addingIndication = None
@@ -304,7 +311,12 @@ class CanvasHandler(RelativeLayout):
     #Change state
     def changeState(self, state):
         if(state == "game"):
+            #Updates statebar
             self.window.statebar.ids["tool"].text = "Game state"
+
+            #Closes edit menu (if opened)
+            self.window.editMenu.setEditObject(None)
+
             #Delete highlight
             if(self.tempHighlight != None):
                 self.canvas.remove(self.tempHighlight)
@@ -478,7 +490,7 @@ class CanvasHandler(RelativeLayout):
         if(touch.button == "right"):
             if(self.state == "editor"):
                 if(self.editorTool == "add"):
-                    self.window.toggleObjectMenu()
+                    self.changeTool("move")
                 elif(self.editorTool == "delete"):
                     self.changeTool("move")
                 elif(self.editorTool == "move"):
@@ -489,6 +501,8 @@ class CanvasHandler(RelativeLayout):
         self.touches[0] = p
 
         if(self.state == "editor" and touch.button == "left"):
+            #Selecting none --> closes edit menu
+            selectObject = None
             #If AddBarrier was clicked on, draw a line
             if(self.editorTool == "add"):
                 self.adding_barrier = True
@@ -527,6 +541,9 @@ class CanvasHandler(RelativeLayout):
                 for shape in self.simulation.space.shapes:
                     if(shape.point_query(movePoint)[0] < 0):
                         self.movingObject = True
+                        
+                        #Select object for editing
+                        selectObject = shape
 
                         #Move depending on the type
                         if(isinstance(shape, Car) or isinstance(shape, pymunk.Circle) or isinstance(shape, pymunk.Poly)):
@@ -543,9 +560,12 @@ class CanvasHandler(RelativeLayout):
                                 self.movingPoint = "a"
                             else:
                                 self.movingPoint = "b"
-                
+
                 if(not self.movingObject):
                     touch.grab(self)
+
+            #If object selected then edit if not then send None --> Closes menu
+            self.window.editMenu.setEditObject(selectObject)
         else:
             touch.grab(self)
 

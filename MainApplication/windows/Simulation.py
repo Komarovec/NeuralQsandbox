@@ -2,6 +2,10 @@
 import random
 random.seed(5)
 
+#Kivy
+from kivy.graphics import Color
+
+#Pymunk
 import cffi
 import pymunk
 import pymunk.autogeometry
@@ -55,7 +59,6 @@ class Simulation():
             self.space.add(shape.copy().body, shape.copy())
 
         self.addCallbacks()
-        self.addPlayer()
 
     def start(self):
         space = self.setupSpace()
@@ -161,16 +164,93 @@ class Simulation():
         if(change == "change"):
             self.canvasWindow.changes.append(obj)
 
-    #Momentally only paint car on top of everything
+    #Repaints all object and keeps layering in mind
     def repaintObjects(self):
-        car = None
-        for shape in self.space.shapes:
-            if(isinstance(shape, Car)):
-                car = shape
-                self.canvasWindow.canvas.remove(car.ky)
+        cars = []
 
-        car.paint(self.canvasWindow)
-        
+        for shape in self.space.shapes:
+            if(hasattr(shape, "ky")):
+                self.canvasWindow.canvas.remove(shape.ky)
+
+        for shape in self.space.shapes:
+            self.canvasWindow.canvas.add(Color(rgba=shape.rgba))
+            if(isinstance(shape, Car)):
+                cars.append(shape)
+            else:
+                self.canvasWindow.canvas.add(shape.ky)
+
+        #Paint cars on top of everything
+        for car in cars:
+            car.paint(self.canvasWindow)
+    
+    #Shift layer shif --> direction, spec --> special TOP, BOTTOM --> ALL THE WAY
+    def shiftLayer(self, obj, shift, spec):
+        temp = None
+        tempShapes = []
+        splitIndex = None
+
+        if(spec):
+            for shape in self.space.shapes:
+                if(shape == obj):
+                    temp = obj
+                else:
+                    tempShapes.append(shape)
+
+                self.space.remove(shape)
+
+            if(shift > 0):
+                for tempShape in tempShapes:
+                    self.space.add(tempShape)
+                self.space.add(temp)
+            else:
+                self.space.add(temp)
+                for tempShape in tempShapes:
+                    self.space.add(tempShape)
+            
+
+            self.repaintObjects()
+        else:
+            #Save moving object, Save all object from moving one --> tempShapes
+            for index, shape in enumerate(self.space.shapes):
+                if(shape == obj):
+                    splitIndex = index
+                    temp = shape
+
+                    if(shift < 0 and splitIndex != 0):
+                        tempShapes.append(self.space.shapes[splitIndex-1])
+
+                elif(splitIndex != None):
+                    tempShapes.append(shape)
+
+            if(len(tempShapes) != 0):
+                #Delete all tempShapes from space
+                for tempShape in tempShapes:
+                    self.space.remove(tempShape)
+
+                #Delete moving object from space
+                self.space.remove(temp)
+
+                #Add first from tempShapes and then moving object itself
+                if(shift > 0):
+                    self.space.add(tempShapes[0])
+
+                self.space.add(temp)
+
+                #Add rest of tempShapes except of the first one
+                for index, tempShape in enumerate(tempShapes):
+                    if(index == 0 and shift > 0):
+                        continue
+
+                    self.space.add(tempShape)
+
+                #Repaint everything
+                self.repaintObjects()
+            
+    def getLayer(self, obj):
+        for index, shape in enumerate(self.space.shapes):
+            if(shape == obj):
+                return index
+                    
     #Add one car as a player
     def addPlayer(self):
         point = self.findSpawnpoint()
@@ -180,6 +260,12 @@ class Simulation():
             return car
         else:
             return None
+
+    def removePlayer(self):
+        for shape in self.space.shapes:
+            if(isinstance(shape, Car)):
+                self.space.remove(shape.body, shape)
+                self.canvasWindow.canvas.remove(shape.ky)
 
     #Find spawnpoint for car
     def findSpawnpoint(self):

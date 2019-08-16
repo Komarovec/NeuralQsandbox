@@ -7,12 +7,30 @@ from objs.kivyObjs import paintObject
 import tkinter as tk
 from tkinter import filedialog
 
+from kivy.uix.popup import Popup
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.boxlayout import BoxLayout
+
 import pickle
 import sys, os
+
+class levelPopup():
+    def __init__(self, text):
+            content = BoxLayout(orientation="vertical")
+            popup = Popup(title="WIP POPUP!! THIS WILL BE REPLACED", content=content, size_hint=(None,None), size=(400,300))
+
+            content.add_widget(Label(text=text))
+            content.add_widget(Button(text="Close", on_press=popup.dismiss, size_hint=(1, 0.2)))
+            popup.open()
 
 class Level():
     @classmethod
     def exportLevel(self, simulation):     
+        if(simulation.canvasWindow.state == "game"):
+            levelPopup("Exporting while in-game is not supported!\nPlease switch to Editor")
+            return
+
         simulation.canvasWindow.stopDrawing()
 
         pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\levels"   
@@ -26,21 +44,24 @@ class Level():
         file_path = filedialog.asksaveasfilename(initialdir = pathname,title = "Save level")
 
         if(file_path != ""):
+            cars = []
             space = simulation.space
             for shape in space.shapes:
                 if(isinstance(shape, Car)):
-                    car = shape
+                    cars.append(shape)
 
                 simulation.canvasWindow.canvas.remove(shape.ky)
                 shape.ky = None
 
             simulation.removeCallbacks()
-            simulation.space.remove(car.body, car)
+            for car in cars:
+                simulation.space.remove(car.body, car)
 
             space_copy = simulation.space.copy()
 
             simulation.addCallbacks()
-            simulation.space.add(car.body, car)
+            for car in cars:
+                simulation.space.add(car.body, car)
 
             with open(file_path, "wb") as f:
                 pickle.dump(space_copy, f, pickle.HIGHEST_PROTOCOL)
@@ -48,10 +69,16 @@ class Level():
             for shape in space.shapes:
                 paintObject(shape, simulation.canvasWindow)
 
+            levelPopup("Level exported!")
+
         simulation.canvasWindow.startDrawing()
 
     @classmethod
     def importLevel(self, simulation):
+        if(simulation.canvasWindow.state == "game"):
+            levelPopup("Importing while in-game is not supported!\nPlease switch to Editor")
+            return
+
         simulation.canvasWindow.stopDrawing()
 
         pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\levels"   
@@ -77,5 +104,7 @@ class Level():
                 paintObject(shape, simulation.canvasWindow)
 
             simulation.canvasWindow.startDrawing()
+
+            levelPopup("Level imported!")
         
         

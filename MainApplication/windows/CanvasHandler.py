@@ -211,7 +211,7 @@ class CanvasHandler(RelativeLayout):
                 pos = self.to_local(*Window.mouse_pos)
                 pos = (pos[0]/self.scaller, pos[1]/self.scaller)
 
-                for shape in self.simulation.space.shapes:
+                for shape in reversed(self.simulation.space.shapes):
                     #Highlight object when no moving
                     if(not self.movingObject):
                         #Highlight hover objects
@@ -220,18 +220,7 @@ class CanvasHandler(RelativeLayout):
                                 self.canvas.remove(self.tempHighlight)
                                 self.tempHighlight = None
 
-                            if(isinstance(shape, pymunk.Segment)):
-                                with self.canvas:
-                                    Color(0.6,0.6,0.6,0.6)
-                                    self.tempHighlight = Line(points=shape.ky.points, width=shape.ky.width)
-                            elif(isinstance(shape, Car) or isinstance(shape, pymunk.Poly)):
-                                with self.canvas:
-                                    Color(0.6,0.6,0.6,0.6)
-                                    self.tempHighlight = newRectangle(shape, self.scaller)
-                            elif(isinstance(shape, pymunk.Circle)):
-                                with self.canvas:
-                                    Color(0.6,0.6,0.6,0.6)
-                                    self.tempHighlight = ellipse_from_circle(shape, self.scaller)
+                            self.tempHighlight = self.highlightObject(shape)
                             break
 
                         #Cleanup highlight
@@ -274,6 +263,25 @@ class CanvasHandler(RelativeLayout):
                 if isinstance(shape, pymunk.Poly):
                     shape.ky.points = points_from_poly(shape, scaller)
 
+    #Highlight object
+    def highlightObject(self, obj):
+        saveobj = None
+        if(isinstance(obj, pymunk.Segment)):
+            with self.canvas:
+                Color(0.6,0.6,0.6,0.6)
+                saveobj = Line(points=obj.ky.points, width=obj.ky.width)
+        elif(isinstance(obj, Car) or isinstance(obj, pymunk.Poly)):
+            with self.canvas:
+                Color(0.6,0.6,0.6,0.6)
+                saveobj = newRectangle(obj, self.scaller)
+        elif(isinstance(obj, pymunk.Circle)):
+            with self.canvas:
+                Color(0.6,0.6,0.6,0.6)
+                saveobj = ellipse_from_circle(obj, self.scaller)
+
+        return saveobj
+
+
     #Camera change
     def changeCamera(self, state):
         if(state == "center"):
@@ -314,6 +322,10 @@ class CanvasHandler(RelativeLayout):
             #Updates statebar
             self.window.statebar.ids["tool"].text = "Game state"
 
+            #Spawns a player
+            self.simulation.addPlayer()
+            self.simulation.repaintObjects()
+
             #Closes edit menu (if opened)
             self.window.editMenu.setEditObject(None)
 
@@ -323,7 +335,12 @@ class CanvasHandler(RelativeLayout):
                 self.tempHighlight = None
 
         elif(state == "editor"):
+            #Updates statebar
             self.window.statebar.ids["tool"].text = "Tool: "+str(self.editorTool)
+
+            #Despawns player
+            self.simulation.removePlayer()
+
 
         self.state = state
 
@@ -439,6 +456,8 @@ class CanvasHandler(RelativeLayout):
 
         #If move, move clicked on object
         elif(self.movingObject):
+            self.window.editMenu.disableMenu()
+
             if(isinstance(self.movingVar, Car) or isinstance(self.movingVar, pymunk.Circle)):
                 p_scaled = (p[0]/self.scaller,p[1]/self.scaller)
                 self.movingVar.body.position = p_scaled 
@@ -493,8 +512,11 @@ class CanvasHandler(RelativeLayout):
                     self.changeTool("move")
                 elif(self.editorTool == "delete"):
                     self.changeTool("move")
-                elif(self.editorTool == "move"):
-                    self.window.endLevelEditor()
+                else:
+                    self.window.editMenu.setEditObject(None)
+                #End level editor when right click
+                #elif(self.editorTool == "move"):
+                #    self.window.endLevelEditor()
             
         #Save current pos
         p = self.to_local(*touch.pos)

@@ -89,7 +89,7 @@ class ObjectMenu(GameWidget):
 
         #COLOR
         self.colorGrid.add_widget(Label(text="Color: "))
-        self.colorButton = Button(background_normal=('Image.extension'), text="", on_release=lambda instance: self.showColorpicker())
+        self.colorButton = Button(background_normal=('Image.extension'), background_color=self.colorVal, text="", on_release=lambda instance: self.showColorpicker())
         self.colorGrid.add_widget(self.colorButton)
 
         #Collisions
@@ -169,6 +169,7 @@ class EditMenu(GameWidget):
         super(EditMenu, self).__init__(game, screen, **kwargs)
         #Defaults
         self.editObject = None
+        self.highlight = None
         self.colorVal = (0.2,0.2,0.2, 1)
         self.collisionsVal = True
         self.shapeVal = "Segment"
@@ -206,8 +207,7 @@ class EditMenu(GameWidget):
     def setEditObject(self, obj):
         if(obj == None):
             #Disable widget
-            self.editObject = None
-            self.screen.remove_widget(self)
+            self.disableMenu()
             return
 
         elif(self.editObject == None):
@@ -215,8 +215,15 @@ class EditMenu(GameWidget):
 
         self.editObject = obj
 
+        #Create highlight
+        if(self.highlight != None):
+            self.game.canvas.remove(self.highlight)
+        self.highlight = self.game.highlightObject(self.editObject)
 
         if(hasattr(self.editObject, "objectType")):
+            #Set layer height
+            self.ids["layerLabel"].text = str(self.game.simulation.getLayer(self.editObject))
+
             #Set type button
             if(self.editObject.objectType == StaticGameObject.BARRIER or self.editObject.objectType == StaticGameObject.NOBARRIER):
                 self.typeButton.text = "Barrier"
@@ -239,7 +246,28 @@ class EditMenu(GameWidget):
             self.editObject = None
             self.screen.remove_widget(self)
 
+    #Shift selected object
+    def shiftLayer(self, shift, spec=False):
+        if(self.editObject != None):
+            self.game.simulation.shiftLayer(self.editObject, shift, spec)
 
+        self.ids["layerLabel"].text = str(self.game.simulation.getLayer(self.editObject))
+
+    #Deletes selected object
+    def deleteObject(self):
+        self.game.simulation.deleteObject(self.editObject)
+        self.disableMenu()
+        
+    #Disable widget
+    def disableMenu(self):
+        if(self.highlight != None):
+            self.game.canvas.remove(self.highlight)
+        self.screen.remove_widget(self)
+
+        self.highlight = None
+        self.editObject = None
+
+    #Color picker
     def showColorpicker(self):
         popup = PopupColor(self)
         popup_color = ColorPicker()
@@ -270,7 +298,7 @@ class EditMenu(GameWidget):
 
 
     def resultColor(self, color):
-        if(color[3] != None and color[3] != 0):
+        if(color[3] != None):
             self.colorVal = (color[0],color[1],color[2],color[3])
         else:    
             self.colorVal = (color[0],color[1],color[2],1)

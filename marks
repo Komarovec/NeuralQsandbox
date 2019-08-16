@@ -20,3 +20,4 @@
 13.8.2019 - 2h - Undo akce
 14.8.2019 - 4h - GUI Rework, Oprava kolizí a kolizního handleru
 15.8.2019 - 9h - Editovací menu, editování objektu (kolize, barva, typ), nový toolbar system, object menu předělan --> tool menu maztaní atd..
+16.8.2019 - 7h - Vrstvovací system, meneni vrstev v edit menu, zlepsene edit menu, chyba handeleru pri exportu/importu se vyskytuje pouze v game --> zakaz, zacatek popup, notif

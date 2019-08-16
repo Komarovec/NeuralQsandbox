@@ -18,6 +18,13 @@
             size_hint: 1.0, 0.2
             on_press: popupcolor.on_press_dismiss(colorpicker)
 
+<MyPopup@Popup>:
+    Label:
+        text: "Level exported!"
+    Button:
+        text: 'Close'
+        on_release: root.dismiss()
+
 <Separator>:
     size_hint_y: None
     thickness: 4
@@ -55,14 +62,14 @@
 
         ToggleButton:
             id: deleteBtn
-            text: "Delete object"
+            text: "Delete"
             size_hint: 1,0.2
             on_state:
                 root.changeTool(self.state, "delete")
 
         ToggleButton:
             id: addBtn
-            text: "Add object"
+            text: "Add"
             size_hint: 1,0.2
             on_state:
                 root.changeTool(self.state, "add")
@@ -80,7 +87,7 @@
             pos: self.parent.pos
 
 <EditMenu>:
-    id: objectMenu
+    id: editMenu
     BoxLayout:
         id: mainLayout
         orientation: "vertical"
@@ -100,9 +107,61 @@
                 pos: self.pos
                 #radius: [(root.width+root.height)/ root.scaleFactor,]
 
-        Separator:
-            color: 0,0,0,0
+        #Deleting
+        Label:
+            text: "Tools"
+            size_hint: 1,0.15
+        Button:
+            id: deleteBtn
+            text: "Delete object"
+            size_hint: 1,0.2
+            on_press:
+                root.deleteObject()
 
+        Separator:
+            color: 0.5,0.5,0.5,0.8
+
+        #Change layer position
+        Label:
+            text: "Layer shift"
+            size_hint: 1,0.15
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint: 1,0.3
+
+            BoxLayout:
+                orientation: "vertical"
+                Button:
+                    text: "Up"
+                    on_press:
+                        root.shiftLayer(1)
+                Button:
+                    text: "Top"
+                    on_press:
+                        root.shiftLayer(1, True)
+            
+            Label:
+                id: layerLabel
+                text: "?"
+
+            BoxLayout:
+                orientation: "vertical"
+                Button:
+                    text: "Down"
+                    on_press:
+                        root.shiftLayer(-1)
+                Button:
+                    text: "Bottom"
+                    on_press:
+                        root.shiftLayer(-1, True)
+
+        Separator:
+            color: 0.5,0.5,0.5,0.8
+
+        #Properties editing
+        Label:
+            text: "Properties"
+            size_hint: 1,0.15
         GridLayout:
             id: inEditMenu
             rows: 4

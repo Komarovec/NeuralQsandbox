@@ -75,10 +75,6 @@ class Simulation():
         finish = StaticGameObject(StaticGameObject.FINISH, rgba=(.8,0,0,1))
         finish.createSegment((1800,400), (1800,600), 20, self.canvasWindow)
 
-        car = self.addPlayer()
-        if(car != None):
-            car.paint(self.canvasWindow)
-
     def update(self, dt):
        #Physics simulation
         for x in range(2):

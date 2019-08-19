@@ -321,11 +321,7 @@ class CanvasHandler(RelativeLayout):
         if(state == "game"):
             #Updates statebar
             self.window.statebar.ids["tool"].text = "Game state"
-
-            #Spawns a player
-            self.simulation.addPlayer()
-            self.simulation.repaintObjects()
-
+            
             #Closes edit menu (if opened)
             self.window.editMenu.setEditObject(None)
 

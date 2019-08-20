@@ -23,7 +23,7 @@ class StaticGameObject():
         self.shape = pymunk.Segment(body, a, b, radius)
         self.addAttrs(self.shape)
         self.paint(canvasHandler)
-        canvasHandler.simulation.space.add(self.shape.body, self.shape)
+        canvasHandler.simulation.space.add(self.shape)
 
     def createCircle(self, pos, radius, canvasHandler):
         body = pymunk.Body(mass=0, moment=0, body_type=pymunk.Body.STATIC)
@@ -31,7 +31,7 @@ class StaticGameObject():
         self.shape = pymunk.Circle(body, radius)
         self.addAttrs(self.shape)
         self.paint(canvasHandler)
-        canvasHandler.simulation.space.add(self.shape.body, self.shape)
+        canvasHandler.simulation.space.add(self.shape)
 
     def createBox(self, pos, size, canvasHandler):
         body = pymunk.Body(mass=0, moment=0, body_type=pymunk.Body.STATIC)
@@ -39,14 +39,14 @@ class StaticGameObject():
         self.shape = pymunk.Poly.create_box(body, (size[0],size[1]))
         self.addAttrs(self.shape)
         self.paint(canvasHandler)
-        canvasHandler.simulation.space.add(self.shape.body, self.shape)
+        canvasHandler.simulation.space.add(self.shape)
 
     def createBoxPoints(self, points, canvasHandler):
         body = pymunk.Body(mass=0, moment=0, body_type=pymunk.Body.STATIC)
         self.shape = pymunk.Poly(body, points)
         self.addAttrs(self.shape)
         self.paint(canvasHandler)
-        canvasHandler.simulation.space.add(self.shape.body, self.shape)
+        canvasHandler.simulation.space.add(self.shape)
 
     def addAttrs(self, shape):
         self.shape.friction = self.friction

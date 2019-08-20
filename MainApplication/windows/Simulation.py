@@ -15,6 +15,7 @@ import math
 
 #Custom function and classes
 from objs.GameObjects import StaticGameObject
+from objs.CarAI import CarAI
 from objs.Car import Car
 
 class Simulation():
@@ -95,6 +96,10 @@ class Simulation():
                     #Apply friction every frame *not frame dependent /dt/*
                     shape.body.velocity *= 1 - (dt*friction)
                     shape.body.angular_velocity *= 1 - (dt*angular_friction)
+
+                    #Count Raycasting
+                    if(isinstance(shape, CarAI)):
+                        print(shape.calculateRaycasts(self.space))
 
             #Stepping space simul
             self.space.step(dt)
@@ -251,8 +256,9 @@ class Simulation():
     def addPlayer(self):
         point = self.findSpawnpoint()
         if(point != None):
-            car = Car(10, (100,50), self.findSpawnpoint(), ground_friction=1, angular_friction=3)
+            car = CarAI(10, (100,50), self.findSpawnpoint(), ground_friction=1, angular_friction=3)
             self.space.add(car.body, car)
+            self.repaintObjects()
             return car
         else:
             return None

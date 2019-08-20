@@ -27,7 +27,8 @@ import math
 #Custom function and classes
 from objs.GameObjects import StaticGameObject
 from objs.Car import Car
-from objs.kivyObjs import ellipse_from_circle, points_from_poly, newRectangle
+from objs.CarAI import CarAI
+from objs.kivyObjs import ellipse_from_circle, points_from_poly, newRectangle, distXY, calculateRectangle
 from windows.Simulation import Simulation
 from windows.Level import Level
 
@@ -166,11 +167,11 @@ class CanvasHandler(RelativeLayout):
 
                 #When adding rectangle show its graphical representation
                 if(self.addingStage == 1):
-                    c = (pos[0]*self.scaller, pos[1]*self.scaller)
-                    a = (self.temp_rect.points[0]*self.scaller, self.temp_rect.points[1]*self.scaller)
-                    b = (self.temp_rect.points[2]*self.scaller, self.temp_rect.points[3]*self.scaller)
+                    c = pos
+                    a = (self.temp_rect.points[0], self.temp_rect.points[1])
+                    b = (self.temp_rect.points[2], self.temp_rect.points[3])
 
-                    a, b, c, d = self.calculateRectangle(a,b,c)
+                    a, b, c, d = calculateRectangle(a,b,c)
 
                     if(self.temp_barrier == None):
                         if(a != None):
@@ -263,6 +264,10 @@ class CanvasHandler(RelativeLayout):
                 if isinstance(shape, pymunk.Poly):
                     shape.ky.points = points_from_poly(shape, scaller)
 
+                if isinstance(shape, CarAI):
+                    pass
+                    #shape.drawRaycasts(self)
+
     #Highlight object
     def highlightObject(self, obj):
         saveobj = None
@@ -340,35 +345,6 @@ class CanvasHandler(RelativeLayout):
 
         self.state = state
 
-    #Math functions
-    def distXY(self, a, b):
-        return math.sqrt(((a[0]-b[0])**2)+((a[1]-b[1])**2))
-
-    def calculateRectangle(self, a, b, c):
-        if(self.distXY(a,b) <= 0 or self.distXY(a,c) <= 0 or self.distXY(b,c) <= 0):
-            return (None,None,None,None)
-
-        #Calculate remaining points for Rectangle !!!MATH WARNING!!!
-        alpha = math.atan2(c[1]-a[1], c[0]-a[0]) - math.atan2(b[1]-a[1], b[0]-a[0])
-        distAT = self.distXY(a, c) * math.cos(alpha)
-        t = distAT/self.distXY(a,b)
-        vectAT = ((b[0] - a[0])*t, (b[1] - a[1])*t)
-
-        T = (a[0]+vectAT[0],a[1]+vectAT[1])
-        vectTC = (c[0]-T[0], c[1]-T[1])
-
-        Cdash = (a[0]+vectTC[0], a[1]+vectTC[1])
-        D = (b[0]+vectTC[0], b[1]+vectTC[1])
-        #END OF !!!MATH WARNING!!!
-
-        #Scale calculated
-        a = (a[0]/self.scaller, a[1]/self.scaller)
-        b = (b[0]/self.scaller, b[1]/self.scaller)
-        c = (Cdash[0]/self.scaller, Cdash[1]/self.scaller)
-        d = (D[0]/self.scaller, D[1]/self.scaller)
-        return (a,b,c,d)
-
-
     #Interface functions
     def on_touch_up(self, touch):
         #Scale screen if mouse scroll
@@ -406,11 +382,11 @@ class CanvasHandler(RelativeLayout):
                     self.adding_barrier = True
                 elif(self.addingStage == 1):
                     self.addingStage = 0
-                    c = self.touches[0]
-                    a = (self.temp_rect.points[0], self.temp_rect.points[1])
-                    b = (self.temp_rect.points[2], self.temp_rect.points[3])
+                    c = (self.touches[0][0]/self.scaller,self.touches[0][1]/self.scaller)
+                    a = (self.temp_rect.points[0]/self.scaller, self.temp_rect.points[1]/self.scaller)
+                    b = (self.temp_rect.points[2]/self.scaller, self.temp_rect.points[3]/self.scaller)
 
-                    a, b, c, d = self.calculateRectangle(a,b,c)
+                    a, b, c, d = calculateRectangle(a,b,c)
 
                     if(a != None):
                         self.simulation.addBox((a,b,c,d), typeVal=data["type"], collisions=data["collisions"] ,rgba=data["color"])
@@ -546,10 +522,11 @@ class CanvasHandler(RelativeLayout):
             elif(self.editorTool == "delete"):
                 deletePoint = (p[0]/self.scaller, p[1]/self.scaller)
 
-                for shape in self.simulation.space.shapes:
+                for shape in reversed(self.simulation.space.shapes):
                     if(shape.point_query(deletePoint)[0] < 0):
                         if(not isinstance(shape, Car)):
                             self.simulation.deleteObject(shape)
+                            break
 
                 self.deleteObject = False
 

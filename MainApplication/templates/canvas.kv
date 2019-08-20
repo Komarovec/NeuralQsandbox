@@ -320,6 +320,12 @@
                         root.screen.startLevelEditor()
 
                 ActionButton:
+                    text: "Spawn player"
+                    font_size: root.scaleFactor/12.5
+                    on_press:
+                        root.game.simulation.addPlayer()
+
+                ActionButton:
                     text: 'Exit'
                     font_size: root.scaleFactor/12.5
                     on_press:

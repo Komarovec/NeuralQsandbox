@@ -10,7 +10,7 @@ import numpy as np
 #Custom functions and classes
 from objs.Car import Car
 from objs.kivyObjs import points_from_poly, centerPoint, getVector, normalizeVector, distXY
-
+from ai.brain import getRandomResult, getModel
 
 class CarAI(Car):
     CARAI = "carai"
@@ -24,18 +24,14 @@ class CarAI(Car):
         self.raycastObjects = []
 
         #Kivy
-        self.raycastsToRemove = []
+        self.raycastsKivy = []
+
+        #AI
+        self.brain = getModel()
 
     def calculateRaycasts(self, space):
         dist = []
         points = points_from_poly(self)
-        
-        #Save raycast kivy
-        kivy = []
-        for raycastObject in self.raycastObjects:
-            if(hasattr(raycastObject, "ky")):
-                kivy.append(raycastObject.ky)
-
 
         #Calculate raycasts
         a = centerPoint((points[0], points[1]), (points[6], points[7]))
@@ -45,7 +41,7 @@ class CarAI(Car):
 
         #Main vector
         queryVectors = [] 
-        queryVectors.append((vectAB[0]*self.raycastLenght+origin[0],vectAB[1]*self.raycastLenght+origin[1]))
+        queryVectors.append(vectAB)
 
         #Calculate other vectors
         for i in range(self.raycastCount):
@@ -67,42 +63,40 @@ class CarAI(Car):
 
 
         #Check collisions of all vectors
-        queries = []
-        for vect in queryVectors:
-            queries.append(space.segment_query_first(origin, vect, 1, pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS ^ 1)))
-
-        #Check raycast collision detection
         self.raycastObjects = []
-        for query in queries:
+        for vect in queryVectors:
+            #Calculate second point with direction vector
+            b = (vect[0]*self.raycastLenght+origin[0],vect[1]*self.raycastLenght+origin[1])
+
+            #Test query --> collisions
+            query = space.segment_query_first(origin, b, 1, pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS ^ 1))
+
+            #If collisions happened
             if(query):
                 contant_point = query.point
-                self.raycastObjects.append(pymunk.Segment(space.static_body, origin, contant_point, 1))
+                segment = pymunk.Segment(space.static_body, origin, contant_point, 3)
+                segment.sensor = True
+                self.raycastObjects.append(segment)
                 dist.append(distXY(origin, contant_point)/self.raycastLenght)
-
-        #Add kivy to all segments
-        for index, rcObj in enumerate(self.raycastObjects):
-            rcObj.sensor = True
-
-            if(len(kivy) > index):
-                rcObj.ky = kivy[index]
             else:
-                rcObj.ky = None
+                dist.append(1)
 
         return dist
 
     def drawRaycasts(self, canvasHandler):
+        for ky in self.raycastsKivy:
+            canvasHandler.canvas.remove(ky)
+        
+        self.raycastsKivy = []
+
         for rcObj in self.raycastObjects:
             with canvasHandler.canvas:
                 Color(rgba=(1,1,1,1))
                 scalled_points = (rcObj.a[0]*canvasHandler.scaller,rcObj.a[1]*canvasHandler.scaller,
                                 rcObj.b[0]*canvasHandler.scaller,rcObj.b[1]*canvasHandler.scaller)
 
-                if(rcObj.ky != None):
-                    rcObj.ky.points = scalled_points
-                else:
-                    rcObj.ky = Line(points=scalled_points, width=rcObj.radius*canvasHandler.scaller)
+                self.raycastsKivy.append(Line(points=scalled_points, width=rcObj.radius*canvasHandler.scaller))
 
-        for ky in self.raycastsToRemove:
-            canvasHandler.canvas.remove(ky)
-        
-        self.raycastsToRemove = []
+    def think(self, rc):
+        pass
+        #getRandomResult(rc, self.brain)

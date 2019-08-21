@@ -1,3 +1,6 @@
 MainApplication/dist/
 MainApplication/build/
 venv/
+build/
+dist/
+

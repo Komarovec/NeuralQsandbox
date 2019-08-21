@@ -77,6 +77,14 @@ class Simulation():
         finish.createSegment((1800,400), (1800,600), 20, self.canvasWindow)
 
     def update(self, dt):
+        if(self.space.steps % 10 == 0):
+            hm_car = 0
+            for shape in self.space.shapes:
+                if(isinstance(shape,Car)):
+                    hm_car += 1
+
+            #print(hm_car)
+
        #Physics simulation
         for x in range(2):
             for shape in self.space.shapes:
@@ -99,7 +107,8 @@ class Simulation():
 
                     #Count Raycasting
                     if(isinstance(shape, CarAI)):
-                        print(shape.calculateRaycasts(self.space))
+                        rc = shape.calculateRaycasts(self.space)
+                        shape.think(rc)
 
             #Stepping space simul
             self.space.step(dt)

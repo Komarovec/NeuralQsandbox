@@ -48,6 +48,9 @@ class CanvasHandler(RelativeLayout):
         #Level editor vals
         self.editorTool = "move"
 
+        #Draw
+        self.isDrawing = True
+
         #Adding object
         self.adding_barrier = False
         self.temp_barrier = None
@@ -90,7 +93,7 @@ class CanvasHandler(RelativeLayout):
         Clock.unschedule(self.update_event)
 
     def startDrawing(self):
-        self.update_event = Clock.schedule_interval(self.draw, 1.0 / 10000)
+        self.update_event = Clock.schedule_interval(self.draw, 1.0 / 100)
 
     #Reset enviroment
     def reset(self):
@@ -233,40 +236,41 @@ class CanvasHandler(RelativeLayout):
                         self.canvas.remove(self.tempHighlight)
                         self.tempHighlight = None
 
-        #------ Common draw -------
-        #Scalling coeficient
-        scaller = self.height/self.scallerVar + self.width/self.scallerVar
-        
-        #If resolution has changed change scaling on all shapes
-        if(scaller != self.scaller):
-            self.scaller = scaller
-            scallerChanged = True
-        else:
-            scallerChanged = False
+        if(self.isDrawing):
+            #------ Common draw -------
+            #Scalling coeficient
+            scaller = self.height/self.scallerVar + self.width/self.scallerVar
+            
+            #If resolution has changed change scaling on all shapes
+            if(scaller != self.scaller):
+                self.scaller = scaller
+                scallerChanged = True
+            else:
+                scallerChanged = False
 
-        #Repaint all graphics
-        for shape in self.simulation.space.shapes:
-            if(hasattr(shape, "ky") and (not shape.body.is_sleeping or scallerChanged)):
-                if isinstance(shape, pymunk.Circle):
-                    body = shape.body
-                    shape.ky.size = [shape.radius*2*self.scaller, shape.radius*2*self.scaller]
-                    shape.ky.pos = (body.position - (shape.radius, shape.radius)) * (self.scaller, self.scaller)
+            #Repaint all graphics
+            for shape in self.simulation.space.shapes:
+                if(hasattr(shape, "ky") and (not shape.body.is_sleeping or scallerChanged)):
+                    if isinstance(shape, pymunk.Circle):
+                        body = shape.body
+                        shape.ky.size = [shape.radius*2*self.scaller, shape.radius*2*self.scaller]
+                        shape.ky.pos = (body.position - (shape.radius, shape.radius)) * (self.scaller, self.scaller)
 
-                if isinstance(shape, pymunk.Segment):
-                    #If Is barrier class than increase width by scaller
-                    shape.ky.width = shape.radius * self.scaller
+                    if isinstance(shape, pymunk.Segment):
+                        #If Is barrier class than increase width by scaller
+                        shape.ky.width = shape.radius * self.scaller
 
-                    body = shape.body
-                    p1 = body.position + shape.a.cpvrotate(body.rotation_vector) 
-                    p2 = body.position + shape.b.cpvrotate(body.rotation_vector)
-                    shape.ky.points = p1.x * self.scaller, p1.y * self.scaller, p2.x * self.scaller, p2.y * self.scaller
+                        body = shape.body
+                        p1 = body.position + shape.a.cpvrotate(body.rotation_vector) 
+                        p2 = body.position + shape.b.cpvrotate(body.rotation_vector)
+                        shape.ky.points = p1.x * self.scaller, p1.y * self.scaller, p2.x * self.scaller, p2.y * self.scaller
 
-                if isinstance(shape, pymunk.Poly):
-                    shape.ky.points = points_from_poly(shape, scaller)
+                    if isinstance(shape, pymunk.Poly):
+                        shape.ky.points = points_from_poly(shape, scaller)
 
-                if isinstance(shape, CarAI):
-                    pass
-                    #shape.drawRaycasts(self)
+                    if isinstance(shape, CarAI):
+                        pass
+                        #shape.drawRaycasts(self)
 
     #Highlight object
     def highlightObject(self, obj):

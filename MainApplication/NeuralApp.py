@@ -15,7 +15,9 @@ from windows.CanvasWindow import CanvasWindow
 from kivy.config import Config
 Config.set('graphics', 'width', '1280')
 Config.set('graphics', 'height', '720')
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 Config.write()
+
 #Window classes
 class MainMenuWindow(Screen):
     pass
@@ -31,10 +33,6 @@ for screen in screens:
     sm.add_widget(screen)
 
 sm.current = "mainmenu"
-
-#Turn off multitouch emulation
-from kivy.config import Config
-Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 
 #Main class
 class NeuralApp(App):

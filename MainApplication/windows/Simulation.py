@@ -20,7 +20,7 @@ from objs.Car import Car
 class Simulation():
     def __init__(self, canvasWindow):
         #Important values
-        self.step = 1/60.
+        self.step = 1/60. # <---- ? Dynamic ?
         self.canvasWindow = canvasWindow
 
     def setupSpace(self):

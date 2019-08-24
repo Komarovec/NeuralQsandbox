@@ -10,7 +10,7 @@ import numpy as np
 #Custom functions and classes
 from objs.Car import Car
 from objs.kivyObjs import points_from_poly, centerPoint, getVector, normalizeVector, distXY
-from ai.brain import getRandomResult, getModel
+from ai.brain import Brain
 
 class CarAI(Car):
     CARAI = "carai"
@@ -27,7 +27,7 @@ class CarAI(Car):
         self.raycastsKivy = []
 
         #AI
-        self.brain = getModel()
+        self.brain = Brain()
 
     def calculateRaycasts(self, space):
         dist = []
@@ -98,5 +98,9 @@ class CarAI(Car):
                 self.raycastsKivy.append(Line(points=scalled_points, width=rcObj.radius*canvasHandler.scaller))
 
     def think(self, rc):
-        pass
-        #getRandomResult(rc, self.brain)
+        #pass
+        result = self.brain.getRandomResult(rc)
+        self.forward(result[0][0])
+        #self.backward(result[0][1])
+        self.left(result[0][2])
+        self.right(result[0][3])

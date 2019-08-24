@@ -3,4 +3,5 @@ MainApplication/build/
 venv/
 build/
 dist/
+tmp/
 

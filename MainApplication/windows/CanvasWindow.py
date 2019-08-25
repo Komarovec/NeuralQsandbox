@@ -417,15 +417,6 @@ class CanvasWindow(Screen):
         self.game.stop()
         self.remove_widget(self.game)
 
-    def reset(self):
-        self.remove_widget(self.game)
-        self.game = PymunkDemo()
-        self.game.size_hint = 1,1
-        self.game.pos = 0,0
-        self.add_widget(self.game, 10)
-        self.game.init()
-        self.game.start()
-
     def toggleObjectMenu(self):
         if(self.objectMenu.visible):
             self.disableObjectMenu()

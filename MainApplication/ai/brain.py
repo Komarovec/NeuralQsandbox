@@ -8,9 +8,33 @@ from statistics import median, mean
 from collections import Counter
 
 class Brain():
-    def __init__(self):
-        self.network = self.neural_network_model(3)
-        self.LR = 1e-3
+    def __init__(self, input_size=3):
+        self.learningRate = 1e-3
+        self.network = self.neural_network_model(input_size)
+
+    def neural_network_model(self, input_size):
+        network = input_data(shape=[None,input_size], name='input')
+
+        network = fully_connected(network, 32, activation='sigmoid')
+        #network = dropout(network, 0.8)
+
+        network = fully_connected(network, 64, activation='sigmoid')
+        #network = dropout(network, 0.8)
+
+        network = fully_connected(network, 32, activation='sigmoid')
+
+        network = fully_connected(network, 4, activation='sigmoid')
+        network = regression(network, optimizer='adam', learning_rate=self.learningRate, loss='categorical_crossentropy', name='targets')
+
+        model = tflearn.DNN(network, tensorboard_verbose=3, tensorboard_dir="D:\\Entertaiment\\Programy\\Python\\NeuralSandbox2\\tmp")
+
+        return model
+
+    def getResult(self, rawdata):
+        data = []
+        data.append(rawdata)
+        result = self.network.predict(data)
+        return result
 
     '''
     def neural_network_model(self, data):
@@ -40,30 +64,3 @@ class Brain():
 
         return output
     '''
-
-    def neural_network_model(self, input_size):
-        
-        network = input_data(shape=[None,input_size], name='input')
-
-        network = fully_connected(network, 4, activation='sigmoid')
-        #network = dropout(network, 0.8)
-
-        network = fully_connected(network, 8, activation='sigmoid')
-        #network = dropout(network, 0.8)
-
-        network = fully_connected(network, 4, activation='sigmoid')
-        network = regression(network, optimizer='adam', learning_rate=self.LR, loss='categorical_crossentropy', name='targets')
-
-        model = tflearn.DNN(network, tensorboard_verbose=3, tensorboard_dir="D:\\Entertaiment\\Programy\\Python\\NeuralSandbox2\\tmp")
-
-        return model
-
-    def getRandomResult(self, rawdata):
-        data = []
-
-        data.append(rawdata)
-
-        result = self.network.predict(data)
-
-        return result
-

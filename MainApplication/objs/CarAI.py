@@ -28,6 +28,7 @@ class CarAI(Car):
 
         #AI
         self.brain = Brain()
+        self.isDead = False
 
     def calculateRaycasts(self, space):
         dist = []
@@ -97,10 +98,14 @@ class CarAI(Car):
 
                 self.raycastsKivy.append(Line(points=scalled_points, width=rcObj.radius*canvasHandler.scaller))
 
+    def kill(self):
+        self.isDead = True
+
     def think(self, rc):
-        #pass
-        result = self.brain.getRandomResult(rc)
+        result = self.brain.getResult(rc)
         self.forward(result[0][0])
         #self.backward(result[0][1])
         self.left(result[0][2])
         self.right(result[0][3])
+
+        return result

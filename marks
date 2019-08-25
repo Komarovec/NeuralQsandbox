@@ -24,3 +24,6 @@
 19.8.2019 - 6h - Tensorflow opakovaní modelu (jiny projekt), lehke upravy
 20.8.2019 - 7h - Příprava na AI --> Třida CarAI, měření vzdálenosti (obecná definice, vytváření sensorů), mat. funkce přesunuty, male upravy delete funkce...
 21.8.2019 - 4h - AI --> dodělání měření vzdálenosti (raycast), 80+ objektu canvas <20 fps.. hledání řešení, první sekv. model
+22-23.8.2019 - ?H - Tutoriály a dokumentace učení Tensorflow, TFLearn, atd..
+24.8.2019 - 3h - Diagram učení, základní implementace
+25.8.2019 - 4h - Zlepšení diagramu, třída TrainController, učící smyčka 

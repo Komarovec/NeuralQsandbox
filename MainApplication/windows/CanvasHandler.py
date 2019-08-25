@@ -89,9 +89,11 @@ class CanvasHandler(RelativeLayout):
         #Set time clock
         self.startDrawing()
 
+    #Completely stops clock, drawing and physics!
     def stopDrawing(self):
         Clock.unschedule(self.update_event)
 
+    #Start clock, drawing and physics
     def startDrawing(self):
         self.update_event = Clock.schedule_interval(self.draw, 1.0 / 100)
 
@@ -108,7 +110,16 @@ class CanvasHandler(RelativeLayout):
         self.update_event.cancel()
         self.canvas.clear()
 
-    #Main loop method
+
+    """
+    ----> Main loop method <----
+    
+    Calls for physics computation
+    Handles car controls
+    Undo action
+    Highlighting
+    Drawing
+    """
     def draw(self, dt):
         #Game mode
         if(self.state != "editor"):
@@ -349,7 +360,10 @@ class CanvasHandler(RelativeLayout):
 
         self.state = state
 
-    #Interface functions
+
+    """
+    -----> Interface functions <-----
+    """
     def on_touch_up(self, touch):
         #Scale screen if mouse scroll
         if(touch.button == "scrolldown"):

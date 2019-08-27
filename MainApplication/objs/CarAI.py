@@ -37,7 +37,11 @@ class CarAI(Car):
         #Calculate raycasts
         a = centerPoint((points[0], points[1]), (points[6], points[7]))
         b = centerPoint((points[4], points[5]), (points[2], points[3]))
+
+        #Calulate origin for vector calc
         origin = centerPoint(a, b)
+
+        #Normalize vector and prepare it for multiplication
         vectAB = normalizeVector(getVector(a, b))
 
         #Main vector
@@ -48,6 +52,7 @@ class CarAI(Car):
         for i in range(self.raycastCount):
             angle = self.raycastAngle*(i+1)
             multiplier = 1
+            #Move vector right to left in circle sectors
             if(i % 2 != 0):
                 multiplier = -1
                 angle -= self.raycastAngle
@@ -55,7 +60,7 @@ class CarAI(Car):
             #Sine and Cosine of the angle
             c, s = np.cos(angle*multiplier), np.sin(angle*multiplier)
 
-            #Angle rotation
+            #Angle rotation --> Rotation matrix
             x, y = queryVectors[0]
             vectX = x * c - y * s
             vectY = x * s + y * c
@@ -74,10 +79,13 @@ class CarAI(Car):
 
             #If collisions happened
             if(query):
+                #Get point of contant with collidible object
                 contant_point = query.point
                 segment = pymunk.Segment(space.static_body, origin, contant_point, 3)
                 segment.sensor = True
                 self.raycastObjects.append(segment)
+
+                #Calculate distance to the collidible object based on segment query
                 dist.append(distXY(origin, contant_point)/self.raycastLenght)
             else:
                 dist.append(1)
@@ -98,8 +106,27 @@ class CarAI(Car):
 
                 self.raycastsKivy.append(Line(points=scalled_points, width=rcObj.radius*canvasHandler.scaller))
 
+    def distToFinish(self, simulation):
+        point = simulation.findNearestFinish(self.body.position)
+        
+        if(point != None):
+            return distXY(point, self.body.position)
+        else:
+            return None
+
     def kill(self):
         self.isDead = True
+
+    def respawn(self, simulation):
+        self.body.position = simulation.findSpawnpoint()
+        self.body.angle = 0
+        self.body.velocity = (0,0)
+        simulation.space.reindex_shapes_for_body(self.body)
+
+        self.isDead = False
+
+    def generateRandomBrain(self):
+        self.brain = Brain()
 
     def think(self, rc):
         result = self.brain.getResult(rc)

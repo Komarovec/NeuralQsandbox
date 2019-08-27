@@ -17,6 +17,7 @@ import math
 from objs.GameObjects import StaticGameObject
 from objs.CarAI import CarAI
 from objs.Car import Car
+from objs.kivyObjs import distXY, centerPoint
 
 from ai.TrainController import TrainController
 
@@ -245,21 +246,36 @@ class Simulation():
     def findSpawnpoint(self):
         spawnPoint = None
 
-        def middlePoint(a, b):
-            return (((a[0]+b[0])/2), ((a[1]+b[1])/2))
-
         for shape in self.space.shapes:
             if(hasattr(shape, "objectType")):
                 if(shape.objectType == StaticGameObject.START):
-                    if(isinstance(shape, pymunk.Segment)):
-                        spawnPoint = middlePoint(shape.a, shape.b)
-                    elif(isinstance(shape, pymunk.Circle)):
-                        spawnPoint = shape.body.position
-                    elif(isinstance(shape, pymunk.Poly)):
-                        vertices = shape.get_vertices()
-                        spawnPoint = middlePoint(middlePoint(vertices[0], vertices[1]), middlePoint(vertices[2], vertices[3]))
+                    spawnPoint = self.getCenterPos(shape)
         
         return spawnPoint
+
+    #Find nearest finish
+    def findNearestFinish(self, point):
+        finishPoint = None
+
+        for shape in self.space.shapes:
+            if(hasattr(shape, "objectType")):
+                if(shape.objectType == StaticGameObject.FINISH):
+                    finishPoint = self.getCenterPos(shape)
+        
+        return finishPoint
+
+    #Get center position of any shape
+    def getCenterPos(self, shape):
+        point = None
+        if(isinstance(shape, pymunk.Segment)):
+            point = centerPoint(shape.a, shape.b)
+        elif(isinstance(shape, pymunk.Circle)):
+            point = shape.body.position
+        elif(isinstance(shape, pymunk.Poly)):
+            vertices = shape.get_vertices()
+            point = centerPoint(centerPoint(vertices[0], vertices[1]), centerPoint(vertices[2], vertices[3]))
+        
+        return point
 
     #Shift layer shif --> direction, spec --> special TOP, BOTTOM --> ALL THE WAY
     def shiftLayer(self, obj, shift, spec):

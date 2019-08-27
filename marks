@@ -27,3 +27,5 @@
 22-23.8.2019 - ?H - Tutoriály a dokumentace učení Tensorflow, TFLearn, atd..
 24.8.2019 - 3h - Diagram učení, základní implementace
 25.8.2019 - 4h - Zlepšení diagramu, třída TrainController, učící smyčka 
+26.8.2019 - 2h - Učení s učitelem, funkce pro vypočet fitness zatím jen 1/vzdálenost k cili, nedokončene
+27.8.2019 - 1h - Učení s učitelem

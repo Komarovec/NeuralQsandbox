@@ -26,14 +26,17 @@ class Brain():
         network = fully_connected(network, 4, activation='sigmoid')
         network = regression(network, optimizer='adam', learning_rate=self.learningRate, loss='categorical_crossentropy', name='targets')
 
-        model = tflearn.DNN(network, tensorboard_verbose=3, tensorboard_dir="D:\\Entertaiment\\Programy\\Python\\NeuralSandbox2\\tmp")
+        model = tflearn.DNN(network)
 
         return model
 
     def getResult(self, rawdata):
         data = []
         data.append(rawdata)
+        data = np.array(data)
+
         result = self.network.predict(data)
+
         return result
 
     '''

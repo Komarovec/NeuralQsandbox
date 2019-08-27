@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 from kivy_deps import sdl2, glew, gstreamer
-import os, pymunk
+import os, pymunk, numpy
 pymunk_dir = os.path.dirname(pymunk.__file__)
 chipmunk_libs = [
     ('chipmunk.dll', os.path.join(pymunk_dir, 'chipmunk.dll'), 'DATA'),
@@ -31,10 +31,10 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           name='NeuralTester',
-          debug=False,
+          debug=True,
           strip=False,
           upx=True,
-          console=False )
+          console=True )
 
 coll = COLLECT(exe,
                a.binaries + chipmunk_libs,

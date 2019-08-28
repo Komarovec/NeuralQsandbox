@@ -38,6 +38,8 @@ class CanvasHandler(RelativeLayout):
         self.touches = {}
         self.keys = {"up" : 0, "down" : 0, "left" : 0, "right" : 0, 'lctrl': 0, 'z': 0}
         self.scallerVar = 10000
+        self.loops = 0
+        self.drawing = False
         self.state = "game"
         self.window = window
 
@@ -95,7 +97,7 @@ class CanvasHandler(RelativeLayout):
 
     #Start clock, drawing and physics
     def startDrawing(self):
-        self.update_event = Clock.schedule_interval(self.draw, 1.0 / 100)
+        self.update_event = Clock.schedule_interval(self.draw, 1.0 / 1000)
 
     #Reset enviroment
     def reset(self):
@@ -121,6 +123,13 @@ class CanvasHandler(RelativeLayout):
     Drawing
     """
     def draw(self, dt):
+        if(self.drawing):
+            print("Caught drawing!")
+            return
+
+        self.drawing = True
+        self.loops += 1
+
         #Game mode
         if(self.state != "editor"):
             self.simulation.update(dt)
@@ -282,6 +291,8 @@ class CanvasHandler(RelativeLayout):
                     if isinstance(shape, CarAI):
                         pass
                         #shape.drawRaycasts(self)
+        
+        self.drawing = False
 
     #Highlight object
     def highlightObject(self, obj):

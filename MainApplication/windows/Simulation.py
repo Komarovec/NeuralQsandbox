@@ -26,6 +26,7 @@ class Simulation():
         #Important values
         self.step = 1/60. # <---- ? Dynamic ?
         self.canvasWindow = canvasWindow
+        self.simulationSpeed = 50
 
         #Learning vars
         self.state = "idle"
@@ -92,16 +93,8 @@ class Simulation():
 
     #Main looping function
     def update(self, dt):
-        if(self.space.steps % 10 == 0):
-            hm_car = 0
-            for shape in self.space.shapes:
-                if(isinstance(shape,Car)):
-                    hm_car += 1
-
-            #print(hm_car)
-
        #Physics simulation
-        for _ in range(2):
+        for _ in range(self.simulationSpeed):
             #If training
             self.trainLoop(dt)
 
@@ -361,7 +354,7 @@ class Simulation():
                 otherObject = arbiter.shapes[0]
 
 
-            if(otherObject.objectType != StaticGameObject.FINISH and otherObject.objectType != StaticGameObject.START):
+            if(otherObject.objectType != StaticGameObject.START):
                 car.kill()
 
             return True

@@ -129,10 +129,26 @@ class CarAI(Car):
         self.brain = Brain()
 
     def think(self, rc):
-        result = self.brain.getResult(rc)
-        self.forward(result[0][0])
-        #self.backward(result[0][1])
-        self.left(result[0][2])
-        self.right(result[0][3])
+        results = self.brain.getResult(rc)
+        results = results[0]
 
-        return result
+        maxIndex = np.argmax(results)
+
+        self.forward(0.1)
+        if(maxIndex == 0):
+            self.forward(1)
+            results = [1,0,0,0]
+
+        elif(maxIndex == 1):
+            self.backward(1)
+            results = [0,1,0,0]
+
+        elif(maxIndex == 2):
+            self.left(1)
+            results = [0,0,1,0]
+
+        elif(maxIndex == 3):
+            self.right(1)
+            results = [0,0,0,1]
+
+        return results

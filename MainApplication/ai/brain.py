@@ -15,55 +15,31 @@ class Brain():
     def neural_network_model(self, input_size):
         network = input_data(shape=[None,input_size], name='input')
 
-        network = fully_connected(network, 32, activation='sigmoid')
+        network = fully_connected(network, 32, activation='relu')
         #network = dropout(network, 0.8)
 
-        network = fully_connected(network, 64, activation='sigmoid')
+        network = fully_connected(network, 64, activation='relu')
         #network = dropout(network, 0.8)
 
-        network = fully_connected(network, 32, activation='sigmoid')
+        network = fully_connected(network, 32, activation='relu')
 
-        network = fully_connected(network, 4, activation='sigmoid')
+        network = fully_connected(network, 4, activation='softmax')
         network = regression(network, optimizer='adam', learning_rate=self.learningRate, loss='categorical_crossentropy', name='targets')
 
         model = tflearn.DNN(network)
 
         return model
 
+    def fit(self, data):
+        X = data[0]
+        Y = data[1]
+        self.network.fit({'input': X}, {'targets': Y}, n_epoch=5, show_metric=True, run_id='openai_learning')
+
     def getResult(self, rawdata):
         data = []
         data.append(rawdata)
-        data = np.array(data)
+        #data = np.array(data)
 
         result = self.network.predict(data)
 
         return result
-
-    '''
-    def neural_network_model(self, data):
-        hidden_1_layer = {"weights": tf.Variable(tf.random_normal([3, self.n_nodes_hl1])),
-                        "biases": tf.Variable(tf.random_normal([self.n_nodes_hl1]))}
-
-        hidden_2_layer = {"weights": tf.Variable(tf.random_normal([self.n_nodes_hl1, self.n_nodes_hl2])),
-                        "biases": tf.Variable(tf.random_normal([self.n_nodes_hl2]))}
-
-        hidden_3_layer = {"weights": tf.Variable(tf.random_normal([self.n_nodes_hl2, self.n_nodes_hl3])),
-                        "biases": tf.Variable(tf.random_normal([self.n_nodes_hl3]))}
-
-        output_layer = {"weights": tf.Variable(tf.random_normal([self.n_nodes_hl3, self.n_classes])),
-                        "biases": tf.Variable(tf.random_normal([self.n_classes]))}
-
-        l1 = tf.add(tf.matmul(data, hidden_1_layer["weights"]), hidden_1_layer["biases"])
-        l1 = tf.nn.relu(l1)
-
-        l2 = tf.add(tf.matmul(l1, hidden_2_layer["weights"]), hidden_2_layer["biases"])
-        l2 = tf.nn.relu(l2)
-
-        l3 = tf.add(tf.matmul(l2, hidden_3_layer["weights"]), hidden_3_layer["biases"])
-        l3 = tf.nn.relu(l3)
-
-        output = tf.matmul(l3, output_layer["weights"]) + output_layer["biases"]
-        output = tf.nn.softmax(output)
-
-        return output
-    '''

@@ -26,7 +26,7 @@ class Simulation():
         #Important values
         self.step = 1/60. # <---- ? Dynamic ?
         self.canvasWindow = canvasWindow
-        self.simulationSpeed = 50
+        self.simulationSpeed = 2
 
         #Learning vars
         self.state = "idle"
@@ -125,8 +125,19 @@ class Simulation():
         if(self.trainController != None):
             self.trainController.loop()
 
+    #Start learning loop
     def startLearning(self):
-        self.trainController = TrainController(self)
+        #Train controller is not initialized
+        if(self.trainController == None):
+            self.trainController = TrainController(self)
+        
+        #Train controller is currently waiting
+        elif(self.trainController.state == 3):
+            self.trainController.startTrain()
+
+        #Learning is in progress
+        elif(self.trainController.state > 0):
+            return
 
     #Reset level
     def resetLevel(self):

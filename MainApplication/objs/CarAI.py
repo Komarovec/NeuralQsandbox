@@ -27,9 +27,10 @@ class CarAI(Car):
         self.raycastsKivy = []
 
         #AI
-        self.brain = Brain()
+        self.brain = None
         self.isDead = False
 
+    #Calculate distance for every raycast
     def calculateRaycasts(self, space):
         dist = []
         points = points_from_poly(self)
@@ -92,6 +93,7 @@ class CarAI(Car):
 
         return dist
 
+    #Draw raycasts !!! WIP !!! DO NOT USE
     def drawRaycasts(self, canvasHandler):
         for ky in self.raycastsKivy:
             canvasHandler.canvas.remove(ky)
@@ -106,6 +108,7 @@ class CarAI(Car):
 
                 self.raycastsKivy.append(Line(points=scalled_points, width=rcObj.radius*canvasHandler.scaller))
 
+    #Calculate distance to nearest finish
     def distToFinish(self, simulation):
         point = simulation.findNearestFinish(self.body.position)
         
@@ -114,17 +117,19 @@ class CarAI(Car):
         else:
             return None
 
+    #Kill the car
     def kill(self):
         self.isDead = True
 
+    #Respawn at the first spawnpoint in shapes array
     def respawn(self, simulation):
         self.body.position = simulation.findSpawnpoint()
         self.body.angle = 0
         self.body.velocity = (0,0)
-        simulation.space.reindex_shapes_for_body(self.body)
-
+        
         self.isDead = False
 
+    #Create new NN !!WIP!!
     def generateRandomBrain(self):
         self.brain = Brain()
 
@@ -133,6 +138,8 @@ class CarAI(Car):
         results = results[0]
 
         maxIndex = np.argmax(results)
+
+        #return results
 
         self.forward(0.1)
         if(maxIndex == 0):

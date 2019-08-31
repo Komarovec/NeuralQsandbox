@@ -4,40 +4,55 @@ from objs.kivyObjs import distXY
 class TrainController():
     def __init__(self, simulation):
         self.simulation = simulation
-        self.games = 100
+        self.games = 10
         self.game = 0
 
-        self.minMoveDist = 200
+        #Movement check vars
+        self.minMoveDist = 25
         self.lastPos = None
-        self.minStepsDelta = 500
+        self.minStepsDelta = 100
         self.initialSteps = 0
 
+
+        #Training vars
         self.state = None
         self.game_data = []
         self.game_data_packets = []
         self.scores = []
         self.testedCar = None
 
+        #Training speed / Show speed
+        self.trainingSpeed = 20
+        self.showSpeed = 2
+
         self.deadCarsKy = []
 
         self.startTrain()
 
-    #Start training blank
-    def startTrain(self):
+    #Start training session
+    def startTrain(self, *args):
         self.state = 1
+        self.simulation.simulationSpeed = self.trainingSpeed
         self.game = 0
 
-        #Spawn car and reset level
-        if(self.testedCar == None):
-            self.simulation.resetLevel()
-            self.testedCar = self.simulation.addPlayer()    
-        
-        #Paint car and prepare everything
+        self.simulation.resetLevel()
+
+        if(self.testedCar != None):
+            model = self.testedCar.brain
+            self.testedCar = self.simulation.addCarAI()  
+            self.testedCar.brain = model
+
         else:
-            self.simulation.space.add(self.testedCar.body, self.testedCar)
-            self.testedCar.paint(self.simulation.canvasWindow)
-            self.testedCar.respawn(self.simulation)
-            self.initMovementCheck()
+            self.testedCar = self.simulation.addCarAI()   
+            self.testedCar.generateRandomBrain() 
+
+        self.initMovementCheck()
+
+    #End training session
+    def endTrain(self):
+        self.state = 0
+        self.simulation.simulationSpeed = self.showSpeed
+        return self.testedCar
 
     #Calculate fitness of a model
     def calculateFitness(self):
@@ -70,9 +85,11 @@ class TrainController():
     def checkMovement(self):
         pos = self.testedCar.body.position
         if(self.lastPos != None):
-            if(self.minMoveDist > distXY(self.lastPos,pos)):
+            if(not(self.minMoveDist < distXY(self.lastPos,pos))):
                 self.testedCar.kill()
+                print("Did NOT pass Dist: {}".format(distXY(self.lastPos,pos)))
             else:
+                print("Did pass Dist: {}".format(distXY(self.lastPos,pos)))
                 self.lastPos = pos
                 self.initialSteps = self.simulation.space.steps
 
@@ -99,8 +116,6 @@ class TrainController():
 
     #End of learning session (All learning games passed)
     def endOfSession(self):
-        self.simulation.canvasWindow.stopDrawing()
-
         self.state = 2 #Set to learning
         self.simulation.resetLevel()
 
@@ -120,16 +135,21 @@ class TrainController():
         #Train on best 20%
         self.testedCar.brain.fit(self.unpack(bestResults))
 
-        #Start training again --> Only for testing --> Maybe show time in future?
         self.startTrain()
-
-        self.simulation.canvasWindow.startDrawing()
 
     #Training loop
     def loop(self):
         if(self.state == 1):
+            scaller = self.simulation.canvasWindow.scaller
+            posX = (-1*self.testedCar.body.position[0]*scaller)
+            posX += self.simulation.canvasWindow.size[0]/2
+
+            posY = (-1*self.testedCar.body.position[1]*scaller)
+            posY += self.simulation.canvasWindow.size[1]/2
+            self.simulation.canvasWindow.pos = (posX, posY)
+
             #Movement check
-            if(self.simulation.space.steps == self.initialSteps+self.minStepsDelta):
+            if(self.simulation.space.steps >= self.initialSteps+self.minStepsDelta):
                 self.checkMovement()
 
             #End of round (Car died or timer is up)

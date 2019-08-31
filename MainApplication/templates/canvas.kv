@@ -326,6 +326,12 @@
                         root.game.simulation.startLearning()
 
                 ActionButton:
+                    text: "Test"
+                    font_size: root.scaleFactor/12.5
+                    on_press:
+                        root.game.simulation.spawnModel()
+
+                ActionButton:
                     text: 'Exit'
                     font_size: root.scaleFactor/12.5
                     on_press:

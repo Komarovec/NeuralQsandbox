@@ -113,11 +113,12 @@ class Simulation():
                         shape.body.velocity = Vec2d(0,0)
 
                     #Apply friction every frame *not frame dependent /dt/*
-                    shape.body.velocity *= 1 - (dt*friction)
-                    shape.body.angular_velocity *= 1 - (dt*angular_friction)
+                    shape.body.velocity *= 1 - (self.step*friction)
+                    shape.body.angular_velocity *= 1 - (self.step*angular_friction)
 
             #Stepping space simul
-            self.space.step(dt)
+            #print()
+            self.space.step(self.step)
             self.space.steps += 1
 
     #Training loop
@@ -138,6 +139,21 @@ class Simulation():
         #Learning is in progress
         elif(self.trainController.state > 0):
             return
+
+    #Spawn and test model without learning
+    def spawnModel(self):
+        if(self.trainController == None):
+            return
+        elif(self.trainController.testedCar == None):
+            return
+
+        #Learning in progress
+        elif(self.trainController.state > 0):
+            self.trainController.endTrain()
+
+        model = self.trainController.testedCar.brain
+        car = self.addCarAI()  
+        car.brain = model
 
     #Reset level
     def resetLevel(self):
@@ -227,12 +243,23 @@ class Simulation():
         #Paint cars on top of everything
         for car in cars:
             car.paint(self.canvasWindow)
-                    
+
+    #Add one car as a AI model
+    def addCarAI(self):
+        point = self.findSpawnpoint()
+        if(point != None):
+            car = CarAI(10, (100,50), self.findSpawnpoint(), ground_friction=1, angular_friction=3)
+            self.space.add(car.body, car)
+            self.repaintObjects()
+            return car
+        else:
+            return None
+
     #Add one car as a player
     def addPlayer(self):
         point = self.findSpawnpoint()
         if(point != None):
-            car = CarAI(10, (100,50), self.findSpawnpoint(), ground_friction=1, angular_friction=3)
+            car = Car(10, (100,50), self.findSpawnpoint(), ground_friction=1, angular_friction=3)
             self.space.add(car.body, car)
             self.repaintObjects()
             return car
@@ -366,7 +393,14 @@ class Simulation():
 
 
             if(otherObject.objectType != StaticGameObject.START):
-                car.kill()
+                if(self.trainController != None):
+                    #Kill only when learning
+                    if(self.trainController.state > 0):
+                        car.kill()
+                    else:
+                        car.respawn(self)
+                else:        
+                    car.respawn(self)
 
             return True
 

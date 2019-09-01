@@ -366,7 +366,7 @@ class CanvasHandler(RelativeLayout):
             self.window.statebar.ids["tool"].text = "Tool: "+str(self.editorTool)
 
             #Despawns player
-            self.simulation.removePlayer()
+            self.simulation.removeCars()
 
 
         self.state = state

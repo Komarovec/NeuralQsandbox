@@ -133,7 +133,7 @@ class Simulation():
             self.trainController = TrainController(self)
         
         #Train controller is currently waiting
-        elif(self.trainController.state == 3):
+        elif(self.trainController.state == 0):
             self.trainController.startTrain()
 
         #Learning is in progress
@@ -267,7 +267,7 @@ class Simulation():
             return None
 
     #Remove player from space (all car class instances)
-    def removePlayer(self):
+    def removeCars(self):
         for shape in self.space.shapes:
             if(isinstance(shape, Car)):
                 self.space.remove(shape.body, shape)

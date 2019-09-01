@@ -52,6 +52,7 @@ class TrainController():
     def endTrain(self):
         self.state = 0
         self.simulation.simulationSpeed = self.showSpeed
+        self.simulation.removeCars()
         return self.testedCar
 
     #Calculate fitness of a model
@@ -125,6 +126,7 @@ class TrainController():
         #Best 20%
         bestResults = []
         for index, packet in enumerate(self.game_data_packets):
+            #Drop everything below 20%
             if(index+1 > 0.2*len(self.game_data_packets)):
                 break
             
@@ -135,6 +137,7 @@ class TrainController():
         #Train on best 20%
         self.testedCar.brain.fit(self.unpack(bestResults))
 
+        self.game_data_packets = []
         self.startTrain()
 
     #Training loop

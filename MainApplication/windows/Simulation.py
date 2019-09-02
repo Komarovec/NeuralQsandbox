@@ -140,7 +140,7 @@ class Simulation():
         elif(self.trainController.state > 0):
             return
 
-    #Spawn and test model without learning
+    #Spawn and test model without learningy
     def spawnModel(self):
         if(self.trainController == None):
             return
@@ -265,6 +265,27 @@ class Simulation():
             return car
         else:
             return None
+
+    #Returns all car instances from space.shapes
+    def getCars(self):
+        cars = []
+        for shape in self.space.shapes:
+            if(isinstance(shape, Car)):
+                cars.append(shape)
+        
+        return cars
+
+    #Load cars from an array
+    def loadCars(self, cars):
+        #If empty array return
+        if(cars == []):
+            return False
+        
+        for car in cars:
+            self.space.add(car.body, car)
+            car.paint(self.canvasWindow)
+        
+        return True
 
     #Remove player from space (all car class instances)
     def removeCars(self):

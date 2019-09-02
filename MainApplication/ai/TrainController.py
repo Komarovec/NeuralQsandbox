@@ -143,14 +143,6 @@ class TrainController():
     #Training loop
     def loop(self):
         if(self.state == 1):
-            scaller = self.simulation.canvasWindow.scaller
-            posX = (-1*self.testedCar.body.position[0]*scaller)
-            posX += self.simulation.canvasWindow.size[0]/2
-
-            posY = (-1*self.testedCar.body.position[1]*scaller)
-            posY += self.simulation.canvasWindow.size[1]/2
-            self.simulation.canvasWindow.pos = (posX, posY)
-
             #Movement check
             if(self.simulation.space.steps >= self.initialSteps+self.minStepsDelta):
                 self.checkMovement()

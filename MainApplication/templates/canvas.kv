@@ -374,6 +374,21 @@
                         on_press:
                             root.game.changeCamera("center")
 
+                    ActionSeparator:
+
+                    ActionButton:
+                        text: 'Follow mode'
+                        minimum_width: root.scaleFactor*0.8
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.changeCamera("follow")
+                    ActionButton:
+                        text: 'Free mode'
+                        minimum_width: root.scaleFactor*0.8
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.changeCamera("free")
+
     	        #Reset button
                 ActionButton:
                     text: 'Reset Level'

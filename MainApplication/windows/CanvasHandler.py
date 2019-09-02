@@ -33,6 +33,14 @@ from windows.Simulation import Simulation
 from windows.Level import Level
 
 class CanvasHandler(RelativeLayout):
+    #View constants
+    FREE_VIEW = "free"
+    FOLLOW_VIEW = "follow"
+
+    #State constants
+    GAME_STATE = "game"
+    EDITOR_STATE = "editor"
+
     def init(self, window):
         #Important values
         self.touches = {}
@@ -49,6 +57,7 @@ class CanvasHandler(RelativeLayout):
 
         #Level editor vals
         self.editorTool = "move"
+        self.savedCars = []
 
         #Draw
         self.isDrawing = True
@@ -67,6 +76,10 @@ class CanvasHandler(RelativeLayout):
         self.movingObject = False
         self.movingVar = None
         self.movingPoint = None
+
+        #View; car chase
+        self.selectedCar = None
+        self.viewState = "free" #free || follow
 
         #Highlighted object
         self.tempHighlight = None
@@ -123,11 +136,6 @@ class CanvasHandler(RelativeLayout):
     Drawing
     """
     def draw(self, dt):
-        if(self.drawing):
-            print("Caught drawing!")
-            return
-
-        self.drawing = True
         self.loops += 1
 
         #Game mode
@@ -256,43 +264,48 @@ class CanvasHandler(RelativeLayout):
                         self.canvas.remove(self.tempHighlight)
                         self.tempHighlight = None
 
+        #If we want to draw
         if(self.isDrawing):
-            #------ Common draw -------
-            #Scalling coeficient
-            scaller = self.height/self.scallerVar + self.width/self.scallerVar
-            
-            #If resolution has changed change scaling on all shapes
-            if(scaller != self.scaller):
-                self.scaller = scaller
-                scallerChanged = True
-            else:
-                scallerChanged = False
+            #Draw all kivy objects from space.shapes
+            self.paintKivy()
 
-            #Repaint all graphics
-            for shape in self.simulation.space.shapes:
-                if(hasattr(shape, "ky") and (not shape.body.is_sleeping or scallerChanged)):
-                    if isinstance(shape, pymunk.Circle):
-                        body = shape.body
-                        shape.ky.size = [shape.radius*2*self.scaller, shape.radius*2*self.scaller]
-                        shape.ky.pos = (body.position - (shape.radius, shape.radius)) * (self.scaller, self.scaller)
+            #Update camere if neccesary
+            self.updateCamera()
 
-                    if isinstance(shape, pymunk.Segment):
-                        #If Is barrier class than increase width by scaller
-                        shape.ky.width = shape.radius * self.scaller
-
-                        body = shape.body
-                        p1 = body.position + shape.a.cpvrotate(body.rotation_vector) 
-                        p2 = body.position + shape.b.cpvrotate(body.rotation_vector)
-                        shape.ky.points = p1.x * self.scaller, p1.y * self.scaller, p2.x * self.scaller, p2.y * self.scaller
-
-                    if isinstance(shape, pymunk.Poly):
-                        shape.ky.points = points_from_poly(shape, scaller)
-
-                    if isinstance(shape, CarAI):
-                        pass
-                        #shape.drawRaycasts(self)
+    def paintKivy(self):
+        #Scalling coeficient
+        scaller = self.height/self.scallerVar + self.width/self.scallerVar
         
-        self.drawing = False
+        #If resolution has changed change scaling on all shapes
+        if(scaller != self.scaller):
+            self.scaller = scaller
+            scallerChanged = True
+        else:
+            scallerChanged = False
+
+        #Repaint all graphics
+        for shape in self.simulation.space.shapes:
+            if(hasattr(shape, "ky") and (not shape.body.is_sleeping or scallerChanged)):
+                if isinstance(shape, pymunk.Circle):
+                    body = shape.body
+                    shape.ky.size = [shape.radius*2*self.scaller, shape.radius*2*self.scaller]
+                    shape.ky.pos = (body.position - (shape.radius, shape.radius)) * (self.scaller, self.scaller)
+
+                if isinstance(shape, pymunk.Segment):
+                    #If Is barrier class than increase width by scaller
+                    shape.ky.width = shape.radius * self.scaller
+
+                    body = shape.body
+                    p1 = body.position + shape.a.cpvrotate(body.rotation_vector) 
+                    p2 = body.position + shape.b.cpvrotate(body.rotation_vector)
+                    shape.ky.points = p1.x * self.scaller, p1.y * self.scaller, p2.x * self.scaller, p2.y * self.scaller
+
+                if isinstance(shape, pymunk.Poly):
+                    shape.ky.points = points_from_poly(shape, scaller)
+
+                if isinstance(shape, CarAI):
+                    pass
+                    #shape.drawRaycasts(self)
 
     #Highlight object
     def highlightObject(self, obj):
@@ -312,11 +325,45 @@ class CanvasHandler(RelativeLayout):
 
         return saveobj
 
+    #Update positions of follow camera
+    def updateCamera(self):
+        if(self.viewState == self.FOLLOW_VIEW):
+            if(self.selectedCar != None):
+                #Calculate appropriete position for canvas with car pos.
+                posX = (-1*self.selectedCar.body.position[0]*self.scaller)
+                posX += self.simulation.canvasWindow.size[0]/2
+
+                posY = (-1*self.selectedCar.body.position[1]*self.scaller)
+                posY += self.simulation.canvasWindow.size[1]/2
+
+                #Set canvas pos
+                self.simulation.canvasWindow.pos = (posX, posY)
+            else:
+                self.viewState == self.FREE_VIEW
 
     #Camera change
     def changeCamera(self, state):
+        #Center camera
         if(state == "center"):
             self.pos = (0,0)
+        
+        #Follow 
+        elif(state == self.FOLLOW_VIEW):
+            car = None
+            for shape in self.simulation.space.shapes:
+                if(isinstance(shape, Car)):
+                    car = shape
+
+            #Pokud je v space auto sleduj ho jinak ani nezapinej sledovani
+            if(car != None):
+                self.selectedCar = car
+                self.viewState = self.FOLLOW_VIEW
+            else:
+                self.viewState = self.FREE_VIEW
+
+        #Do not follow
+        elif(state == self.FREE_VIEW):
+            self.viewState = self.FREE_VIEW
 
     #Pickle export
     def exportFile(self):
@@ -349,23 +396,30 @@ class CanvasHandler(RelativeLayout):
 
     #Change state
     def changeState(self, state):
-        if(state == "game"):
+        if(state == self.GAME_STATE):
             #Updates statebar
             self.window.statebar.ids["tool"].text = "Game state"
             
             #Closes edit menu (if opened)
             self.window.editMenu.setEditObject(None)
 
+            #Load cars
+            self.simulation.loadCars(self.savedCars)
+            self.savedCars = []
+
             #Delete highlight
             if(self.tempHighlight != None):
                 self.canvas.remove(self.tempHighlight)
                 self.tempHighlight = None
 
-        elif(state == "editor"):
+        elif(state == self.EDITOR_STATE):
             #Updates statebar
             self.window.statebar.ids["tool"].text = "Tool: "+str(self.editorTool)
 
-            #Despawns player
+            #Save cars
+            self.savedCars = self.simulation.getCars()
+
+            #Despawn all cars
             self.simulation.removeCars()
 
 
@@ -508,7 +562,7 @@ class CanvasHandler(RelativeLayout):
 
         #Cancel if right button
         if(touch.button == "right"):
-            if(self.state == "editor"):
+            if(self.state == self.EDITOR_STATE):
                 if(self.editorTool == "add"):
                     self.changeTool("move")
                 elif(self.editorTool == "delete"):
@@ -523,7 +577,7 @@ class CanvasHandler(RelativeLayout):
         p = self.to_local(*touch.pos)
         self.touches[0] = p
 
-        if(self.state == "editor" and touch.button == "left"):
+        if(self.state == self.EDITOR_STATE and touch.button == "left"):
             #Selecting none --> closes edit menu
             selectObject = None
             #If AddBarrier was clicked on, draw a line
@@ -591,7 +645,8 @@ class CanvasHandler(RelativeLayout):
             #If object selected then edit if not then send None --> Closes menu
             self.window.editMenu.setEditObject(selectObject)
         else:
-            touch.grab(self)
+            if(self.viewState == self.FREE_VIEW):
+                touch.grab(self)
 
     #Keyboard
     def _keyboard_closed(self):

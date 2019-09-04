@@ -1,5 +1,5 @@
 from objs.kivyObjs import distXY
-
+import numpy as np
 
 class TrainController():
     def __init__(self, simulation):
@@ -153,7 +153,7 @@ class TrainController():
 
             #Current test continues --> Did NOT died
             else:
-                observation = self.testedCar.calculateRaycasts(self.simulation.space)
-                action = self.testedCar.think(observation)
+                observation = np.array(self.testedCar.calculateRaycasts(self.simulation.space))
+                action = np.array(self.testedCar.think(observation))
 
                 self.game_data.append([observation, action])

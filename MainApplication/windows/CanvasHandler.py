@@ -304,8 +304,8 @@ class CanvasHandler(RelativeLayout):
                     shape.ky.points = points_from_poly(shape, scaller)
 
                 if isinstance(shape, CarAI):
-                    pass
-                    #shape.drawRaycasts(self)
+                    #pass
+                    shape.drawRaycasts(self)
 
     #Highlight object
     def highlightObject(self, obj):

@@ -37,3 +37,5 @@
 2.9.2019 - 4h - Měnění vlastnosti kamery (sledovaní aut, volný pohyb), Úkládání aut před vstupem do editoru --> nasledné nahrání
 3.9.2019 - 1h - Trelo nastenka, mensi graficke upravy + upravy v repositari
 4.9.2019 - 3h - Začátek přechodu z TFLearn na Keras
+5.9.2019 - 2h - Keras, reimplementace funkcí
+6.9.2019 - 4h - Keras --> funkční, cíle (trelo, github), Brain class přepsána na NeuralModel 

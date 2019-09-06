@@ -4,7 +4,7 @@ import numpy as np
 class TrainController():
     def __init__(self, simulation):
         self.simulation = simulation
-        self.games = 10
+        self.games = 100
         self.game = 0
 
         #Movement check vars
@@ -22,7 +22,7 @@ class TrainController():
         self.testedCar = None
 
         #Training speed / Show speed
-        self.trainingSpeed = 20
+        self.trainingSpeed = 2
         self.showSpeed = 2
 
         self.deadCarsKy = []
@@ -48,7 +48,7 @@ class TrainController():
 
         self.initMovementCheck()
 
-    #End training session
+    #End training sessionY
     def endTrain(self):
         self.state = 0
         self.simulation.simulationSpeed = self.showSpeed

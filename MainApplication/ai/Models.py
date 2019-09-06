@@ -8,25 +8,16 @@ from collections import Counter
 from keras.models import Sequential
 import keras
 
-class Brain():
+class NeuralModel():
     def __init__(self, input_size=3):
         self.learningRate = 1e-3
-        self.network = self.neural_network_model(input_size)
+        self.network = self.createSequentialModel(input_size)
 
-    def getResult(self, rawdata):
-        data = np.array(rawdata)
-
-        print(data.shape)
-        print(data)
-        result = self.network.predict(data)
-
-        return result
-
-    def neural_network_model(self, input_size):
+    def createSequentialModel(self, input_size):
         #Create model
         model = keras.Sequential([
-            keras.layers.Dense(64, activation=tf.nn.relu, input_dim=1),
-            keras.layers.Dense(128, activation=tf.nn.relu),
+            keras.layers.Dense(4, activation=tf.nn.relu, input_dim=input_size),
+            keras.layers.Dense(8, activation=tf.nn.relu),
             keras.layers.Dropout(0.5),
             keras.layers.Dense(4)
         ])
@@ -38,13 +29,18 @@ class Brain():
 
         return model
 
-    def fit(self, data):
-        X = data[0]
-        Y = data[1]
+    def predict(self, rawdata):
+        data = np.array(rawdata)
+        data = np.array([data])
 
-        print(Y)
-        print("-----")
-        print(X)
+        result = self.network.predict(data)
+
+        return result
+
+    def fit(self, data):
+        X = np.array(data[0])
+        Y = np.array(data[1])
+
         self.network.fit(X, Y, epochs=5, batch_size=32)
 
 
@@ -70,6 +66,6 @@ class Brain():
 
     def fit(self, data):
         X = data[0]
-        Y = data[1]
+        Y = data[1]y
         self.network.fit({'input': X}, {'targets': Y}, n_epoch=5, show_metric=True, run_id='openai_learning')
     """

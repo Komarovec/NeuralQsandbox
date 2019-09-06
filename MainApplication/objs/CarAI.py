@@ -10,7 +10,7 @@ import numpy as np
 #Custom functions and classes
 from objs.Car import Car
 from objs.kivyObjs import points_from_poly, centerPoint, getVector, normalizeVector, distXY
-from ai.brain import Brain
+from ai.Models import NeuralModel
 
 class CarAI(Car):
     CARAI = "carai"
@@ -131,16 +131,18 @@ class CarAI(Car):
 
     #Create new NN !!WIP!!
     def generateRandomBrain(self):
-        self.brain = Brain()
+        self.brain = NeuralModel()
 
     def think(self, rc):
-        results = self.brain.getResult(rc)
+        #Predict action based on rays
+        results = self.brain.predict(rc)
         results = results[0]
 
         maxIndex = np.argmax(results)
 
         #return results
 
+        #Take action --> One-hot results
         self.forward(0.1)
         if(maxIndex == 0):
             self.forward(1)

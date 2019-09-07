@@ -1,7 +1,14 @@
 from objs.kivyObjs import distXY
+from ai.bank import calculateFitness, printPackets, unpack
+
 import numpy as np
 
-class TrainController():
+class GameController():
+    LEARNING_STATE = 1
+    TESTING_STATE = 2
+    IDLE_STATE = 0
+    PLAYING_STATE = 3
+
     def __init__(self, simulation):
         self.simulation = simulation
         self.games = 100
@@ -19,22 +26,63 @@ class TrainController():
         self.game_data = []
         self.game_data_packets = []
         self.scores = []
+
+        #Cars
         self.testedCar = None
+        self.cars = []
 
         #Training speed / Show speed
-        self.trainingSpeed = 2
+        self.trainingSpeed = 80
         self.showSpeed = 2
 
         self.deadCarsKy = []
 
-        self.startTrain()
-
     #Start training session
     def startTrain(self, *args):
-        self.state = 1
+        self.state = self.LEARNING_STATE
         self.simulation.simulationSpeed = self.trainingSpeed
         self.game = 0
 
+        self.respawnCar()
+
+    #Start testing learned model
+    def startTest(self):
+        #Prepare Controller
+        self.cars = []
+        self.state = self.TESTING_STATE
+
+        #Prepare enviroment simulation
+        self.simulation.simulationSpeed = self.showSpeed
+        self.simulation.removeCars()
+
+        car = self.simulation.addCarAI()
+        
+        if(self.testedCar != None):
+            car.brain = self.testedCar.brain
+        else:
+            car.generateRandomBrain()
+
+        self.cars.append(car)
+
+    #Free play
+    def startFreePlay(self):
+        pass
+
+    #End training sessionY
+    def endTrain(self):
+        self.state = self.IDLE_STATE
+        self.simulation.simulationSpeed = self.showSpeed
+        self.simulation.removeCars()
+        return self.testedCar
+
+    #Stop anything 
+    def forceStop(self):
+        self.state = self.IDLE_STATE
+        self.simulation.simulationSpeed = self.showSpeed
+        self.simulation.removeCars()
+
+    #Respawn/Spawn car and keep brain if possible
+    def respawnCar(self):
         self.simulation.resetLevel()
 
         if(self.testedCar != None):
@@ -48,39 +96,13 @@ class TrainController():
 
         self.initMovementCheck()
 
-    #End training sessionY
-    def endTrain(self):
-        self.state = 0
-        self.simulation.simulationSpeed = self.showSpeed
-        self.simulation.removeCars()
-        return self.testedCar
+    #Handle car collisions
+    def handleCollision(self, car, otherObject):
+        if(self.state == self.LEARNING_STATE):
+            car.kill()
+        elif(self.state == self.TESTING_STATE):
+            car.respawn(self.simulation)
 
-    #Calculate fitness of a model
-    def calculateFitness(self):
-        dist = self.testedCar.distToFinish(self.simulation)
-        if(dist != 0):
-            fitness = fitness = pow(1/(dist),2)
-        else:
-            fitness = fitness = pow(1/(dist+0.0001),2)
-        fitness *= 100000
-        return fitness
-
-    #Print packet data
-    def printPackets(self, packets):
-        for packet in packets:
-            print("Score: {}, Data len: {}".format(packet["score"], len(packet["data"])))
-
-    #Unpack packet data 
-    def unpack(self, packets):
-        observations = []
-        actions = []
-        for packet in packets:
-            game_data = packet["data"]
-            for data in game_data:
-                observations.append(data[0])
-                actions.append(data[1])
-
-        return [observations, actions]
 
     #Check if testedCar has moved
     def checkMovement(self):
@@ -102,7 +124,7 @@ class TrainController():
     #End of the round (Car died timer is up)
     def endOfRound(self):
         self.game += 1
-        self.game_data_packets.append({"score":self.calculateFitness(), "data":self.game_data})
+        self.game_data_packets.append({"score":calculateFitness(self.testedCar, self.simulation), "data":self.game_data})
         self.game_data = []
         print(self.game)
 
@@ -112,8 +134,7 @@ class TrainController():
             
         #Prepare for next game
         else:
-            self.initMovementCheck()
-            self.testedCar.respawn(self.simulation)
+            self.respawnCar()
 
     #End of learning session (All learning games passed)
     def endOfSession(self):
@@ -135,14 +156,15 @@ class TrainController():
         print("Best Result: {}".format(bestResults[0]["score"]))
 
         #Train on best 20%
-        self.testedCar.brain.fit(self.unpack(bestResults))
+        self.testedCar.brain.fit(unpack(bestResults))
 
         self.game_data_packets = []
         self.startTrain()
 
     #Training loop
     def loop(self):
-        if(self.state == 1):
+        #Training model
+        if(self.state == self.LEARNING_STATE):
             #Movement check
             if(self.simulation.space.steps >= self.initialSteps+self.minStepsDelta):
                 self.checkMovement()
@@ -157,3 +179,10 @@ class TrainController():
                 action = np.array(self.testedCar.think(observation))
 
                 self.game_data.append([observation, action])
+
+        #Testing model
+        elif(self.state == self.TESTING_STATE):
+            if(self.cars != []):
+                car = self.cars[0]
+                observation = np.array(car.calculateRaycasts(self.simulation.space))
+                car.think(observation)

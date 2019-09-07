@@ -145,7 +145,7 @@ class CanvasHandler(RelativeLayout):
 
             #Car control
             for shape in self.simulation.space.shapes:
-                if isinstance(shape, Car):
+                if(isinstance(shape, Car) and not isinstance(shape, CarAI)):
                     if(self.keys["up"] == 1):
                         shape.forward(dt*100)
                     if(self.keys["down"] == 1):

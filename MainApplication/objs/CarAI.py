@@ -76,7 +76,7 @@ class CarAI(Car):
             b = (vect[0]*self.raycastLenght+origin[0],vect[1]*self.raycastLenght+origin[1])
 
             #Test query --> collisions
-            query = space.segment_query_first(origin, b, 1, pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS ^ 1))
+            query = space.segment_query_first(origin, b, 1, pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS ^ 1 ^ 10))
 
             #If collisions happened
             if(query):

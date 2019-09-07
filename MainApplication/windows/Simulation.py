@@ -19,7 +19,7 @@ from objs.CarAI import CarAI
 from objs.Car import Car
 from objs.kivyObjs import distXY, centerPoint
 
-from ai.TrainController import TrainController
+from ai.GameController import GameController
 
 class Simulation():
     def __init__(self, canvasWindow):
@@ -29,8 +29,7 @@ class Simulation():
         self.simulationSpeed = 2
 
         #Learning vars
-        self.state = "idle"
-        self.trainController = None
+        self.gameController = GameController(self)
 
     #Create new space
     def setupSpace(self):
@@ -123,37 +122,23 @@ class Simulation():
 
     #Training loop
     def trainLoop(self, dt):
-        if(self.trainController != None):
-            self.trainController.loop()
+        if(self.gameController != None):
+            self.gameController.loop()
 
     #Start learning loop
     def startLearning(self):
         #Train controller is not initialized
-        if(self.trainController == None):
-            self.trainController = TrainController(self)
-        
-        #Train controller is currently waiting
-        elif(self.trainController.state == 0):
-            self.trainController.startTrain()
+        if(self.gameController == None):
+            return #Error msg
 
-        #Learning is in progress
-        elif(self.trainController.state > 0):
-            return
+        self.gameController.startTrain()
 
-    #Spawn and test model without learningy
+    #Spawn and test model without learning
     def spawnModel(self):
-        if(self.trainController == None):
-            return
-        elif(self.trainController.testedCar == None):
-            return
-
-        #Learning in progress
-        elif(self.trainController.state > 0):
-            self.trainController.endTrain()
-
-        model = self.trainController.testedCar.brain
-        car = self.addCarAI()  
-        car.brain = model
+        if(self.gameController == None):
+            return #Error msg
+        
+        self.gameController.startTest()
 
     #Reset level
     def resetLevel(self):
@@ -414,14 +399,7 @@ class Simulation():
 
 
             if(otherObject.objectType != StaticGameObject.START):
-                if(self.trainController != None):
-                    #Kill only when learning
-                    if(self.trainController.state > 0):
-                        car.kill()
-                    else:
-                        car.respawn(self)
-                else:        
-                    car.respawn(self)
+                self.gameController.handleCollision(car, otherObject)
 
             return True
 

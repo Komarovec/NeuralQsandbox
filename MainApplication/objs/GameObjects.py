@@ -57,7 +57,7 @@ class StaticGameObject():
         if(self.objectType == self.START or self.objectType == self.NOBARRIER):
             self.shape.sensor = True
         elif(self.objectType == self.FINISH):
-            self.shape.filter = pymunk.ShapeFilter(categories=1, mask=pymunk.ShapeFilter.ALL_MASKS ^ 1)
+            self.shape.filter = pymunk.ShapeFilter(categories=10)
 
     def paint(self, canvasHandler):
         with canvasHandler.canvas:

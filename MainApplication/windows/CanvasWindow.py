@@ -53,6 +53,10 @@ class ToolBarEditor(ToolBar):
 class StateBar(GameWidget):
     pass
 
+#Menu for choosing mode --> Play, Train, Test
+class StartMenu(GameWidget):
+    pass
+
 #Object adding
 class ObjectMenu(GameWidget):
     visible = False
@@ -391,6 +395,7 @@ class CanvasWindow(Screen):
                         on_press=self.animate)
         return button
 
+    #Entered the screen
     def on_enter(self):
         self.game = CanvasHandler()
         self.gameToolbar = ToolBarGame(self.manager, self.game, self)
@@ -398,6 +403,7 @@ class CanvasWindow(Screen):
         self.statebar = StateBar(self.game, self)
         self.objectMenu = ObjectMenu(self.game, self)
         self.editMenu = EditMenu(self.game, self)
+        self.startMenu = StartMenu(self.game, self)
 
         self.game.size_hint = 1,1
         self.game.pos = 0,0
@@ -411,12 +417,22 @@ class CanvasWindow(Screen):
         self.game.init(self)
         self.game.start(self.simulation)
         
+        self.toggleStartMenu(True)
         #self.add_widget(self.build())
 
+    #Creen left
     def on_leave(self):
         self.game.stop()
         self.remove_widget(self.game)
 
+    #Open/Close start menu
+    def toggleStartMenu(self, state):
+        if(state):
+            self.add_widget(self.startMenu)
+        else:
+            self.remove_widget(self.startMenu) 
+
+    #Open/Close start menu
     def toggleObjectMenu(self):
         if(self.objectMenu.visible):
             self.disableObjectMenu()
@@ -437,6 +453,7 @@ class CanvasWindow(Screen):
         animation = Animation(size=(self.objectMenu.ids["mainLayout"].size[0],size), duration=.1)
         animation.start(self.objectMenu.ids["mainLayout"])
 
+    #Ends level editor & closes everything 
     def endLevelEditor(self):
         self.remove_widget(self.editorToolbar)
         self.add_widget(self.gameToolbar)
@@ -444,6 +461,7 @@ class CanvasWindow(Screen):
 
         self.game.changeState("game")
 
+    #OPens level editor & opens everything
     def startLevelEditor(self):
         self.add_widget(self.editorToolbar)
         self.remove_widget(self.gameToolbar)

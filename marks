@@ -39,3 +39,4 @@
 4.9.2019 - 3h - Začátek přechodu z TFLearn na Keras
 5.9.2019 - 2h - Keras, reimplementace funkcí
 6.9.2019 - 4h - Keras --> funkční, cíle (trelo, github), Brain class přepsána na NeuralModel 
+7.9.2019 - 4h - Testování modelu, TrainController přejmenován na GameController a funkčnost byla pozměněna na kontrolu celé hry, základy StartMenu

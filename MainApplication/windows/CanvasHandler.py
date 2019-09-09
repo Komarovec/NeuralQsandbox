@@ -272,6 +272,7 @@ class CanvasHandler(RelativeLayout):
             #Update camere if neccesary
             self.updateCamera()
 
+    #Painting all objects in space.shapes // calculates scaller
     def paintKivy(self):
         #Scalling coeficient
         scaller = self.height/self.scallerVar + self.width/self.scallerVar
@@ -412,6 +413,9 @@ class CanvasHandler(RelativeLayout):
                 self.canvas.remove(self.tempHighlight)
                 self.tempHighlight = None
 
+            #ToogleStart Menu
+            self.window.toggleStartMenu(True)
+
         elif(state == self.EDITOR_STATE):
             #Updates statebar
             self.window.statebar.ids["tool"].text = "Tool: "+str(self.editorTool)
@@ -422,9 +426,29 @@ class CanvasHandler(RelativeLayout):
             #Despawn all cars
             self.simulation.removeCars()
 
+            #ToogleStart Menu
+            self.window.toggleStartMenu(False)
+
 
         self.state = state
 
+    #Change game state
+    def changeGameState(self, state):
+        if(self.state == self.EDITOR_STATE):
+            return
+        
+        if(state == self.simulation.gameController.LEARNING_STATE):
+            self.simulation.gameController.startTrain()
+        elif(state == self.simulation.gameController.TESTING_STATE):
+            self.simulation.gameController.startTest()
+        elif(state == self.simulation.gameController.PLAYING_STATE):
+            pass
+        elif(state == "exit"):
+            self.simulation.gameController.forceStop()
+            self.window.toggleStartMenu(True)
+            return
+
+        self.window.toggleStartMenu(False)
 
     """
     -----> Interface functions <-----

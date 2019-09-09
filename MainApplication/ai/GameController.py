@@ -4,9 +4,9 @@ from ai.bank import calculateFitness, printPackets, unpack
 import numpy as np
 
 class GameController():
+    IDLE_STATE = 0
     LEARNING_STATE = 1
     TESTING_STATE = 2
-    IDLE_STATE = 0
     PLAYING_STATE = 3
 
     def __init__(self, simulation):

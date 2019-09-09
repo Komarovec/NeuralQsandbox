@@ -425,7 +425,7 @@ class CanvasWindow(Screen):
         self.game.stop()
         self.remove_widget(self.game)
 
-    #Open/Close start menu
+    #Open/Close start menu // True/False
     def toggleStartMenu(self, state):
         if(state):
             self.add_widget(self.startMenu)

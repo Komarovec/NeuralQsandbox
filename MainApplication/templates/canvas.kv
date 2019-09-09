@@ -193,13 +193,21 @@
 
         Button:
             text: "Learn"
+            font_size: root.scaleFactor/12.5
+            on_press:
+                root.game.changeGameState(1)
 
         Button:
             text: "Test"
+            font_size: root.scaleFactor/12.5
+            on_press:
+                root.game.changeGameState(2)
 
         Button:
             text: "Play"
-
+            font_size: root.scaleFactor/12.5
+            on_press:
+                root.game.changeGameState(3)
 
 <StateBar>:
     id: statebar
@@ -349,18 +357,6 @@
                     font_size: root.scaleFactor/12.5
                     on_press:
                         root.screen.startLevelEditor()
-
-                ActionButton:
-                    text: "Train"
-                    font_size: root.scaleFactor/12.5
-                    on_press:
-                        root.game.simulation.startLearning()
-
-                ActionButton:
-                    text: "Test"
-                    font_size: root.scaleFactor/12.5
-                    on_press:
-                        root.game.simulation.spawnModel()
 
                 ActionButton:
                     text: 'Exit'

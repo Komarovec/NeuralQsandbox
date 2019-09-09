@@ -40,3 +40,5 @@
 5.9.2019 - 2h - Keras, reimplementace funkcí
 6.9.2019 - 4h - Keras --> funkční, cíle (trelo, github), Brain class přepsána na NeuralModel 
 7.9.2019 - 4h - Testování modelu, TrainController přejmenován na GameController a funkčnost byla pozměněna na kontrolu celé hry, základy StartMenu
+8.9.2019 - 2h - Základy Uživatelského rozhraní (StartMenu)
+9.9.2019 - 1h - Pokračování v UI

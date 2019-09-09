@@ -125,21 +125,6 @@ class Simulation():
         if(self.gameController != None):
             self.gameController.loop()
 
-    #Start learning loop
-    def startLearning(self):
-        #Train controller is not initialized
-        if(self.gameController == None):
-            return #Error msg
-
-        self.gameController.startTrain()
-
-    #Spawn and test model without learning
-    def spawnModel(self):
-        if(self.gameController == None):
-            return #Error msg
-        
-        self.gameController.startTest()
-
     #Reset level
     def resetLevel(self):
         #Delete all Cars from level and canvas

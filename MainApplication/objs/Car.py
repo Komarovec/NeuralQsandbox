@@ -32,6 +32,14 @@ class Car(pymunk.Poly):
 
         self.filter = pymunk.ShapeFilter(categories=1, mask=pymunk.ShapeFilter.ALL_MASKS ^ 1)
 
+    #Respawn at the first spawnpoint in shapes array
+    def respawn(self, simulation):
+        self.body.position = simulation.findSpawnpoint()
+        self.body.angle = 0
+        self.body.velocity = (0,0)
+        
+        self.isDead = False
+
     #Paint Car
     def paint(self, canvasHandler):
         with canvasHandler.canvas:

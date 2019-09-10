@@ -94,11 +94,8 @@ class CarAI(Car):
         return dist
 
     #Draw raycasts !!! WIP !!! DO NOT USE
-    def drawRaycasts(self, canvasHandler):
-        for ky in self.raycastsKivy:
-            canvasHandler.canvas.remove(ky)
-        
-        self.raycastsKivy = []
+    def drawRaycasts(self, canvasHandler):        
+        self.deleteRaycasts(canvasHandler)
 
         for rcObj in self.raycastObjects:
             with canvasHandler.canvas:
@@ -107,6 +104,13 @@ class CarAI(Car):
                                 rcObj.b[0]*canvasHandler.scaller,rcObj.b[1]*canvasHandler.scaller)
 
                 self.raycastsKivy.append(Line(points=scalled_points, width=rcObj.radius*canvasHandler.scaller))
+
+    #Delete raycasts from canvas
+    def deleteRaycasts(self, canvasHandler):
+        for ky in self.raycastsKivy:
+            canvasHandler.canvas.remove(ky)
+
+        self.raycastsKivy = []
 
     #Calculate distance to nearest finish
     def distToFinish(self, simulation):
@@ -118,16 +122,9 @@ class CarAI(Car):
             return None
 
     #Kill the car
-    def kill(self):
+    def kill(self, canvasHandler):
+        self.deleteRaycasts(canvasHandler)
         self.isDead = True
-
-    #Respawn at the first spawnpoint in shapes array
-    def respawn(self, simulation):
-        self.body.position = simulation.findSpawnpoint()
-        self.body.angle = 0
-        self.body.velocity = (0,0)
-        
-        self.isDead = False
 
     #Create new NN !!WIP!!
     def generateRandomBrain(self):

@@ -191,23 +191,30 @@
                 pos: self.pos
                 #radius: [(root.width+root.height)/ root.scaleFactor,]
 
-        Button:
-            text: "Learn"
-            font_size: root.scaleFactor/12.5
-            on_press:
-                root.game.changeGameState(1)
+        BoxLayout:
+            orientation: "vertical"
+            spacing: 5
+            padding: 10,0,10,0
+            Button:
+                text: "Learn"
+                font_size: root.scaleFactor/12.5
+                on_press:
+                    root.game.changeGameState(1)
 
-        Button:
-            text: "Test"
-            font_size: root.scaleFactor/12.5
-            on_press:
-                root.game.changeGameState(2)
+            Button:
+                text: "Test"
+                font_size: root.scaleFactor/12.5
+                on_press:
+                    root.game.changeGameState(2)
 
-        Button:
-            text: "Play"
-            font_size: root.scaleFactor/12.5
-            on_press:
-                root.game.changeGameState(3)
+            Button:
+                text: "Play"
+                font_size: root.scaleFactor/12.5
+                on_press:
+                    root.game.changeGameState(3)
+
+        Label:
+            text: ""
 
 <StateBar>:
     id: statebar
@@ -359,11 +366,17 @@
                         root.screen.startLevelEditor()
 
                 ActionButton:
-                    text: 'Exit'
+                    text: 'EXIT'
                     font_size: root.scaleFactor/12.5
                     on_press:
                         root.manager.transition.direction = 'right'
                         root.manager.current = 'mainmenu'
+
+                ActionButton:
+                    text: 'Back'
+                    font_size: root.scaleFactor/12.5
+                    on_press:
+                        root.game.changeGameState("exit")
 
             #Common bar
             ActionView:

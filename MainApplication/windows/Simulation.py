@@ -130,6 +130,9 @@ class Simulation():
         #Delete all Cars from level and canvas
         for shape in self.space.shapes:
             if(isinstance(shape, Car)):
+                #Delete any raycast if CarAI
+                if(isinstance(shape, CarAI)):
+                    shape.deleteRaycasts(self.canvasWindow)
                 self.space.remove(shape.body, shape)
                 self.canvasWindow.canvas.remove(shape.ky)
 
@@ -261,6 +264,9 @@ class Simulation():
     def removeCars(self):
         for shape in self.space.shapes:
             if(isinstance(shape, Car)):
+                #Delete any raycast if CarAI
+                if(isinstance(shape, CarAI)):
+                    shape.deleteRaycasts(self.canvasWindow)
                 self.space.remove(shape.body, shape)
                 self.canvasWindow.canvas.remove(shape.ky)
 

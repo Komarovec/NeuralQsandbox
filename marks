@@ -42,3 +42,4 @@
 7.9.2019 - 4h - Testování modelu, TrainController přejmenován na GameController a funkčnost byla pozměněna na kontrolu celé hry, základy StartMenu
 8.9.2019 - 2h - Základy Uživatelského rozhraní (StartMenu)
 9.9.2019 - 1h - Pokračování v UI
+10.9.2019 - 4h - Základy herního módu pro hřáče --> Volný průjezd mapou --> Spojení s novým UI, Oprava bugů (Raycast Auta už se sám smaže)

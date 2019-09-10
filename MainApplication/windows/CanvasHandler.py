@@ -414,7 +414,8 @@ class CanvasHandler(RelativeLayout):
                 self.tempHighlight = None
 
             #ToogleStart Menu
-            self.window.toggleStartMenu(True)
+            if(self.simulation.gameController.state == self.simulation.gameController.IDLE_STATE):
+                self.window.toggleStartMenu(True)
 
         elif(state == self.EDITOR_STATE):
             #Updates statebar
@@ -427,7 +428,8 @@ class CanvasHandler(RelativeLayout):
             self.simulation.removeCars()
 
             #ToogleStart Menu
-            self.window.toggleStartMenu(False)
+            if(self.simulation.gameController.state == self.simulation.gameController.IDLE_STATE):
+                self.window.toggleStartMenu(False)
 
 
         self.state = state
@@ -442,10 +444,11 @@ class CanvasHandler(RelativeLayout):
         elif(state == self.simulation.gameController.TESTING_STATE):
             self.simulation.gameController.startTest()
         elif(state == self.simulation.gameController.PLAYING_STATE):
-            pass
+            self.simulation.gameController.startFreePlay()
         elif(state == "exit"):
-            self.simulation.gameController.forceStop()
-            self.window.toggleStartMenu(True)
+            if(self.simulation.gameController.state != self.simulation.gameController.IDLE_STATE):
+                self.simulation.gameController.forceStop()
+                self.window.toggleStartMenu(True)
             return
 
         self.window.toggleStartMenu(False)

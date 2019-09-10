@@ -1,5 +1,6 @@
 from objs.kivyObjs import distXY
 from ai.bank import calculateFitness, printPackets, unpack
+from objs.GameObjects import StaticGameObject
 
 import numpy as np
 
@@ -22,7 +23,7 @@ class GameController():
 
 
         #Training vars
-        self.state = None
+        self.state = self.IDLE_STATE
         self.game_data = []
         self.game_data_packets = []
         self.scores = []
@@ -66,7 +67,8 @@ class GameController():
 
     #Free play
     def startFreePlay(self):
-        pass
+        self.state = self.PLAYING_STATE
+        car = self.simulation.addPlayer()
 
     #End training sessionY
     def endTrain(self):
@@ -99,8 +101,10 @@ class GameController():
     #Handle car collisions
     def handleCollision(self, car, otherObject):
         if(self.state == self.LEARNING_STATE):
-            car.kill()
+            car.kill(self.simulation.canvasWindow)
         elif(self.state == self.TESTING_STATE):
+            car.respawn(self.simulation)
+        elif(self.state == self.PLAYING_STATE and otherObject.objectType == StaticGameObject.FINISH):
             car.respawn(self.simulation)
 
 
@@ -109,7 +113,7 @@ class GameController():
         pos = self.testedCar.body.position
         if(self.lastPos != None):
             if(not(self.minMoveDist < distXY(self.lastPos,pos))):
-                self.testedCar.kill()
+                self.testedCar.kill(self.simulation.canvasWindow)
                 print("Did NOT pass Dist: {}".format(distXY(self.lastPos,pos)))
             else:
                 print("Did pass Dist: {}".format(distXY(self.lastPos,pos)))

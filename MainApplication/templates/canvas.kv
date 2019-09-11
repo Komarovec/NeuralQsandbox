@@ -1,4 +1,7 @@
 #:kivy 1.0
+
+
+
 <PopupColor>:
     title: 'Pick a Color'
     size_hint: 1.0, 0.6
@@ -119,7 +122,7 @@
                 root.deleteObject()
 
         Separator:
-            color: 0.5,0.5,0.5,0.8
+            color: .2, .2, .2, 1
 
         #Change layer position
         Label:
@@ -156,7 +159,7 @@
                         root.shiftLayer(-1, True)
 
         Separator:
-            color: 0.5,0.5,0.5,0.8
+            color: .2, .2, .2, 1
 
         #Properties editing
         Label:
@@ -213,8 +216,22 @@
                 on_press:
                     root.game.changeGameState(3)
 
-        Label:
-            text: ""
+        Separator:
+            color: .2, .2, .2, 1
+
+        BoxLayout:
+            orientation: "vertical"
+
+            Label:
+                text: ""
+
+            Button:
+                text: "AI Settings"
+
+            Label:
+                text: ""
+
+                
 
 <StateBar>:
     id: statebar
@@ -238,12 +255,12 @@
 
         Label:
             id: tool
-            text: "Game state"
+            text: "Idle"
             font_size: root.scaleFactor/12.5
 
-        Label:
-            id: idk
-            text: ""
+        Button:
+            id: info
+            text: "Model info"
             font_size: root.scaleFactor/12.5
 
 <HiddenIcon_ActionPrevious@ActionPrevious>:

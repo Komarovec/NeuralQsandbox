@@ -12,7 +12,7 @@ class GameController():
 
     def __init__(self, simulation):
         self.simulation = simulation
-        self.games = 100
+        self.games = 10
         self.game = 0
 
         #Movement check vars
@@ -33,7 +33,7 @@ class GameController():
         self.cars = []
 
         #Training speed / Show speed
-        self.trainingSpeed = 80
+        self.trainingSpeed = 2
         self.showSpeed = 2
 
         self.deadCarsKy = []
@@ -100,6 +100,10 @@ class GameController():
 
     #Handle car collisions
     def handleCollision(self, car, otherObject):
+        #If collide object is sensor, dont call for collision
+        if(otherObject.sensor):
+            return
+
         if(self.state == self.LEARNING_STATE):
             car.kill(self.simulation.canvasWindow)
         elif(self.state == self.TESTING_STATE):

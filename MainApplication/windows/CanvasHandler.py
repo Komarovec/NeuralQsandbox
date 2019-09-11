@@ -378,7 +378,6 @@ class CanvasHandler(RelativeLayout):
         
     #Change tool
     def changeTool(self, tool):
-        self.window.statebar.ids["tool"].text = "Tool: "+str(tool)
         self.editorTool = tool
 
         #Changes buttons on object menu --> Add toogle, delete toggle etc..
@@ -395,12 +394,34 @@ class CanvasHandler(RelativeLayout):
             self.canvas.remove(self.addingIndication)
             self.addingIndication = None
 
+        self.updateStatebar()
+
+    #Updates statebar
+    def updateStatebar(self, text=None):
+        if(text != None):
+            self.window.statebar.ids["tool"].text = text
+
+        elif(self.state == self.EDITOR_STATE):
+            self.window.statebar.ids["tool"].text = "Editor: "+str(self.editorTool)
+
+        else:
+            if(self.simulation.gameController.state == self.simulation.gameController.IDLE_STATE):
+                self.window.statebar.ids["tool"].text = "Idle"
+
+            elif(self.simulation.gameController.state == self.simulation.gameController.LEARNING_STATE):
+                self.window.statebar.ids["tool"].text = "Learning model"
+
+            elif(self.simulation.gameController.state == self.simulation.gameController.TESTING_STATE):
+                self.window.statebar.ids["tool"].text = "Testing model"
+
+            elif(self.simulation.gameController.state == self.simulation.gameController.PLAYING_STATE):
+                self.window.statebar.ids["tool"].text = "Free play"
+
     #Change state
     def changeState(self, state):
+        self.state = state
+
         if(state == self.GAME_STATE):
-            #Updates statebar
-            self.window.statebar.ids["tool"].text = "Game state"
-            
             #Closes edit menu (if opened)
             self.window.editMenu.setEditObject(None)
 
@@ -417,9 +438,10 @@ class CanvasHandler(RelativeLayout):
             if(self.simulation.gameController.state == self.simulation.gameController.IDLE_STATE):
                 self.window.toggleStartMenu(True)
 
+            self.updateStatebar()
+
         elif(state == self.EDITOR_STATE):
-            #Updates statebar
-            self.window.statebar.ids["tool"].text = "Tool: "+str(self.editorTool)
+            self.updateStatebar()
 
             #Save cars
             self.savedCars = self.simulation.getCars()
@@ -430,9 +452,6 @@ class CanvasHandler(RelativeLayout):
             #ToogleStart Menu
             if(self.simulation.gameController.state == self.simulation.gameController.IDLE_STATE):
                 self.window.toggleStartMenu(False)
-
-
-        self.state = state
 
     #Change game state
     def changeGameState(self, state):
@@ -449,8 +468,10 @@ class CanvasHandler(RelativeLayout):
             if(self.simulation.gameController.state != self.simulation.gameController.IDLE_STATE):
                 self.simulation.gameController.forceStop()
                 self.window.toggleStartMenu(True)
+                self.updateStatebar()
             return
 
+        self.updateStatebar()
         self.window.toggleStartMenu(False)
 
     """

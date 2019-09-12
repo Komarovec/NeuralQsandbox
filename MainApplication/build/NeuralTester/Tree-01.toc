@@ -1,7 +1,0 @@
-('d:\\entertaiment\\programy\\python\\neuralsandbox2\\venv\\share\\glew\\bin',
- None,
- [],
- 'DATA',
- [('glew32.dll',
-   'd:\\entertaiment\\programy\\python\\neuralsandbox2\\venv\\share\\glew\\bin\\glew32.dll',
-   'DATA')])

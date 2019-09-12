@@ -1,5 +1,6 @@
 MainApplication/dist/
 MainApplication/build/
+MainApplication/__pycache__/
 .vscode/
 venv/
 build/

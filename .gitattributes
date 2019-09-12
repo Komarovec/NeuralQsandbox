@@ -1,3 +1,2 @@
 * linguist-vendored
-*.html linguist-vendored=false
-*.toc linguist-vendored=false
+* linguist-language=Python

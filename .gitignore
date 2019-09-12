@@ -1,8 +1,8 @@
-**/MainApplication/dist/*
-**/MainApplication/build/*
-**/.vscode/
-**/venv/*
-**/build/*
-**/dist/*
-**/tmp/*
+MainApplication/dist/
+MainApplication/build/
+.vscode/
+venv/
+build/
+dist/
+tmp/
 

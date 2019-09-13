@@ -10,14 +10,18 @@ import keras
 
 class NeuralModel():
     def __init__(self, input_size=3):
+        self.generation = 0
         self.learningRate = 1e-3
+        self.epochs = 10
+
+        #Create sequential model
         self.network = self.createSequentialModel(input_size)
 
     def createSequentialModel(self, input_size):
         #Create model
         model = keras.Sequential([
-            keras.layers.Dense(4, activation=tf.nn.relu, input_dim=input_size),
-            keras.layers.Dense(8, activation=tf.nn.relu),
+            keras.layers.Dense(32, activation=tf.nn.relu, input_dim=input_size),
+            keras.layers.Dense(64, activation=tf.nn.relu),
             keras.layers.Dropout(0.5),
             keras.layers.Dense(4)
         ])
@@ -41,31 +45,5 @@ class NeuralModel():
         X = np.array(data[0])
         Y = np.array(data[1])
 
-        self.network.fit(X, Y, epochs=5, batch_size=32)
-
-
-        
-    """ TFLearn
-    def neural_network_model(self, input_size):
-        network = input_data(shape=[None,input_size], name='input')
-
-        network = fully_connected(network, 32, activation='relu')
-        #network = dropout(network, 0.8)
-
-        network = fully_connected(network, 64, activation='relu')
-        #network = dropout(network, 0.8)
-
-        network = fully_connected(network, 32, activation='relu')
-
-        network = fully_connected(network, 4, activation='softmax')
-        network = regression(network, optimizer='adam', learning_rate=self.learningRate, loss='categorical_crossentropy', name='targets')
-
-        model = tflearn.DNN(network)
-
-        return model
-
-    def fit(self, data):
-        X = data[0]
-        Y = data[1]y
-        self.network.fit({'input': X}, {'targets': Y}, n_epoch=5, show_metric=True, run_id='openai_learning')
-    """
+        self.generation += 1
+        self.network.fit(X, Y, epochs=self.epochs, batch_size=32)

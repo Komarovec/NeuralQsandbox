@@ -130,14 +130,23 @@ class CarAI(Car):
     def generateRandomBrain(self):
         self.brain = NeuralModel()
 
-    def think(self, rc):
+    #Generate random decision
+    def randomDecision(self):
+        decision = [0,0,0,0]
+        decIndex = np.random.randint(low=0, high=3)
+        decision[decIndex] = 1
+        return decision
+
+    #Makes car think
+    def think(self, rc, random=False):
         #Predict action based on rays
-        results = self.brain.predict(rc)
-        results = results[0]
+        if(random==False):
+            results = self.brain.predict(rc)
+            results = results[0]
+        else:
+            results = self.randomDecision()
 
         maxIndex = np.argmax(results)
-
-        #return results
 
         #Take action --> One-hot results
         self.forward(0.1)

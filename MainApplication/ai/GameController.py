@@ -12,7 +12,7 @@ class GameController():
 
     def __init__(self, simulation):
         self.simulation = simulation
-        self.games = 10
+        self.games = 100
         self.game = 0
 
         #Movement check vars
@@ -21,9 +21,10 @@ class GameController():
         self.minStepsDelta = 100
         self.initialSteps = 0
 
-
         #Training vars
         self.state = self.IDLE_STATE
+        self.stepLimit = 5000
+        self.startSteps = 0
         self.game_data = []
         self.game_data_packets = []
         self.scores = []
@@ -86,6 +87,7 @@ class GameController():
     #Respawn/Spawn car and keep brain if possible
     def respawnCar(self):
         self.simulation.resetLevel()
+        self.startSteps = self.simulation.space.steps
 
         if(self.testedCar != None):
             model = self.testedCar.brain
@@ -177,6 +179,10 @@ class GameController():
             if(self.simulation.space.steps >= self.initialSteps+self.minStepsDelta):
                 self.checkMovement()
 
+            #Test if time ran out
+            if((self.simulation.space.steps-self.startSteps) > self.stepLimit):
+                self.testedCar.kill(self.simulation.canvasWindow)
+
             #End of round (Car died or timer is up)
             if(self.testedCar.isDead):
                 self.endOfRound()
@@ -184,7 +190,14 @@ class GameController():
             #Current test continues --> Did NOT died
             else:
                 observation = np.array(self.testedCar.calculateRaycasts(self.simulation.space))
-                action = np.array(self.testedCar.think(observation))
+
+                #print("Gen: {}".format(self.testedCar.brain.generation))
+                if(self.testedCar.brain.generation == 0):
+                    action = self.testedCar.think(observation, random=True)
+                else:
+                    action = self.testedCar.think(observation)
+
+                action = np.array(action)
 
                 self.game_data.append([observation, action])
 

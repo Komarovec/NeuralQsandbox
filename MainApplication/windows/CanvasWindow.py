@@ -420,9 +420,10 @@ class CanvasWindow(Screen):
         self.toggleStartMenu(True)
         #self.add_widget(self.build())
 
-    #Creen left
+    #Screen left
     def on_leave(self):
         self.game.stop()
+        self.clear_widgets()
         self.remove_widget(self.game)
 
     #Open/Close start menu // True/False

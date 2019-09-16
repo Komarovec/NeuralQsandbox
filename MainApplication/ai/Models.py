@@ -20,11 +20,21 @@ class NeuralModel():
     def createSequentialModel(self, input_size):
         #Create model
         model = keras.Sequential([
-            keras.layers.Dense(32, activation=tf.nn.relu, input_dim=input_size),
+            keras.layers.Dense(64, activation=tf.nn.relu, input_dim=input_size),
+            keras.layers.Dropout(0.2),
+            keras.layers.Dense(128, activation=tf.nn.relu),
+            keras.layers.Dropout(0.2),
+            keras.layers.Dense(256, activation=tf.nn.relu),
+            keras.layers.Dropout(0.2),
+            keras.layers.Dense(128, activation=tf.nn.relu),
+            keras.layers.Dropout(0.2),
             keras.layers.Dense(64, activation=tf.nn.relu),
-            keras.layers.Dropout(0.5),
-            keras.layers.Dense(4)
+            keras.layers.Dropout(0.2),
+            keras.layers.Dense(2, activation=tf.nn.softmax)
         ])
+
+        #Optimizer
+        adam = keras.optimizers.Adam(lr=self.learningRate, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
 
         #Compile model
         model.compile(optimizer='adam', 

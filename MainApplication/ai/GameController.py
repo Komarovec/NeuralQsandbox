@@ -12,7 +12,8 @@ class GameController():
 
     def __init__(self, simulation):
         self.simulation = simulation
-        self.games = 100
+        self.games = 1000
+        self.bestPercentage = 0.02
         self.game = 0
 
         #Movement check vars
@@ -34,7 +35,7 @@ class GameController():
         self.cars = []
 
         #Training speed / Show speed
-        self.trainingSpeed = 2
+        self.trainingSpeed = 100
         self.showSpeed = 2
 
         self.deadCarsKy = []
@@ -158,7 +159,7 @@ class GameController():
         bestResults = []
         for index, packet in enumerate(self.game_data_packets):
             #Drop everything below 20%
-            if(index+1 > 0.2*len(self.game_data_packets)):
+            if(index+1 > self.bestPercentage*len(self.game_data_packets)):
                 break
             
             bestResults.append(packet)

@@ -132,10 +132,25 @@ class CarAI(Car):
 
     #Generate random decision
     def randomDecision(self):
-        decision = [0,0,0,0]
-        decIndex = np.random.randint(low=0, high=3)
-        decision[decIndex] = 1
+        decision = []
+
+        for _ in range(2):
+            decision.append(np.random.random())
+
         return decision
+
+    #Think HOT
+    def oneHotThink(self, results):
+        maxIndex = np.argmax(results)
+        if(maxIndex == 0):
+            self.left(1)
+            results = [1,0]
+
+        elif(maxIndex == 1):
+            self.right(1)
+            results = [0,1]
+
+        return results
 
     #Makes car think
     def think(self, rc, random=False):
@@ -145,25 +160,15 @@ class CarAI(Car):
             results = results[0]
         else:
             results = self.randomDecision()
+            #results = self.oneHotThink(results)
 
-        maxIndex = np.argmax(results)
+        #results = self.oneHotThink(results)
+        self.left(results[0])
+        self.right(results[1])
 
-        #Take action --> One-hot results
-        self.forward(0.1)
-        if(maxIndex == 0):
-            self.forward(1)
-            results = [1,0,0,0]
+        #print(results)
 
-        elif(maxIndex == 1):
-            self.backward(1)
-            results = [0,1,0,0]
-
-        elif(maxIndex == 2):
-            self.left(1)
-            results = [0,0,1,0]
-
-        elif(maxIndex == 3):
-            self.right(1)
-            results = [0,0,0,1]
+        #Constant force
+        self.forward(1)
 
         return results

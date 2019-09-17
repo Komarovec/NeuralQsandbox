@@ -12,8 +12,8 @@ class GameController():
 
     def __init__(self, simulation):
         self.simulation = simulation
-        self.games = 1000
-        self.bestPercentage = 0.02
+        self.games = 100
+        self.bestPercentage = 0.2
         self.game = 0
 
         #Movement check vars
@@ -45,6 +45,8 @@ class GameController():
         self.state = self.LEARNING_STATE
         self.simulation.simulationSpeed = self.trainingSpeed
         self.game = 0
+
+        self.simulation.canvasWindow.updateStatebar(text="Generating data")
 
         self.respawnCar()
 
@@ -135,6 +137,7 @@ class GameController():
     #End of the round (Car died timer is up)
     def endOfRound(self):
         self.game += 1
+        self.simulation.canvasWindow.updateStatebar()
         self.game_data_packets.append({"score":calculateFitness(self.testedCar, self.simulation), "data":self.game_data})
         self.game_data = []
         print(self.game)
@@ -146,6 +149,7 @@ class GameController():
         #Prepare for next game
         else:
             self.respawnCar()
+            self.testedCar.brain.mutateWeights()
 
     #End of learning session (All learning games passed)
     def endOfSession(self):

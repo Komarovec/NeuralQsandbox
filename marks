@@ -47,3 +47,4 @@
 12.9.2019 - 2h - AI
 15.9.2019 - 4h - Cartpole OpenAI, testy AI
 16.9.2019 - 4h - implementace poznatku z Cartpolu... Lehce funkčí stále ale naprosto nepouzitelne
+17.9.2019 - 2h - Funkce pro náhodný přepis vah v síti --> mutace

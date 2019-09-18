@@ -263,6 +263,59 @@
             text: "Model info"
             font_size: root.scaleFactor/12.5
 
+<StateInfoBar>:
+    id: stateInfoBar
+
+    BoxLayout:
+        orientation: "vertical"
+        pos: 0,root.scaleFactor/5
+        size: root.width, root.scaleFactor
+
+        canvas:
+            Color:
+                rgba: .1, .1, .1, 1
+            Rectangle:
+                pos: self.pos[0], self.pos[1]+5
+                size: self.size
+
+            Color:
+                rgba: .08, .08, .08, 1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        #Base layout
+        BoxLayout:
+            orientation: 'horizontal'
+            pos: self.pos
+            size: self.size
+
+            #Network visul
+            BoxLayout:
+                id: network
+                orientation: "vertical"
+
+
+            #Fitness graph
+            BoxLayout:
+                id: fitness
+                orientation: "vertical"
+
+
+            #Other info
+            BoxLayout:
+                id: info
+                orientation: "vertical"
+                Label:
+                    text: "Best fit: "
+
+                Label:
+                    text: "Info 2"
+
+                Label:
+                    text: "Info 3"
+
+
 <HiddenIcon_ActionPrevious@ActionPrevious>:
     title: 'Level editor'
     with_previous: False

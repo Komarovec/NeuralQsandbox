@@ -138,7 +138,10 @@ class GameController():
     def endOfRound(self):
         self.game += 1
         self.simulation.canvasWindow.updateStatebar()
-        self.game_data_packets.append({"score":calculateFitness(self.testedCar, self.simulation), "data":self.game_data})
+        score = calculateFitness(self.testedCar, self.simulation)
+
+        self.simulation.canvasWindow.window.stateInfoBar.addGraphPoint(self.game, score)
+        self.game_data_packets.append({"score":score, "data":self.game_data})
         self.game_data = []
         print(self.game)
 

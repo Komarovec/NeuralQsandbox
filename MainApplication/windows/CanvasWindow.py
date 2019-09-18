@@ -14,6 +14,7 @@ from kivy.uix.colorpicker import ColorPicker
 from kivy.uix.image import Image
 from kivy.uix.behaviors import ToggleButtonBehavior
 from kivy.graphics import Color
+from kivy.garden.graph import Graph, MeshLinePlot
 
 #Testing
 from kivy.animation import Animation
@@ -26,6 +27,8 @@ from kivy.uix.label import Label
 from windows.Simulation import Simulation
 from windows.CanvasHandler import CanvasHandler
 from objs.GameObjects import StaticGameObject
+
+import math
 
 #Widgets
 class GameWidget(Widget):
@@ -52,6 +55,38 @@ class ToolBarEditor(ToolBar):
 #Stator, shows ingame vars on the bottom of the UI
 class StateBar(GameWidget):
     pass
+
+#Extends stator if needed
+class StateInfoBar(GameWidget):
+    def __init__(self, game, screen, **kwargs):
+        super(StateInfoBar, self).__init__(game, screen, **kwargs)
+
+        #Fitness graph
+        self.graph = graph = Graph(xlabel='Steps', ylabel='Fitness', x_ticks_minor=5,
+            x_ticks_major=25, y_ticks_major=25,
+            y_grid_label=True, x_grid_label=True, padding=5,
+            x_grid=True, y_grid=True, xmin=-0, xmax=1, ymin=0, ymax=0.00001)
+
+        self.plot = plot = MeshLinePlot(color=[1, 0, 0, 1])
+        plot.points = []
+        
+        graph.add_plot(plot)
+
+        self.ids["fitness"].add_widget(graph)
+
+    #Add points in graph
+    def addGraphPoint(self, x, y):
+        self.plot.points.append((x, y))
+
+        if(x > self.graph.xmax):
+            self.graph.xmax = x
+        else:
+            self.graph.xmax = x
+            self.graph.ymax = 0.00001
+            self.plot.points = []
+
+        if(y > (self.graph.ymax/2)):
+            self.graph.ymax = 2*y
 
 #Menu for choosing mode --> Play, Train, Test
 class StartMenu(GameWidget):
@@ -401,6 +436,7 @@ class CanvasWindow(Screen):
         self.gameToolbar = ToolBarGame(self.manager, self.game, self)
         self.editorToolbar = ToolBarEditor(self.manager, self.game, self)
         self.statebar = StateBar(self.game, self)
+        self.stateInfoBar = StateInfoBar(self.game, self)
         self.objectMenu = ObjectMenu(self.game, self)
         self.editMenu = EditMenu(self.game, self)
         self.startMenu = StartMenu(self.game, self)
@@ -410,6 +446,7 @@ class CanvasWindow(Screen):
 
         self.add_widget(self.game, 10)
         self.add_widget(self.statebar)
+        self.add_widget(self.stateInfoBar)
         self.add_widget(self.gameToolbar)
 
         self.simulation = Simulation(self.game)

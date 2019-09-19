@@ -13,9 +13,9 @@ Function bank for AI
 def calculateFitness(car, simulation):
     dist = car.distToFinish(simulation)
     if(dist != 0):
-        fitness = fitness = pow(1/(dist),2)
+        fitness = fitness = 1/dist
     else:
-        fitness = fitness = pow(1/(dist+0.0001),2)
+        fitness = fitness = 1/(dist+0.0001)
     fitness *= 100000
     return fitness
 

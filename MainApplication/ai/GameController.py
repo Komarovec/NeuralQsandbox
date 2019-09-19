@@ -3,6 +3,7 @@ from ai.bank import calculateFitness, printPackets, unpack
 from objs.GameObjects import StaticGameObject
 
 import numpy as np
+import math
 
 class GameController():
     IDLE_STATE = 0
@@ -30,6 +31,12 @@ class GameController():
         self.game_data_packets = []
         self.scores = []
 
+        #One-Gen statistical values
+        self.bestGenFit = 0
+
+        #Whole statistical values
+        self.bestFit = 0
+
         #Cars
         self.testedCar = None
         self.cars = []
@@ -45,8 +52,6 @@ class GameController():
         self.state = self.LEARNING_STATE
         self.simulation.simulationSpeed = self.trainingSpeed
         self.game = 0
-
-        self.simulation.canvasWindow.updateStatebar(text="Generating data")
 
         self.respawnCar()
 
@@ -121,11 +126,14 @@ class GameController():
     def checkMovement(self):
         pos = self.testedCar.body.position
         if(self.lastPos != None):
+            #If did not pass 
             if(not(self.minMoveDist < distXY(self.lastPos,pos))):
                 self.testedCar.kill(self.simulation.canvasWindow)
-                print("Did NOT pass Dist: {}".format(distXY(self.lastPos,pos)))
+                #print("Did NOT pass Dist: {}".format(distXY(self.lastPos,pos)))
+            
+            #If passed
             else:
-                print("Did pass Dist: {}".format(distXY(self.lastPos,pos)))
+                #print("Did pass Dist: {}".format(distXY(self.lastPos,pos)))
                 self.lastPos = pos
                 self.initialSteps = self.simulation.space.steps
 
@@ -134,16 +142,21 @@ class GameController():
         self.lastPos = self.testedCar.body.position
         self.initialSteps = self.simulation.space.steps
 
-    #End of the round (Car died timer is up)
+    #End of the round (Car died or timer is up)
     def endOfRound(self):
         self.game += 1
-        self.simulation.canvasWindow.updateStatebar()
-        score = calculateFitness(self.testedCar, self.simulation)
 
-        self.simulation.canvasWindow.window.stateInfoBar.addGraphPoint(self.game, score)
+        #Calculate fitness and pack collected data
+        score = calculateFitness(self.testedCar, self.simulation)
         self.game_data_packets.append({"score":score, "data":self.game_data})
         self.game_data = []
-        print(self.game)
+        
+        #Update all GUI
+        self.simulation.canvasWindow.window.stateInfoBar.setGameVal(self.game)
+        self.simulation.canvasWindow.window.stateInfoBar.addGenGraphPoint(self.game, score)
+        if(score > self.bestGenFit):
+            self.bestGenFit = score
+            self.simulation.canvasWindow.window.stateInfoBar.setBestGenFit(round(score,2))
 
         #If this was last game
         if(self.game == self.games):
@@ -178,6 +191,15 @@ class GameController():
 
         self.game_data_packets = []
         self.startTrain()
+
+        #Update GUI
+        self.simulation.canvasWindow.window.stateInfoBar.setGeneration(self.testedCar.brain.generation)
+        self.simulation.canvasWindow.window.stateInfoBar.addOverallGraphPoint(self.testedCar.brain.generation, self.bestGenFit)
+        if(self.bestGenFit > self.bestFit):
+            self.bestFit = self.bestGenFit
+            self.simulation.canvasWindow.window.stateInfoBar.setBestFit(round(self.bestGenFit,2))
+        
+        self.bestGenFit = 0 #Reset Gen fit
 
     #Training loop
     def loop(self):

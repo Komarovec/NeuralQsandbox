@@ -61,32 +61,100 @@ class StateInfoBar(GameWidget):
     def __init__(self, game, screen, **kwargs):
         super(StateInfoBar, self).__init__(game, screen, **kwargs)
 
-        #Fitness graph
-        self.graph = graph = Graph(xlabel='Steps', ylabel='Fitness', x_ticks_minor=5,
-            x_ticks_major=25, y_ticks_major=25,
+        #Gen Fitness graph
+        self.genFitnessGraph = genFitnessGraph = Graph(xlabel='Game', ylabel='Fitness',
+            x_ticks_major=1, y_ticks_major=1,
             y_grid_label=True, x_grid_label=True, padding=5,
             x_grid=True, y_grid=True, xmin=-0, xmax=1, ymin=0, ymax=0.00001)
 
-        self.plot = plot = MeshLinePlot(color=[1, 0, 0, 1])
-        plot.points = []
-        
-        graph.add_plot(plot)
+        self.genFitnessPlot = genFitnessPlot = MeshLinePlot(color=[1, 0, 0, 1])
+        genFitnessPlot.points = []
+        genFitnessGraph.add_plot(genFitnessPlot)
 
-        self.ids["fitness"].add_widget(graph)
+        self.ids["fitness"].add_widget(genFitnessGraph)
+
+        #Overall Fitness graph
+        self.overallFitnessGraph = overallFitnessGraph = Graph(xlabel='Generation', ylabel='MaxFitness',
+            x_ticks_major=1, y_ticks_major=1,
+            y_grid_label=True, x_grid_label=True, padding=5,
+            x_grid=True, y_grid=True, xmin=-0, xmax=1, ymin=0, ymax=0.00001)
+
+        self.overallFitnessPlot = overallFitnessPlot = MeshLinePlot(color=[1, 0, 0, 1])
+        overallFitnessPlot.points = []
+        overallFitnessGraph.add_plot(overallFitnessPlot)
+
+        self.ids["overallFitness"].add_widget(overallFitnessGraph)
 
     #Add points in graph
-    def addGraphPoint(self, x, y):
-        self.plot.points.append((x, y))
+    def addGenGraphPoint(self, x, y):
+        #Add data to graph
+        self.genFitnessPlot.points.append((x, y))
 
-        if(x > self.graph.xmax):
-            self.graph.xmax = x
+        #Rescaling of y axis
+        if(y > (self.genFitnessGraph.ymax - (self.genFitnessGraph.ymax/10))):
+            self.genFitnessGraph.ymax = y + (y/10) #Move max more up by fraction of y --> better look
+            self.genFitnessGraph.y_ticks_major = math.floor(y/2)
+
+        #Rescaling of x axis
+        if((x+1) > self.genFitnessGraph.xmax):
+            self.genFitnessGraph.xmax = x+1
+
+            #Change major points only dividable by 5
+            if(x % 5 == 0):
+                self.genFitnessGraph.x_ticks_major = math.floor(x/5) if((x/5) > 1) else 1
+
+        #Reset graph if x < xmax
         else:
-            self.graph.xmax = x
-            self.graph.ymax = 0.00001
-            self.plot.points = []
+            self.genFitnessGraph.xmax = x
+            self.genFitnessGraph.ymax = 0.00001
+            self.genFitnessGraph.x_ticks_major = 1
+            self.genFitnessGraph.y_ticks_major = 1
+            self.genFitnessPlot.points = []
+            self.genFitnessPlot.points.append((x,y)) #Add data again --> reset
 
-        if(y > (self.graph.ymax/2)):
-            self.graph.ymax = 2*y
+    #Add points in graph
+    def addOverallGraphPoint(self, x, y):
+        #Add data to graph
+        self.overallFitnessPlot.points.append((x, y))
+
+        #Rescaling of y axis
+        if(y > (self.overallFitnessGraph.ymax - (self.overallFitnessGraph.ymax/10))):
+            self.overallFitnessGraph.ymax = y + (y/10) #Move max more up by fraction of y --> better look
+            self.overallFitnessGraph.y_ticks_major = math.floor(y/2)
+
+        #Rescaling of x axis
+        if((x+1) > self.overallFitnessGraph.xmax):
+            self.overallFitnessGraph.xmax = x+1
+
+            #Change major points only dividable by 5
+            if(x % 5 == 0):
+                self.overallFitnessGraph.x_ticks_major = math.floor(x/5) if((x/5) > 1) else 1
+
+        #Reset graph if x < xmax
+        else:
+            self.overallFitnessGraph.xmax = x
+            self.overallFitnessGraph.ymax = 0.00001
+            self.overallFitnessGraph.x_ticks_major = 1
+            self.overallFitnessGraph.y_ticks_major = 1
+            self.overallFitnessPlot.points = []
+            self.overallFitnessPlot.points.append((x,y)) #Add data again --> reset
+
+    #Changes generation value
+    def setGeneration(self, gen):
+        self.ids["generation"].text = "Generation: "+str(gen)
+
+    #Changes bestFit value
+    def setBestFit(self, fit):
+        self.ids["bestFit"].text = "Overall best: "+str(fit)
+
+    #Changes bestGenFit value
+    def setBestGenFit(self, fit):
+        self.ids["bestGenFit"].text = "Current best: "+str(fit)
+
+    #Changes Game value
+    def setGameVal(self, game):
+        self.ids["game"].text = "Game: "+str(game)
+
 
 #Menu for choosing mode --> Play, Train, Test
 class StartMenu(GameWidget):
@@ -446,7 +514,6 @@ class CanvasWindow(Screen):
 
         self.add_widget(self.game, 10)
         self.add_widget(self.statebar)
-        self.add_widget(self.stateInfoBar)
         self.add_widget(self.gameToolbar)
 
         self.simulation = Simulation(self.game)
@@ -477,10 +544,12 @@ class CanvasWindow(Screen):
         else:
             self.enableObjectMenu()
 
+    #Closes object menu
     def disableObjectMenu(self):
         self.remove_widget(self.objectMenu)
         self.objectMenu.visible = False
 
+    #Opens object menu
     def enableObjectMenu(self):
         size = self.objectMenu.ids["mainLayout"].size[1]
         self.objectMenu.ids["mainLayout"].size[1] = 0
@@ -490,6 +559,13 @@ class CanvasWindow(Screen):
 
         animation = Animation(size=(self.objectMenu.ids["mainLayout"].size[0],size), duration=.1)
         animation.start(self.objectMenu.ids["mainLayout"])
+
+    #Closes/Opens object menu
+    def toggleStateInfoBar(self, state):
+        if(state == "normal"):
+            self.remove_widget(self.stateInfoBar)
+        else:
+            self.add_widget(self.stateInfoBar)
 
     #Ends level editor & closes everything 
     def endLevelEditor(self):

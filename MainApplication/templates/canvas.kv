@@ -230,8 +230,7 @@
 
             Label:
                 text: ""
-
-                
+              
 
 <StateBar>:
     id: statebar
@@ -258,10 +257,14 @@
             text: "Idle"
             font_size: root.scaleFactor/12.5
 
-        Button:
+        ToggleButton:
             id: info
             text: "Model info"
             font_size: root.scaleFactor/12.5
+
+            on_state:
+                root.screen.toggleStateInfoBar(self.state)
+
 
 <StateInfoBar>:
     id: stateInfoBar
@@ -290,30 +293,77 @@
             pos: self.pos
             size: self.size
 
-            #Network visul
+            #Overall fitness graph
             BoxLayout:
-                id: network
+                id: overallFitness
                 orientation: "vertical"
 
+                #OVERALL FITNESS GRAPH
 
             #Fitness graph
             BoxLayout:
                 id: fitness
                 orientation: "vertical"
 
+                #GEN FITNESS GRAPH
 
             #Other info
             BoxLayout:
                 id: info
                 orientation: "vertical"
-                Label:
-                    text: "Best fit: "
 
-                Label:
-                    text: "Info 2"
+                canvas:
+                    Color:
+                        rgba: .1, .1, .1, 1
+                    Rectangle:
+                        pos: self.pos[0], self.pos[1]
+                        size: self.size[0], self.size[1]
 
-                Label:
-                    text: "Info 3"
+                #Info about current session
+                BoxLayout:
+                    orientation: "vertical"
+                    
+                    canvas:
+                        Color:
+                            rgba: .08, .08, .08, 1
+                        RoundedRectangle:
+                            pos: self.pos[0]+self.pos[0]*(1/16), self.pos[1]+10
+                            size: self.size[0]*(3/4), self.size[1]-10
+                            radius: (10,10,10,10)
+
+                    Label:
+                        id: game
+                        text: "Game: "
+                    Label:
+                        id: bestGenFit
+                        text: "Current best: "
+                    Separator:
+                        color: 1,1,1,0
+
+                Separator:
+                    color: 1,1,1,0
+
+                #Overall info
+                BoxLayout:
+                    orientation: "vertical"
+
+                    canvas:
+                        Color:
+                            rgba: .08, .08, .08, 1
+                        RoundedRectangle:
+                            pos: self.pos[0]+self.pos[0]*(1/16), self.pos[1]+10
+                            size: self.size[0]*(3/4), self.size[1]-10
+                            radius: (10,10,10,10)
+
+                    Label:
+                        id: generation
+                        text: "Generation: "
+                    Label:
+                        id: bestFit
+                        text: "Overall best: "
+                    Separator:
+                        color: 1,1,1,0
+
 
 
 <HiddenIcon_ActionPrevious@ActionPrevious>:

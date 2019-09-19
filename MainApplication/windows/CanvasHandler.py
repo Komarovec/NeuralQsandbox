@@ -398,6 +398,7 @@ class CanvasHandler(RelativeLayout):
 
     #Updates statebar
     def updateStatebar(self, text=None):
+        print(text)
         if(text != None):
             self.window.statebar.ids["tool"].text = text
 
@@ -460,6 +461,7 @@ class CanvasHandler(RelativeLayout):
         
         if(state == self.simulation.gameController.LEARNING_STATE):
             self.simulation.gameController.startTrain()
+            self.window.toggleStartMenu(False)
         elif(state == self.simulation.gameController.TESTING_STATE):
             self.simulation.gameController.startTest()
         elif(state == self.simulation.gameController.PLAYING_STATE):

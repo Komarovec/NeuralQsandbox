@@ -23,6 +23,7 @@ from kivy.core.image import Image as CoreImage
 
 import pymunk
 import math
+import time
 
 #Custom function and classes
 from objs.GameObjects import StaticGameObject
@@ -31,6 +32,7 @@ from objs.CarAI import CarAI
 from objs.kivyObjs import ellipse_from_circle, points_from_poly, newRectangle, distXY, calculateRectangle
 from windows.Simulation import Simulation
 from windows.Level import Level
+from ai.GameController import GameController
 
 class CanvasHandler(RelativeLayout):
     #View constants
@@ -114,10 +116,13 @@ class CanvasHandler(RelativeLayout):
 
     #Reset enviroment
     def reset(self):
-        self.clear_widgets()
-        self.update_event.cancel()
-        self.canvas.clear()
-        self.start(Simulation(self))
+        self.changeGameState("exit")
+        self.simulation.gameController.forceStop()
+        self.simulation.gameController = GameController(self.simulation)
+
+        #Full reset
+        #self.stop()
+        #self.start(Simulation(self))
 
     #Stops end DELETES entire universe!!
     def stop(self):
@@ -140,7 +145,12 @@ class CanvasHandler(RelativeLayout):
 
         #Game mode
         if(self.state != "editor"):
+            
+            before = time.time()
             self.simulation.update(dt)
+            after = time.time()
+            print("Time delta paint: {}".format(before-after))
+
             self.window.statebar.ids["steps"].text = "Steps: "+str(self.simulation.space.steps)
 
             #Car control
@@ -267,6 +277,7 @@ class CanvasHandler(RelativeLayout):
         #If we want to draw
         if(self.isDrawing):
             #Draw all kivy objects from space.shapes
+
             self.paintKivy()
 
             #Update camere if neccesary
@@ -305,8 +316,8 @@ class CanvasHandler(RelativeLayout):
                     shape.ky.points = points_from_poly(shape, scaller)
 
                 if isinstance(shape, CarAI):
-                    #pass
-                    shape.drawRaycasts(self)
+                    pass
+                    #shape.drawRaycasts(self)
 
     #Highlight object
     def highlightObject(self, obj):
@@ -398,7 +409,6 @@ class CanvasHandler(RelativeLayout):
 
     #Updates statebar
     def updateStatebar(self, text=None):
-        print(text)
         if(text != None):
             self.window.statebar.ids["tool"].text = text
 

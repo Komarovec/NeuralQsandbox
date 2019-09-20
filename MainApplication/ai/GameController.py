@@ -92,7 +92,7 @@ class GameController():
         self.simulation.simulationSpeed = self.showSpeed
         self.simulation.removeCars()
 
-    #Respawn/Spawn car and keep brain if possible
+    #Respawn controller
     def respawnCar(self):
         self.simulation.resetLevel()
         self.startSteps = self.simulation.space.steps

@@ -50,3 +50,4 @@
 17.9.2019 - 2h - Funkce pro náhodný přepis vah v síti --> mutace
 18.9.2019 - 5h - GUI --> Detaily o učení, okno, vykreslování grafu --> fitness
 19.9.2019 - 4h - Víc grafů, lepší zpracování informačního okna, vytvarení a mazaní okna uziv vstupem, nalezen novy bug (Extremni zaseky pri delsím ucení)
+20.9.2019 - 10h - Q-Learning a jeho implementace s Neuronovou síti a pouze s tabulkou (DQN)

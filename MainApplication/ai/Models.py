@@ -10,51 +10,40 @@ from keras.models import Sequential
 import keras
 
 class NeuralModel():
-    def __init__(self, input_size=3):
-        self.generation = 0
-        self.learningRate = 1e-3
-        self.epochs = 2
-        self.mutationRate = 0.1
+    def __init__(self, input_size=3, output_size=2, learningRate=1e-3):
+        self.learningRate = learningRate
 
         #Create sequential model
-        self.network = self.createSequentialModel(input_size)
+        self.network = self.createSequentialModel(input_size, output_size)
 
-    def createSequentialModel(self, input_size):
-        #Create model
-        model = keras.Sequential([
-            keras.layers.Dense(64, activation=tf.nn.relu, input_dim=input_size),
-            keras.layers.Dropout(0.2),
-            keras.layers.Dense(128, activation=tf.nn.relu),
-            keras.layers.Dropout(0.2),
-            keras.layers.Dense(64, activation=tf.nn.relu),
-            keras.layers.Dropout(0.2),
-            keras.layers.Dense(32, activation=tf.nn.relu),
-            keras.layers.Dropout(0.2),
-            keras.layers.Dense(2, activation=tf.nn.softmax)
-        ])
+    #Creates sequential model
+    def createSequentialModel(self, input_size, output_size, structure=None):
+        #Default model
+        if(structure==None):
+            #Create model
+            model = keras.Sequential([
+                keras.layers.Dense(64, activation=tf.nn.relu, input_dim=input_size),
+                keras.layers.Dense(128, activation=tf.nn.relu),
+                keras.layers.Dense(output_size, activation=tf.nn.softmax)
+            ])
+        else:
+            pass
+            #Custom model editing
 
         #Optimizer
-        adam = keras.optimizers.Adam(lr=self.learningRate, beta_1=0.9, beta_2=0.999, epsilon=None, decay=0.0, amsgrad=False)
+        adam = keras.optimizers.Adam(lr=self.learningRate)
 
         #Compile model
-        model.compile(loss='mean_squared_error', optimizer='adam',
-                    metrics=['accuracy'])
+        model.compile(loss='mean_squared_error', optimizer=adam)
 
         return model
 
-    def predict(self, rawdata):
-        data = np.array(rawdata)
-        data = np.array([data])
-
+    #Generate prediction
+    def predict(self, data):
         result = self.network.predict(data)
-
         return result
 
-    def mutateWeights(self, mutationRate=None):
-        #If not set by user use default
-        if(mutationRate == None):
-            mutationRate = self.mutationRate
-
+    def mutateWeights(self, mutationRate=0.1):
         #first itterate through the layers
         for j, layer in enumerate(self.network.layers):
             new_weights_for_layer = []
@@ -81,10 +70,3 @@ class NeuralModel():
 
             #set the new weight list for each layer
             self.network.layers[j].set_weights(new_weights_for_layer)
-
-    def fit(self, data):
-        X = np.array(data[0])
-        Y = np.array(data[1])
-
-        self.generation += 1
-        self.network.fit(X, Y, epochs=self.epochs, batch_size=32)

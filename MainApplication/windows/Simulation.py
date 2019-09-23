@@ -96,29 +96,33 @@ class Simulation():
         for _ in range(self.simulationSpeed):
             #If training
             self.trainLoop(dt)
+            self.stepSpace()
 
-            for shape in self.space.shapes:
-                if(not shape.body.is_sleeping):
-                    #If there is friction set by class use it
-                    if(isinstance(shape, Car)):
-                        friction = shape.ground_friction
-                        angular_friction = shape.angular_friction
-                    else:
-                        friction = 0.9
-                        angular_friction = 0.9
+    #Step simulation space
+    def stepSpace(self):
+        for shape in self.space.shapes:
+            if(not shape.body.is_sleeping):
+                #If there is friction set by class use it
+                if(isinstance(shape, Car)):
+                    friction = shape.ground_friction
+                    angular_friction = shape.angular_friction
+                else:
+                    friction = 0.9
+                    angular_friction = 0.9
 
-                    #Zero-out velocity vector if it is approaching 0
-                    if(shape.body.velocity.length < 0.001):
-                        shape.body.velocity = Vec2d(0,0)
+                #Zero-out velocity vector if it is approaching 0
+                if(shape.body.velocity.length < 0.001):
+                    shape.body.velocity = Vec2d(0,0)
 
-                    #Apply friction every frame *not frame dependent /dt/*
-                    shape.body.velocity *= 1 - (self.step*friction)
-                    shape.body.angular_velocity *= 1 - (self.step*angular_friction)
+                #Apply friction every frame *not frame dependent /dt/*
+                shape.body.velocity *= 1 - (self.step*friction)
+                shape.body.angular_velocity *= 1 - (self.step*angular_friction)
 
-            #Stepping space simul
-            #print()
-            self.space.step(self.step)
-            self.space.steps += 1
+        #Stepping space simul
+        #print()
+        self.space.step(self.step)
+        self.space.steps += 1
+
 
     #Training loop
     def trainLoop(self, dt):

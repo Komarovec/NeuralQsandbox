@@ -145,11 +145,7 @@ class CanvasHandler(RelativeLayout):
 
         #Game mode
         if(self.state != "editor"):
-            
-            before = time.time()
             self.simulation.update(dt)
-            after = time.time()
-            print("Time delta paint: {}".format(before-after))
 
             self.window.statebar.ids["steps"].text = "Steps: "+str(self.simulation.space.steps)
 

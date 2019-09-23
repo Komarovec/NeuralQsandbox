@@ -29,6 +29,7 @@ class CarAI(Car):
         #AI
         self.brain = None
         self.isDead = False
+        self.reward = 0
 
     #Calculate distance for every raycast
     def calculateRaycasts(self, space):
@@ -91,7 +92,7 @@ class CarAI(Car):
             else:
                 dist.append(1)
 
-        return dist
+        return np.array([dist])
 
     #Draw raycasts !!! WIP !!! DO NOT USE
     def drawRaycasts(self, canvasHandler):        
@@ -139,36 +140,19 @@ class CarAI(Car):
 
         return decision
 
-    #Think HOT
-    def oneHotThink(self, results):
-        maxIndex = np.argmax(results)
-        if(maxIndex == 0):
-            self.left(1)
-            results = [1,0]
-
-        elif(maxIndex == 1):
-            self.right(1)
-            results = [0,1]
-
-        return results
-
     #Makes car think
-    def think(self, rc, random=False):
+    def think(self, rc):
         #Predict action based on rays
-        if(random==False):
-            results = self.brain.predict(rc)
-            results = results[0]
+        results = self.brain.predict(rc)
+
+        action = np.argmax(results[0])
+
+        if(action == 0):
+            self.left(1)
         else:
-            results = self.randomDecision()
-            #results = self.oneHotThink(results)
-
-        #results = self.oneHotThink(results)
-        self.left(results[0])
-        self.right(results[1])
-
-        #print(results)
+            self.right(1)
 
         #Constant force
         self.forward(1)
 
-        return results
+        return action

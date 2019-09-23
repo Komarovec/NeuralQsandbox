@@ -1,5 +1,6 @@
 from objs.kivyObjs import distXY
 from ai.bank import calculateFitness, printPackets, unpack
+from ai.DQN import DQN
 from objs.GameObjects import StaticGameObject
 
 import numpy as np
@@ -10,6 +11,9 @@ class GameController():
     LEARNING_STATE = 1
     TESTING_STATE = 2
     PLAYING_STATE = 3
+
+    REINFORCEMENT_LEARN = "reinforcement"
+    EVOLUTION_LEARN = "evolution"
 
     def __init__(self, simulation):
         self.simulation = simulation
@@ -24,12 +28,16 @@ class GameController():
         self.initialSteps = 0
 
         #Training vars
+        self.learningType = self.REINFORCEMENT_LEARN
         self.state = self.IDLE_STATE
         self.stepLimit = 5000
         self.startSteps = 0
         self.game_data = []
         self.game_data_packets = []
         self.scores = []
+
+        #Learning objects
+        self.DQN = DQN()
 
         #One-Gen statistical values
         self.bestGenFit = 0
@@ -145,18 +153,13 @@ class GameController():
     #End of the round (Car died or timer is up)
     def endOfRound(self):
         self.game += 1
-
-        #Calculate fitness and pack collected data
-        score = calculateFitness(self.testedCar, self.simulation)
-        self.game_data_packets.append({"score":score, "data":self.game_data})
-        self.game_data = []
         
         #Update all GUI
         self.simulation.canvasWindow.window.stateInfoBar.setGameVal(self.game)
-        self.simulation.canvasWindow.window.stateInfoBar.addGenGraphPoint(self.game, score)
-        if(score > self.bestGenFit):
-            self.bestGenFit = score
-            self.simulation.canvasWindow.window.stateInfoBar.setBestGenFit(round(score,2))
+        #self.simulation.canvasWindow.window.stateInfoBar.addGenGraphPoint(self.game, score)
+        #if(score > self.bestGenFit):
+        #    self.bestGenFit = score
+        #    self.simulation.canvasWindow.window.stateInfoBar.setBestGenFit(round(score,2))
 
         #If this was last game
         if(self.game == self.games):
@@ -165,41 +168,44 @@ class GameController():
         #Prepare for next game
         else:
             self.respawnCar()
-            self.testedCar.brain.mutateWeights()
 
     #End of learning session (All learning games passed)
     def endOfSession(self):
         self.state = 2 #Set to learning
         self.simulation.resetLevel()
 
-        #Sort all result by score
-        self.game_data_packets.sort(key=lambda x: x["score"], reverse=True)
-
-        #Best 20%
-        bestResults = []
-        for index, packet in enumerate(self.game_data_packets):
-            #Drop everything below 20%
-            if(index+1 > self.bestPercentage*len(self.game_data_packets)):
-                break
-            
-            bestResults.append(packet)
-
-        print("Best Result: {}".format(bestResults[0]["score"]))
-
-        #Train on best 20%
-        self.testedCar.brain.fit(unpack(bestResults))
-
-        self.game_data_packets = []
         self.startTrain()
 
         #Update GUI
-        self.simulation.canvasWindow.window.stateInfoBar.setGeneration(self.testedCar.brain.generation)
-        self.simulation.canvasWindow.window.stateInfoBar.addOverallGraphPoint(self.testedCar.brain.generation, self.bestGenFit)
-        if(self.bestGenFit > self.bestFit):
-            self.bestFit = self.bestGenFit
-            self.simulation.canvasWindow.window.stateInfoBar.setBestFit(round(self.bestGenFit,2))
+        #self.simulation.canvasWindow.window.stateInfoBar.setGeneration(self.testedCar.brain.generation)
+        #self.simulation.canvasWindow.window.stateInfoBar.addOverallGraphPoint(self.testedCar.brain.generation, self.bestGenFit)
+        #if(self.bestGenFit > self.bestFit):
+        #    self.bestFit = self.bestGenFit
+        #    self.simulation.canvasWindow.window.stateInfoBar.setBestFit(round(self.bestGenFit,2))
         
-        self.bestGenFit = 0 #Reset Gen fit
+        #self.bestGenFit = 0 #Reset Gen fit
+
+    def learnModel(self):
+        if(self.learningType == self.REINFORCEMENT_LEARN):
+            #Take observation
+            obs = self.testedCar.calculateRaycasts(self.simulation.space)
+            action = self.testedCar.think(obs)
+
+            #Artificial simulation step <---- EXTREMELY DANGEROUS ONLY USE IN TRAINING!!!!
+            self.simulation.stepSpace()
+
+            #Take new observation
+            obs1 = self.testedCar.calculateRaycasts(self.simulation.space)
+
+            #Calculate immediate reward
+            reward = 1
+            self.testedCar.reward += reward
+
+            #Remember state-action pairs
+            self.DQN.remember(obs, action, obs1, reward)
+
+            #Experience replay
+            self.DQN.experience_replay(self.testedCar.brain.network)
 
     #Training loop
     def loop(self):
@@ -219,17 +225,8 @@ class GameController():
 
             #Current test continues --> Did NOT died
             else:
-                observation = np.array(self.testedCar.calculateRaycasts(self.simulation.space))
-
-                #print("Gen: {}".format(self.testedCar.brain.generation))
-                if(self.testedCar.brain.generation == 0):
-                    action = self.testedCar.think(observation, random=True)
-                else:
-                    action = self.testedCar.think(observation)
-
-                action = np.array(action)
-
-                self.game_data.append([observation, action])
+                #Perform action from observation and learning
+                self.learnModel()
 
         #Testing model
         elif(self.state == self.TESTING_STATE):

@@ -10,7 +10,7 @@ from keras.models import Sequential
 import keras
 
 class NeuralModel():
-    def __init__(self, input_size=3, output_size=2, learningRate=1e-3):
+    def __init__(self, input_size=3, output_size=2, learningRate=0.001):
         self.learningRate = learningRate
 
         #Create sequential model
@@ -22,9 +22,10 @@ class NeuralModel():
         if(structure==None):
             #Create model
             model = keras.Sequential([
-                keras.layers.Dense(64, activation=tf.nn.relu, input_dim=input_size),
-                keras.layers.Dense(128, activation=tf.nn.relu),
-                keras.layers.Dense(output_size, activation=tf.nn.softmax)
+                keras.layers.Dense(64, activation="relu", input_dim=input_size),
+                keras.layers.Dense(128, activation="relu"),
+                keras.layers.Dense(64, activation="relu"),
+                keras.layers.Dense(output_size, activation="linear")
             ])
         else:
             pass

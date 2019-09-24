@@ -53,3 +53,4 @@
 20.9.2019 - 10h - Q-Learning a jeho implementace s Neuronovou síti a pouze s tabulkou (DQN)
 22.9.2019 - 6h - OpenAI Gym --> Q-Learning DQN
 23.9.2019 - 8h - Překonání MountainCar challenge s pomocí DQN, Experience Learning (TFMiniProjects) --> začátky implementace DQN do hlavního projektu, Úpravy učícího algoritmu a optimalizace všech věcí kolem AI
+24.9.2019 - 5h - Dokončení implementace DQN --> možné vylepšení (lepší okamžitá reward funkce)

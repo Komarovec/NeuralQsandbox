@@ -20,9 +20,16 @@ class DQN():
         #Variable for storing state-action pairs
         self.memory = deque()
 
+        #Temp variables
+        self.tempSAPair = None
+
     #Reset exploration rate
     def resetExplorationRate(self):
         self.exploration_rate = self.exploration_max
+
+    #New run, Prepare vars for new run
+    def newRun(self):
+        self.tempSAPair = None
 
     #Choose action based in observation or explore
     def act(self, model, obs, action_space=2):

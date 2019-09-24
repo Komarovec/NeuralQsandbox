@@ -19,9 +19,11 @@ class CarAI(Car):
         super(CarAI, self).__init__(mass, size, pos, friction, ground_friction, angular_friction, forward_speed, backward_speed, angular_speed, elasticity, rgba, texture)
         self.objectType = self.CARAI
         self.raycastLenght = 2000
-        self.raycastAngle = np.radians(30)
+        self.raycastAngle = np.radians(45)
         self.raycastCount = 2
         self.raycastObjects = []
+
+        self.action_space = 3
 
         #Kivy
         self.raycastsKivy = []
@@ -127,9 +129,9 @@ class CarAI(Car):
         self.deleteRaycasts(canvasHandler)
         self.isDead = True
 
-    #Create new NN !!WIP!!
+    #Create new NN
     def generateRandomBrain(self):
-        self.brain = NeuralModel()
+        self.brain = NeuralModel(input_size=self.raycastCount+1, output_size=self.action_space)
 
     #Generate random decision
     def randomDecision(self):
@@ -141,13 +143,16 @@ class CarAI(Car):
         return decision
 
     #Makes car think
-    def think(self, rc):
-        #Predict action based on rays
-        results = self.brain.predict(rc)
-
-        action = np.argmax(results[0])
+    def think(self, rc, action=None):
+        #If no action provided, predict here
+        if(action == None):
+            #Predict action based on rays
+            results = self.brain.predict(rc)
+            action = np.argmax(results[0])
 
         if(action == 0):
+            pass #Forward only
+        elif(action == 1):
             self.left(1)
         else:
             self.right(1)

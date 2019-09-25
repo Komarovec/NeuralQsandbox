@@ -58,86 +58,102 @@ class StateBar(GameWidget):
 
 #Extends stator if needed
 class StateInfoBar(GameWidget):
+    DEFAULT_YMAX = 0.00001
+    DEFAULT_YMIN = 0
+    DEFAULT_XMAX = 1
+    DEFAULT_XMIN = -0
+    DEFAULT_X_TICKS_MAJOR = 1
+    DEFAULT_Y_TICKS_MAJOR = 1
+
     def __init__(self, game, screen, **kwargs):
         super(StateInfoBar, self).__init__(game, screen, **kwargs)
 
-        #Gen Fitness graph
-        self.genFitnessGraph = genFitnessGraph = Graph(xlabel='Game', ylabel='Fitness',
-            x_ticks_major=1, y_ticks_major=1,
+        #Right graph
+        self.graph1 = graph1 = Graph(xlabel='Game', ylabel='Reward',
+            x_ticks_major=self.DEFAULT_X_TICKS_MAJOR, y_ticks_major=self.DEFAULT_Y_TICKS_MAJOR,
             y_grid_label=True, x_grid_label=True, padding=5,
-            x_grid=True, y_grid=True, xmin=-0, xmax=1, ymin=0, ymax=0.00001)
+            x_grid=True, y_grid=True, xmin=self.DEFAULT_XMIN, xmax=self.DEFAULT_XMAX, ymin=self.DEFAULT_YMIN, ymax=self.DEFAULT_YMAX)
 
-        self.genFitnessPlot = genFitnessPlot = MeshLinePlot(color=[1, 0, 0, 1])
-        genFitnessPlot.points = []
-        genFitnessGraph.add_plot(genFitnessPlot)
+        self.plot1 = plot1 = MeshLinePlot(color=[1, 0, 0, 1])
+        plot1.points = []
+        graph1.add_plot(plot1)
 
-        self.ids["fitness"].add_widget(genFitnessGraph)
+        self.ids["graph1"].add_widget(graph1)
 
-        #Overall Fitness graph
-        self.overallFitnessGraph = overallFitnessGraph = Graph(xlabel='Generation', ylabel='MaxFitness',
-            x_ticks_major=1, y_ticks_major=1,
+        #Left graph
+        self.graph2 = graph2 = Graph(xlabel='Generation', ylabel='MaxFitness',
+            x_ticks_major=self.DEFAULT_X_TICKS_MAJOR, y_ticks_major=self.DEFAULT_Y_TICKS_MAJOR,
             y_grid_label=True, x_grid_label=True, padding=5,
-            x_grid=True, y_grid=True, xmin=-0, xmax=1, ymin=0, ymax=0.00001)
+            x_grid=True, y_grid=True, xmin=self.DEFAULT_XMIN, xmax=self.DEFAULT_XMAX, ymin=self.DEFAULT_YMIN, ymax=self.DEFAULT_YMAX)
 
-        self.overallFitnessPlot = overallFitnessPlot = MeshLinePlot(color=[1, 0, 0, 1])
-        overallFitnessPlot.points = []
-        overallFitnessGraph.add_plot(overallFitnessPlot)
+        self.plot2 = plot2 = MeshLinePlot(color=[0, 1, 0, 1])
+        plot2.points = []
+        graph2.add_plot(plot2)
 
-        self.ids["overallFitness"].add_widget(overallFitnessGraph)
+        self.ids["graph2"].add_widget(graph2)
 
-    #Add points in graph
-    def addGenGraphPoint(self, x, y):
+    #Reset plot on graph:
+    def resetPlot(self, graph, plot):
+        graph.xmax = self.DEFAULT_XMAX
+        graph.xmin = self.DEFAULT_XMIN
+        graph.ymax = self.DEFAULT_YMAX
+        graph.ymin = self.DEFAULT_YMIN
+        graph.x_ticks_major = self.DEFAULT_X_TICKS_MAJOR
+        graph.y_ticks_major = self.DEFAULT_Y_TICKS_MAJOR
+        plot.points = []
+
+    #Change graph labels
+    def changeGraphLabel(self, graph, xlabel=None, ylabel=None):
+        if(xlabel != None):
+            graph.xlabel = xlabel
+        
+        if(ylabel != None):
+            graph.ylabel = ylabel
+
+    #Left graph
+    def addPlotPointLeft(self, x, y, plot=None):
+        if(plot == None):
+            plot = self.plot2
+
+        self.addPlotPoint(self.graph2, plot, x, y)
+
+    #Right graph
+    def addPlotPointRight(self, x, y, plot=None):
+        if(plot == None):
+            plot = self.plot1
+
+        self.addPlotPoint(self.graph1, plot, x, y)
+
+    #Add point to graph
+    def addPlotPoint(self, graph, plot, x, y):
         #Add data to graph
-        self.genFitnessPlot.points.append((x, y))
+        plot.points.append((x, y))
 
         #Rescaling of y axis
-        if(y > (self.genFitnessGraph.ymax - (self.genFitnessGraph.ymax/10))):
-            self.genFitnessGraph.ymax = y + (y/10) #Move max more up by fraction of y --> better look
-            self.genFitnessGraph.y_ticks_major = math.floor(y/2)
+        if(y > (graph.ymax - (graph.ymax/10))):
+            graph.ymax = y + (y/10) #Move max more up by fraction of y --> better look
+
+            if(y > abs(graph.ymin)):
+                graph.y_ticks_major = math.floor(y/2)
+
+        if(y < (graph.ymin - (graph.ymin/10))):
+            graph.ymin = y + (y/10) #Move max more up by fraction of y --> better look
+
+            if(abs(y) > graph.ymax):
+                graph.y_ticks_major = abs(math.floor(y/2))
 
         #Rescaling of x axis
-        if((x+1) > self.genFitnessGraph.xmax):
-            self.genFitnessGraph.xmax = x+1
+        if((x+1) > graph.xmax):
+            graph.xmax = x+1
 
             #Change major points only dividable by 5
             if(x % 5 == 0):
-                self.genFitnessGraph.x_ticks_major = math.floor(x/5) if((x/5) > 1) else 1
+                graph.x_ticks_major = math.floor(x/5) if((x/5) > 1) else 1
 
         #Reset graph if x < xmax
         else:
-            self.genFitnessGraph.xmax = x
-            self.genFitnessGraph.ymax = 0.00001
-            self.genFitnessGraph.x_ticks_major = 1
-            self.genFitnessGraph.y_ticks_major = 1
-            self.genFitnessPlot.points = []
-            self.genFitnessPlot.points.append((x,y)) #Add data again --> reset
-
-    #Add points in graph
-    def addOverallGraphPoint(self, x, y):
-        #Add data to graph
-        self.overallFitnessPlot.points.append((x, y))
-
-        #Rescaling of y axis
-        if(y > (self.overallFitnessGraph.ymax - (self.overallFitnessGraph.ymax/10))):
-            self.overallFitnessGraph.ymax = y + (y/10) #Move max more up by fraction of y --> better look
-            self.overallFitnessGraph.y_ticks_major = math.floor(y/2)
-
-        #Rescaling of x axis
-        if((x+1) > self.overallFitnessGraph.xmax):
-            self.overallFitnessGraph.xmax = x+1
-
-            #Change major points only dividable by 5
-            if(x % 5 == 0):
-                self.overallFitnessGraph.x_ticks_major = math.floor(x/5) if((x/5) > 1) else 1
-
-        #Reset graph if x < xmax
-        else:
-            self.overallFitnessGraph.xmax = x
-            self.overallFitnessGraph.ymax = 0.00001
-            self.overallFitnessGraph.x_ticks_major = 1
-            self.overallFitnessGraph.y_ticks_major = 1
-            self.overallFitnessPlot.points = []
-            self.overallFitnessPlot.points.append((x,y)) #Add data again --> reset
+            self.resetPlot(graph, plot)
+            self.addPlotPoint(graph, plot, x, y)
 
     #Changes generation value
     def setGeneration(self, gen):

@@ -262,6 +262,8 @@ class Simulation():
             self.space.add(car.body, car)
             car.paint(self.canvasWindow)
         
+        self.canvasWindow.selectedCar = cars[0]
+
         return True
 
     #Remove player from space (all car class instances)
@@ -273,6 +275,8 @@ class Simulation():
                     shape.deleteRaycasts(self.canvasWindow)
                 self.space.remove(shape.body, shape)
                 self.canvasWindow.canvas.remove(shape.ky)
+
+        self.canvasWindow.selectedCar = None
 
     #Find spawnpoint for car
     def findSpawnpoint(self):

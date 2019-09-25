@@ -17,7 +17,6 @@ class GameController():
 
     def __init__(self, simulation):
         self.simulation = simulation
-        self.games = 100
         self.bestPercentage = 0.2
         self.game = 0
 
@@ -55,7 +54,7 @@ class GameController():
 
         self.deadCarsKy = []
 
-    #Start training session
+    #Start training Episode
     def startTrain(self, *args):
         #Prepare game vars
         self.state = self.LEARNING_STATE
@@ -87,12 +86,18 @@ class GameController():
 
         self.cars.append(car)
 
+        #Set camera
+        self.simulation.canvasWindow.selectedCar = car
+
     #Free play
     def startFreePlay(self):
         self.state = self.PLAYING_STATE
         car = self.simulation.addPlayer()
 
-    #End training sessionY
+        #Set camera
+        self.simulation.canvasWindow.selectedCar = car
+
+    #End training EpisodeY
     def endTrain(self):
         self.state = self.IDLE_STATE
         self.simulation.simulationSpeed = self.showSpeed
@@ -105,7 +110,7 @@ class GameController():
         self.simulation.simulationSpeed = self.showSpeed
         self.simulation.removeCars()
 
-    #Respawn controller
+    #Respawn controller ONLY FOR LEARNING
     def respawnCar(self):
         #Reset level & steps
         self.simulation.resetLevel()
@@ -120,7 +125,10 @@ class GameController():
         #First spawn --> create brain
         else:
             self.testedCar = self.simulation.addCarAI()   
-            self.testedCar.generateRandomBrain() 
+            self.testedCar.generateRandomBrain()
+
+        #Set camera
+        self.simulation.canvasWindow.selectedCar = self.testedCar 
 
         self.initMovementCheck()
 
@@ -137,7 +145,6 @@ class GameController():
         elif(self.state == self.PLAYING_STATE and otherObject.objectType == StaticGameObject.FINISH):
             car.respawn(self.simulation)
 
-
     #Check if testedCar has moved
     def checkMovement(self):
         pos = self.testedCar.body.position
@@ -145,11 +152,11 @@ class GameController():
             #If did not pass 
             if(not(self.minMoveDist < distXY(self.lastPos,pos))):
                 self.testedCar.kill(self.simulation.canvasWindow)
-                print("Did NOT pass Dist: {}".format(distXY(self.lastPos,pos)))
+                #print("Did NOT pass Dist: {}".format(distXY(self.lastPos,pos)))
             
             #If passed
             else:
-                print("Did pass Dist: {}".format(distXY(self.lastPos,pos)))
+                #print("Did pass Dist: {}".format(distXY(self.lastPos,pos)))
                 self.lastPos = pos
                 self.initialSteps = self.simulation.space.steps
 
@@ -158,43 +165,18 @@ class GameController():
         self.lastPos = self.testedCar.body.position
         self.initialSteps = self.simulation.space.steps
 
-    #End of the round (Car died or timer is up)
-    def endOfRound(self):
+    #End of the Run (Car died or timer is up)
+    def endOfRun(self):
         self.game += 1
         
         #Update all GUI
-        self.simulation.canvasWindow.window.stateInfoBar.setGameVal(self.game)
-        self.simulation.canvasWindow.window.stateInfoBar.addGenGraphPoint(self.game, self.testedCar.reward)
-        if(self.testedCar.reward > self.bestGenFit):
-            self.bestGenFit = self.testedCar.reward
-            self.simulation.canvasWindow.window.stateInfoBar.setBestGenFit(round(self.testedCar.reward,2))
+        self.simulation.canvasWindow.window.stateInfoBar.addPlotPointRight(self.game, self.testedCar.reward)
 
         #Reset reward counting
         self.testedCar.reward = 0
 
-        #If this was last game
-        if(self.game == self.games):
-            self.endOfSession()
-            
         #Prepare for next game
-        else:
-            self.respawnCar()
-
-    #End of learning session (All learning games passed)
-    def endOfSession(self):
-        self.state = 2 #Set to learning
-        self.simulation.resetLevel()
-
-        self.startTrain()
-
-        #Update GUI
-        #self.simulation.canvasWindow.window.stateInfoBar.setGeneration(self.testedCar.brain.generation)
-        #self.simulation.canvasWindow.window.stateInfoBar.addOverallGraphPoint(self.testedCar.brain.generation, self.bestGenFit)
-        #if(self.bestGenFit > self.bestFit):
-        #    self.bestFit = self.bestGenFit
-        #    self.simulation.canvasWindow.window.stateInfoBar.setBestFit(round(self.bestGenFit,2))
-        
-        #self.bestGenFit = 0 #Reset Gen fit
+        self.respawnCar()
 
     def learnModel(self):
         if(self.learningType == self.REINFORCEMENT_LEARN):
@@ -235,7 +217,7 @@ class GameController():
                     if(ob < 0.1):
                         reward = -1
                 
-                print(reward)
+                print("Reward: {}".format(reward))
                 self.testedCar.reward += reward
 
                 #Remember state-action pairs
@@ -259,10 +241,10 @@ class GameController():
             if((self.simulation.space.steps-self.startSteps) > self.stepLimit):
                 self.testedCar.kill(self.simulation.canvasWindow)
 
-            #End of round (Car died or timer is up)
+            #End of Run (Car died or timer is up)
             if(self.testedCar.isDead):
                 self.learnModel()
-                self.endOfRound()
+                self.endOfRun()
 
             #Current test continues --> Did NOT died
             else:

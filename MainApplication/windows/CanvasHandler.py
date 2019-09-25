@@ -108,21 +108,17 @@ class CanvasHandler(RelativeLayout):
 
     #Completely stops clock, drawing and physics!
     def stopDrawing(self):
-        Clock.unschedule(self.update_event)
+        self.update_event.cancel()
 
     #Start clock, drawing and physics
     def startDrawing(self):
-        self.update_event = Clock.schedule_interval(self.draw, 1.0 / 1000)
+        self.update_event = Clock.schedule_interval(self.draw, 0)
 
     #Reset enviroment
     def reset(self):
         self.changeGameState("exit")
         self.simulation.gameController.forceStop()
         self.simulation.gameController = GameController(self.simulation)
-
-        #Full reset
-        #self.stop()
-        #self.start(Simulation(self))
 
     #Stops end DELETES entire universe!!
     def stop(self):
@@ -346,6 +342,9 @@ class CanvasHandler(RelativeLayout):
 
                 #Set canvas pos
                 self.simulation.canvasWindow.pos = (posX, posY)
+            elif(self.simulation.gameController.state == GameController.LEARNING_STATE):
+                pass
+
             else:
                 self.viewState == self.FREE_VIEW
 
@@ -357,17 +356,7 @@ class CanvasHandler(RelativeLayout):
         
         #Follow 
         elif(state == self.FOLLOW_VIEW):
-            car = None
-            for shape in self.simulation.space.shapes:
-                if(isinstance(shape, Car)):
-                    car = shape
-
-            #Pokud je v space auto sleduj ho jinak ani nezapinej sledovani
-            if(car != None):
-                self.selectedCar = car
-                self.viewState = self.FOLLOW_VIEW
-            else:
-                self.viewState = self.FREE_VIEW
+            self.viewState = self.FOLLOW_VIEW
 
         #Do not follow
         elif(state == self.FREE_VIEW):
@@ -701,7 +690,7 @@ class CanvasHandler(RelativeLayout):
             #If object selected then edit if not then send None --> Closes menu
             self.window.editMenu.setEditObject(selectObject)
         else:
-            if(self.viewState == self.FREE_VIEW):
+            if(self.viewState == self.FREE_VIEW or self.selectedCar == None):
                 touch.grab(self)
 
     #Keyboard

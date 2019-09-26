@@ -49,7 +49,7 @@ class GameController():
         self.cars = []
 
         #Training speed / Show speed
-        self.trainingSpeed = 2
+        self.trainingSpeed = 8
         self.showSpeed = 2
 
         self.deadCarsKy = []
@@ -207,15 +207,15 @@ class GameController():
                 vel = distXY(pos0, pos1)
                 if(vel > 7.5):
                     reward = 1
-
-                #Punish if died
-                if(self.testedCar.isDead):
-                    reward = -1
                 
                 #Punish if close to the wall
                 for ob in obs[0]:
                     if(ob < 0.1):
-                        reward = -1
+                        reward = 0
+
+                #Punish if died
+                if(self.testedCar.isDead):
+                    reward = -10
                 
                 print("Reward: {}".format(reward))
                 self.testedCar.reward += reward
@@ -224,7 +224,7 @@ class GameController():
                 self.DQN.remember(obs, action, obs1, reward)
 
                 #Experience replay
-                self.DQN.experience_replay(self.testedCar.brain.network)
+                self.DQN.fast_experience_replay(self.testedCar.brain.network)
 
                 #Replace old observation with new observation
                 self.DQN.tempSAPair = (obs1, action1)

@@ -45,6 +45,7 @@ class DQN():
     def remember(self, obs, action, obs1, reward):
         self.memory.append((obs, action, obs1, reward))
 
+    #Full Q-Learning -Extremely slow
     def experience_replay(self, model):
         if(len(self.memory) < self.batch_size):
             return
@@ -69,3 +70,36 @@ class DQN():
         self.exploration_rate *= self.exploration_decay
         self.exploration_rate = max(self.exploration_min, self.exploration_rate)
 
+    #Half Q-Learning
+    def fast_experience_replay(self, model):
+        if(len(self.memory) < self.batch_size):
+            return
+
+        #Select random memories
+        batch = random.sample(self.memory, self.batch_size)
+
+        obsToLearn = []
+        actionsToLearn = []
+
+        for obs, action, obs1, reward in batch:
+            #Calculate New Update Q-Value
+            q_update = reward + self.discount * np.amax(model.predict(obs1)[0])
+
+            #Predict on current value
+            q_values = model.predict(obs)
+
+            #Update actual Q-Value
+            q_values[0][action] = q_update
+
+            #Fit on calculated Q-Values
+            obsToLearn.append(obs[0])
+            actionsToLearn.append(q_values[0])
+        
+        obsToLearn = np.array(obsToLearn)
+        actionsToLearn = np.array(actionsToLearn)
+
+        model.fit(obsToLearn, actionsToLearn, verbose=0)
+        
+        #Decrease exploration rate
+        self.exploration_rate *= self.exploration_decay
+        self.exploration_rate = max(self.exploration_min, self.exploration_rate)

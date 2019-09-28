@@ -205,7 +205,7 @@ class GameController():
                 pos1 = self.testedCar.body.position
                 self.pos0 = pos1
                 vel = distXY(pos0, pos1)
-                if(vel > 7.5):
+                if(vel >= 7.5):
                     reward = 1
                 
                 #Punish if close to the wall
@@ -217,7 +217,7 @@ class GameController():
                 if(self.testedCar.isDead):
                     reward = -10
                 
-                print("Reward: {}".format(reward))
+                #Add reward to overall reward
                 self.testedCar.reward += reward
 
                 #Remember state-action pairs

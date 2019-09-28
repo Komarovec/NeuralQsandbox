@@ -55,4 +55,4 @@
 23.9.2019 - 8h - Překonání MountainCar challenge s pomocí DQN, Experience Learning (TFMiniProjects) --> začátky implementace DQN do hlavního projektu, Úpravy učícího algoritmu a optimalizace všech věcí kolem AI
 24.9.2019 - 5h - Dokončení implementace DQN --> možné vylepšení (lepší okamžitá reward funkce)
 25.9.2019 - 4h - Zlepšení grafů, Oprava follow kamery, optimalizace GameControlleru a učicí smyčky, oprava dalších mini-bugů (Kivy update unschedule --> cancel, ...)
-26.9.2019 - 2h - Studium algoritmu NEAT
+26.9.2019 - 4h - Studium algoritmu NEAT, Zrychlení učení DQN

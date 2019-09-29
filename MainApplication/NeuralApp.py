@@ -10,6 +10,9 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.uix.settings import Settings
+from kivy.config import ConfigParser
+
 from windows.CanvasWindow import CanvasWindow
 
 from kivy.config import Config
@@ -22,13 +25,24 @@ Config.write()
 class MainMenuWindow(Screen):
     pass
 
+#Option class
+class OptionsWindow(Screen):
+    def __init__(self, name, *args):
+        super(OptionsWindow, self).__init__(name=name, *args)
+        config = ConfigParser()
+        config.read('config.ini')
+
+        s = Settings()
+        s.add_json_panel('My custom panel', config, 'testjson.json')
+        self.add_widget(s)
+
 #KV files import
 Builder.load_file("templates/mainmenu.kv")
 Builder.load_file("templates/canvas.kv")
 
 #Screen manager
 sm = ScreenManager()
-screens = [MainMenuWindow(name="mainmenu"), CanvasWindow(name="canvas")]
+screens = [MainMenuWindow(name="mainmenu"), CanvasWindow(name="canvas"), OptionsWindow(name="options")]
 for screen in screens:
     sm.add_widget(screen)
 

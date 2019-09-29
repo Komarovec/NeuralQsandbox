@@ -30,6 +30,9 @@
             Button:
                 text: "Options"
                 font_size: (root.width + root.height) / 100
+                on_press: 
+                    root.manager.transition.direction = 'right'
+                    root.manager.current = 'options'
             Button:
                 text: "Exit"
                 font_size: (root.width + root.height) / 100

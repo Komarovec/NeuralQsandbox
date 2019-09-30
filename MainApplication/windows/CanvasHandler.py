@@ -31,7 +31,7 @@ from objs.Car import Car
 from objs.CarAI import CarAI
 from objs.kivyObjs import ellipse_from_circle, points_from_poly, newRectangle, distXY, calculateRectangle
 from windows.Simulation import Simulation
-from windows.Level import Level
+from windows.ImportExport import IELevel, IENetwork
 from ai.GameController import GameController
 
 class CanvasHandler(RelativeLayout):
@@ -364,14 +364,25 @@ class CanvasHandler(RelativeLayout):
 
     #Pickle export
     def exportFile(self):
-        Level.exportLevel(self.simulation)
+        IELevel.exportLevel(self.simulation)
         self.focus = True
 
     #Pickle import
     def importFile(self):
-        Level.importLevel(self.simulation)
+        IELevel.importLevel(self.simulation)
         self.focus = True
-        
+
+    #Export neural network
+    def exportNetwork(self):
+        structure = None
+        model = self.simulation.gameController.getNetwork()
+        IENetwork.exportNetwork(model, structure)
+
+    #Import neural network
+    def importNetwork(self):
+        model = IENetwork.importNetwork()
+        return model
+
     #Change tool
     def changeTool(self, tool):
         self.editorTool = tool

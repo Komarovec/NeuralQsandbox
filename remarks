@@ -56,4 +56,5 @@
 24.9.2019 - 5h - Dokončení implementace DQN --> možné vylepšení (lepší okamžitá reward funkce)
 25.9.2019 - 4h - Zlepšení grafů, Oprava follow kamery, optimalizace GameControlleru a učicí smyčky, oprava dalších mini-bugů (Kivy update unschedule --> cancel, ...)
 26.9.2019 - 4h - Studium algoritmu NEAT, Zrychlení učení DQN
-29.9.2019 - 2h - Návrh grafiky
+29.9.2019 - 2h - Návrh grafiky, Testování nastavení
+30.9.2019 - 4h - nastavení menu, JSON nastavovací panely, ukladani nn modelu, zatim pouze struktura take JSON

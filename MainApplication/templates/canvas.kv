@@ -522,6 +522,19 @@
                         on_press:
                             root.game.importFile()
 
+                    ActionSeparator:
+
+                    ActionButton:
+                        text: 'Save Model'
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.exportNetwork()
+                    ActionButton:
+                        text: 'Load Model'
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.importNetwork()                   
+
                 #View
                 ActionGroup:
                     mode: 'spinner'

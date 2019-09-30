@@ -45,14 +45,26 @@ class GameController():
         self.bestFit = 0
 
         #Cars
-        self.testedCar = None
-        self.cars = []
+        self.dqnCar = None
+        self.testCar = None
 
         #Training speed / Show speed
         self.trainingSpeed = 8
         self.showSpeed = 2
 
         self.deadCarsKy = []
+
+    #Get neural model
+    def getNetwork(self):
+        #Return dqnCar if learning via reinforcement learning
+        if(self.state == self.LEARNING_STATE and self.learningType == self.REINFORCEMENT_LEARN):
+            if(self.dqnCar != None):
+                return self.dqnCar.brain.network
+        
+        #Return testCar if testing
+        elif(self.state == self.TESTING_STATE):
+            if(self.testCar != None):
+                return self.testCar.brain.network
 
     #Start training Episode
     def startTrain(self, *args):
@@ -70,7 +82,7 @@ class GameController():
     #Start testing learned model
     def startTest(self):
         #Prepare Controller
-        self.cars = []
+        self.testCar = None
         self.state = self.TESTING_STATE
 
         #Prepare enviroment simulation
@@ -79,12 +91,12 @@ class GameController():
 
         car = self.simulation.addCarAI()
         
-        if(self.testedCar != None):
-            car.brain = self.testedCar.brain
+        if(self.dqnCar != None):
+            car.brain = self.dqnCar.brain
         else:
             car.generateRandomBrain()
 
-        self.cars.append(car)
+        self.testCar = car
 
         #Set camera
         self.simulation.canvasWindow.selectedCar = car
@@ -102,7 +114,7 @@ class GameController():
         self.state = self.IDLE_STATE
         self.simulation.simulationSpeed = self.showSpeed
         self.simulation.removeCars()
-        return self.testedCar
+        return self.dqnCar
 
     #Stop anything 
     def forceStop(self):
@@ -117,18 +129,18 @@ class GameController():
         self.startSteps = self.simulation.space.steps
 
         #If respawn save brain then load it again
-        if(self.testedCar != None):
-            model = self.testedCar.brain
-            self.testedCar = self.simulation.addCarAI()  
-            self.testedCar.brain = model
+        if(self.dqnCar != None):
+            model = self.dqnCar.brain
+            self.dqnCar = self.simulation.addCarAI()  
+            self.dqnCar.brain = model
 
         #First spawn --> create brain
         else:
-            self.testedCar = self.simulation.addCarAI()   
-            self.testedCar.generateRandomBrain()
+            self.dqnCar = self.simulation.addCarAI()   
+            self.dqnCar.generateRandomBrain()
 
         #Set camera
-        self.simulation.canvasWindow.selectedCar = self.testedCar 
+        self.simulation.canvasWindow.selectedCar = self.dqnCar 
 
         self.initMovementCheck()
 
@@ -147,11 +159,11 @@ class GameController():
 
     #Check if testedCar has moved
     def checkMovement(self):
-        pos = self.testedCar.body.position
+        pos = self.dqnCar.body.position
         if(self.lastPos != None):
             #If did not pass 
             if(not(self.minMoveDist < distXY(self.lastPos,pos))):
-                self.testedCar.kill(self.simulation.canvasWindow)
+                self.dqnCar.kill(self.simulation.canvasWindow)
                 #print("Did NOT pass Dist: {}".format(distXY(self.lastPos,pos)))
             
             #If passed
@@ -162,7 +174,7 @@ class GameController():
 
     #Set default values for movement check
     def initMovementCheck(self):
-        self.lastPos = self.testedCar.body.position
+        self.lastPos = self.dqnCar.body.position
         self.initialSteps = self.simulation.space.steps
 
     #End of the Run (Car died or timer is up)
@@ -170,10 +182,10 @@ class GameController():
         self.game += 1
         
         #Update all GUI
-        self.simulation.canvasWindow.window.stateInfoBar.addPlotPointRight(self.game, self.testedCar.reward)
+        self.simulation.canvasWindow.window.stateInfoBar.addPlotPointRight(self.game, self.dqnCar.reward)
 
         #Reset reward counting
-        self.testedCar.reward = 0
+        self.dqnCar.reward = 0
 
         #Prepare for next game
         self.respawnCar()
@@ -181,15 +193,15 @@ class GameController():
     def learnModel(self):
         if(self.learningType == self.REINFORCEMENT_LEARN):
             #Take observation
-            obs1 = self.testedCar.calculateRaycasts(self.simulation.space)
-            action1 = self.DQN.act(self.testedCar.brain.network, obs1, action_space=self.testedCar.action_space)
+            obs1 = self.dqnCar.calculateRaycasts(self.simulation.space)
+            action1 = self.DQN.act(self.dqnCar.brain.network, obs1, action_space=self.dqnCar.action_space)
 
-            self.testedCar.think(None, action1)
+            self.dqnCar.think(None, action1)
 
             #First time-step --> Save obs & action and use them in next time-step
             if(self.DQN.tempSAPair == None):
                 self.DQN.tempSAPair = (obs1, action1)
-                self.pos0 = self.testedCar.body.position
+                self.pos0 = self.dqnCar.body.position
             
             #Every other ts
             else:
@@ -202,7 +214,7 @@ class GameController():
 
                 #Reward if fast
                 pos0 = self.pos0
-                pos1 = self.testedCar.body.position
+                pos1 = self.dqnCar.body.position
                 self.pos0 = pos1
                 vel = distXY(pos0, pos1)
                 if(vel >= 7.5):
@@ -214,17 +226,17 @@ class GameController():
                         reward = 0
 
                 #Punish if died
-                if(self.testedCar.isDead):
+                if(self.dqnCar.isDead):
                     reward = -10
                 
                 #Add reward to overall reward
-                self.testedCar.reward += reward
+                self.dqnCar.reward += reward
 
                 #Remember state-action pairs
                 self.DQN.remember(obs, action, obs1, reward)
 
                 #Experience replay
-                self.DQN.fast_experience_replay(self.testedCar.brain.network)
+                self.DQN.fast_experience_replay(self.dqnCar.brain.network)
 
                 #Replace old observation with new observation
                 self.DQN.tempSAPair = (obs1, action1)
@@ -239,10 +251,10 @@ class GameController():
 
             #Test if time ran out
             if((self.simulation.space.steps-self.startSteps) > self.stepLimit):
-                self.testedCar.kill(self.simulation.canvasWindow)
+                self.dqnCar.kill(self.simulation.canvasWindow)
 
             #End of Run (Car died or timer is up)
-            if(self.testedCar.isDead):
+            if(self.dqnCar.isDead):
                 self.learnModel()
                 self.endOfRun()
 
@@ -253,7 +265,7 @@ class GameController():
 
         #Testing model
         elif(self.state == self.TESTING_STATE):
-            if(self.cars != []):
-                car = self.cars[0]
+            if(self.testCar != None):
+                car = self.testCar
                 observation = np.array(car.calculateRaycasts(self.simulation.space))
                 car.think(observation)

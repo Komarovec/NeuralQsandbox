@@ -12,6 +12,8 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 
+from keras.models import model_from_json
+
 import pickle
 import sys, os
 
@@ -24,7 +26,31 @@ class levelPopup():
             content.add_widget(Button(text="Close", on_press=popup.dismiss, size_hint=(1, 0.2)))
             popup.open()
 
-class Level():
+class IENetwork():
+    @classmethod
+    def exportNetwork(self, model, structure):
+        #Create filedialog
+        root = tk.Tk()
+        root.withdraw()
+
+        pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\\networks"
+        if not os.path.exists(pathname):
+            os.makedirs(pathname)
+
+        file_path = filedialog.asksaveasfilename(initialdir = pathname,title = "Save neural network")
+
+        if(file_path != ""):
+            model_json = model.to_json()
+            with open(file_path, "w") as json_file:
+                json_file.write(model_json)
+
+            levelPopup("Neural network exported!")
+
+    @classmethod
+    def importNetwork(self):
+        pass
+
+class IELevel():
     @classmethod
     def exportLevel(self, simulation):     
         if(simulation.canvasWindow.state == "game"):
@@ -33,7 +59,7 @@ class Level():
 
         simulation.canvasWindow.stopDrawing()
 
-        pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\levels"   
+        pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\\levels"
         if not os.path.exists(pathname):
             os.makedirs(pathname)
 
@@ -81,7 +107,7 @@ class Level():
 
         simulation.canvasWindow.stopDrawing()
 
-        pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\levels"   
+        pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\\levels"   
         if not os.path.exists(pathname):
             os.makedirs(pathname) 
 

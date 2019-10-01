@@ -12,7 +12,7 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 
-from keras.models import model_from_json
+from keras.models import load_model
 
 import pickle
 import sys, os
@@ -27,8 +27,15 @@ class levelPopup():
             popup.open()
 
 class IENetwork():
+    NETWORK_TYPES = [("Hierarchical Data Format (*.h5)","*.h5")]
+
     @classmethod
-    def exportNetwork(self, model, structure):
+    def exportNetwork(self, model):
+        #Check if model exists
+        if(model == None):
+            levelPopup("No model loaded!")
+            return
+
         #Create filedialog
         root = tk.Tk()
         root.withdraw()
@@ -37,26 +44,53 @@ class IENetwork():
         if not os.path.exists(pathname):
             os.makedirs(pathname)
 
-        file_path = filedialog.asksaveasfilename(initialdir = pathname,title = "Save neural network")
+        file_path = filedialog.asksaveasfilename(initialdir = pathname, title = "Save neural network", defaultextension=".h5", filetypes=self.NETWORK_TYPES)
 
         if(file_path != ""):
-            model_json = model.to_json()
-            with open(file_path, "w") as json_file:
-                json_file.write(model_json)
+            #Try exporting model
+            try:
+                model.save(file_path)
 
-            levelPopup("Neural network exported!")
+            #If exception occured print something
+            except:
+                levelPopup("Something went wrong!")
+
+            #If everything went ok
+            else:
+                levelPopup("Neural network exported!")
 
     @classmethod
     def importNetwork(self):
-        pass
+        #Create filedialog
+        root = tk.Tk()
+        root.withdraw()
+
+        pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\\networks"
+        if not os.path.exists(pathname):
+            os.makedirs(pathname)
+
+        file_path = filedialog.askopenfilename(initialdir = pathname, title = "Load neural network", defaultextension=".h5", filetypes=self.NETWORK_TYPES)
+
+        if(file_path != ""):
+            #Try importing model
+            try:
+                model = load_model(file_path)
+
+            #If exception occured print something
+            except:
+                levelPopup("Something went wrong!")
+
+            #If everything went ok
+            else:
+                levelPopup("Neural network imported!")
+                return model
+
 
 class IELevel():
+    LEVEL_TYPES = [("Pickled level (*.lvl)","*.lvl")]
+
     @classmethod
     def exportLevel(self, simulation):     
-        if(simulation.canvasWindow.state == "game"):
-            levelPopup("Exporting while in-game is not supported!\nPlease switch to Editor")
-            return
-
         simulation.canvasWindow.stopDrawing()
 
         pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\\levels"
@@ -67,7 +101,7 @@ class IELevel():
         root = tk.Tk()
         root.withdraw()
 
-        file_path = filedialog.asksaveasfilename(initialdir = pathname,title = "Save level")
+        file_path = filedialog.asksaveasfilename(initialdir = pathname,title = "Save level", defaultextension=".lvl", filetypes=self.LEVEL_TYPES)
 
         if(file_path != ""):
             cars = []
@@ -89,22 +123,26 @@ class IELevel():
             for car in cars:
                 simulation.space.add(car.body, car)
 
-            with open(file_path, "wb") as f:
-                pickle.dump(space_copy, f, pickle.HIGHEST_PROTOCOL)
+            #Try exporting level
+            try:
+                with open(file_path, "wb") as f:
+                    pickle.dump(space_copy, f, pickle.HIGHEST_PROTOCOL)
 
-            for shape in space.shapes:
-                paintObject(shape, simulation.canvasWindow)
+            #If exception occured print something
+            except:
+                levelPopup("Something went wrong!")
+            
+            #If everything went ok
+            else:
+                for shape in space.shapes:
+                    paintObject(shape, simulation.canvasWindow)
+                levelPopup("Level exported!")
 
-            levelPopup("Level exported!")
 
         simulation.canvasWindow.startDrawing()
 
     @classmethod
     def importLevel(self, simulation):
-        if(simulation.canvasWindow.state == "game"):
-            levelPopup("Importing while in-game is not supported!\nPlease switch to Editor")
-            return
-
         simulation.canvasWindow.stopDrawing()
 
         pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\\levels"   
@@ -114,23 +152,31 @@ class IELevel():
         #Create filedialog
         root = tk.Tk()
         root.withdraw()
-        file_path = filedialog.askopenfilename(initialdir = pathname,title = "Load level")
+        file_path = filedialog.askopenfilename(initialdir = pathname,title = "Load level", defaultextension=".lvl", filetypes=self.LEVEL_TYPES)
 
         if(file_path != ""):
             space = simulation.space
 
-            simulation.deleteSpace()
+            #Try importing level
+            try:
+                with open(file_path, "rb") as f:
+                    loaded_space = pickle.load(f)
 
-            with open(file_path, "rb") as f:
-                loaded_space = pickle.load(f)
+            #If exception occured print something
+            except:
+                levelPopup("Something went wrong!")
 
-            simulation.loadSpace(loaded_space)
+            #If everythin went ok
+            else:
+                simulation.deleteSpace()
+                simulation.loadSpace(loaded_space)
 
-            for shape in simulation.space.shapes:
-                paintObject(shape, simulation.canvasWindow)
+                for shape in simulation.space.shapes:
+                    paintObject(shape, simulation.canvasWindow)
+
+                levelPopup("Level imported!")
+            
 
             simulation.canvasWindow.startDrawing()
-
-            levelPopup("Level imported!")
         
         

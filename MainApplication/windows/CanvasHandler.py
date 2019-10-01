@@ -374,14 +374,15 @@ class CanvasHandler(RelativeLayout):
 
     #Export neural network
     def exportNetwork(self):
-        structure = None
         model = self.simulation.gameController.getNetwork()
-        IENetwork.exportNetwork(model, structure)
+        IENetwork.exportNetwork(model)
+        self.focus = True
 
     #Import neural network
     def importNetwork(self):
         model = IENetwork.importNetwork()
-        return model
+        self.simulation.gameController.setNetwork(model)
+        self.focus = True
 
     #Change tool
     def changeTool(self, tool):
@@ -465,16 +466,23 @@ class CanvasHandler(RelativeLayout):
         if(self.state == self.EDITOR_STATE):
             return
         
+        #Change to learning
         if(state == self.simulation.gameController.LEARNING_STATE):
             self.simulation.gameController.startTrain()
             self.window.toggleStartMenu(False)
+
+        #Change to testing
         elif(state == self.simulation.gameController.TESTING_STATE):
             self.simulation.gameController.startTest()
+
+        #Play as a player
         elif(state == self.simulation.gameController.PLAYING_STATE):
             self.simulation.gameController.startFreePlay()
+
+        #Idle state
         elif(state == "exit"):
             if(self.simulation.gameController.state != self.simulation.gameController.IDLE_STATE):
-                self.simulation.gameController.forceStop()
+                self.simulation.gameController.startIdle()
                 self.window.toggleStartMenu(True)
                 self.updateStatebar()
             return

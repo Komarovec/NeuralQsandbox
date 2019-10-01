@@ -48,6 +48,9 @@ class GameController():
         self.dqnCar = None
         self.testCar = None
 
+        #Network to Export
+        self.exportModel = None
+
         #Training speed / Show speed
         self.trainingSpeed = 8
         self.showSpeed = 2
@@ -56,17 +59,37 @@ class GameController():
 
     #Get neural model
     def getNetwork(self):
+        model = self.getNetworkFromCar()
+        if(model != None):
+            return model
+        else:
+            return self.exportModel
+
+    #Set neural network
+    def setNetwork(self, model):
+        self.dqnCar = self.simulation.addCarAI()   
+        self.dqnCar.model = model
+        self.exportModel = model
+        self.DQN = DQN()
+
+        self.simulation.canvasWindow.changeGameState("exit")
+
+    #Get neural model from states
+    def getNetworkFromCar(self):
         #Return dqnCar if learning via reinforcement learning
         if(self.state == self.LEARNING_STATE and self.learningType == self.REINFORCEMENT_LEARN):
             if(self.dqnCar != None):
-                return self.dqnCar.brain.network
+                return self.dqnCar.model
         
         #Return testCar if testing
         elif(self.state == self.TESTING_STATE):
             if(self.testCar != None):
-                return self.testCar.brain.network
+                return self.testCar.model
 
-    #Start training Episode
+        return None
+
+
+    #Changes state to train
     def startTrain(self, *args):
         #Prepare game vars
         self.state = self.LEARNING_STATE
@@ -79,7 +102,7 @@ class GameController():
         #Spawn car
         self.respawnCar()
 
-    #Start testing learned model
+    #Changes state to testing
     def startTest(self):
         #Prepare Controller
         self.testCar = None
@@ -92,8 +115,10 @@ class GameController():
         car = self.simulation.addCarAI()
         
         if(self.dqnCar != None):
-            car.brain = self.dqnCar.brain
+            #Copy brain
+            car.model = self.dqnCar.model
         else:
+            #Generate random
             car.generateRandomBrain()
 
         self.testCar = car
@@ -101,7 +126,7 @@ class GameController():
         #Set camera
         self.simulation.canvasWindow.selectedCar = car
 
-    #Free play
+    #Changes state to free play
     def startFreePlay(self):
         self.state = self.PLAYING_STATE
         car = self.simulation.addPlayer()
@@ -109,15 +134,11 @@ class GameController():
         #Set camera
         self.simulation.canvasWindow.selectedCar = car
 
-    #End training EpisodeY
-    def endTrain(self):
-        self.state = self.IDLE_STATE
-        self.simulation.simulationSpeed = self.showSpeed
-        self.simulation.removeCars()
-        return self.dqnCar
+    #Changes state to IDLE
+    def startIdle(self):
+        #Save model first
+        self.exportModel = self.getNetworkFromCar()
 
-    #Stop anything 
-    def forceStop(self):
         self.state = self.IDLE_STATE
         self.simulation.simulationSpeed = self.showSpeed
         self.simulation.removeCars()
@@ -130,9 +151,9 @@ class GameController():
 
         #If respawn save brain then load it again
         if(self.dqnCar != None):
-            model = self.dqnCar.brain
+            model = self.dqnCar.model
             self.dqnCar = self.simulation.addCarAI()  
-            self.dqnCar.brain = model
+            self.dqnCar.model = model
 
         #First spawn --> create brain
         else:
@@ -194,7 +215,7 @@ class GameController():
         if(self.learningType == self.REINFORCEMENT_LEARN):
             #Take observation
             obs1 = self.dqnCar.calculateRaycasts(self.simulation.space)
-            action1 = self.DQN.act(self.dqnCar.brain.network, obs1, action_space=self.dqnCar.action_space)
+            action1 = self.DQN.act(self.dqnCar.model, obs1, action_space=self.dqnCar.action_space)
 
             self.dqnCar.think(None, action1)
 
@@ -236,7 +257,7 @@ class GameController():
                 self.DQN.remember(obs, action, obs1, reward)
 
                 #Experience replay
-                self.DQN.fast_experience_replay(self.dqnCar.brain.network)
+                self.DQN.fast_experience_replay(self.dqnCar.model)
 
                 #Replace old observation with new observation
                 self.DQN.tempSAPair = (obs1, action1)

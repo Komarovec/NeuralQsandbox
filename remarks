@@ -58,3 +58,4 @@
 26.9.2019 - 4h - Studium algoritmu NEAT, Zrychlení učení DQN
 29.9.2019 - 2h - Návrh grafiky, Testování nastavení
 30.9.2019 - 4h - nastavení menu, JSON nastavovací panely, ukladani nn modelu, zatim pouze struktura take JSON
+1.10.2019 - 6h - Export/Import NeuralModelu, optimalizace NeuralModel --> nefunkci nechcese ucit DQN memory?, Overeni spravneho cteni a nacitani vseho.

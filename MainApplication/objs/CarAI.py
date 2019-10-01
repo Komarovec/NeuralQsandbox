@@ -3,20 +3,28 @@ import pymunk
 import pymunk.autogeometry
 from pymunk.vec2d import Vec2d
 from kivy.graphics import Color, Quad, Line
-
 import math
 import numpy as np
+from statistics import median, mean
+from collections import Counter
+import random
+
+#AI Framework
+from keras.models import Sequential
+import keras
 
 #Custom functions and classes
 from objs.Car import Car
 from objs.kivyObjs import points_from_poly, centerPoint, getVector, normalizeVector, distXY
-from ai.Models import NeuralModel
 
 class CarAI(Car):
     CARAI = "carai"
 
-    def __init__(self, mass=10, size=(100,50), pos=(100,100), friction=1, ground_friction=0.9, angular_friction=0.9, forward_speed = 5000, backward_speed = 5000, angular_speed = 500, elasticity=0.4, rgba=(0.8,0,0,1), texture=None):
-        super(CarAI, self).__init__(mass, size, pos, friction, ground_friction, angular_friction, forward_speed, backward_speed, angular_speed, elasticity, rgba, texture)
+    def __init__(self, mass=10, size=(100,50), pos=(100,100), friction=1, ground_friction=0.9, angular_friction=0.9, forward_speed = 5000, 
+                backward_speed = 5000, angular_speed = 500, elasticity=0.4, rgba=(0.8,0,0,1), texture=None, model=None, learningRate=0.001):
+        super(CarAI, self).__init__(mass, size, pos, friction, ground_friction, angular_friction, forward_speed, 
+                                    backward_speed, angular_speed, elasticity, rgba, texture)
+        
         self.objectType = self.CARAI
         self.raycastLenght = 2000
         self.raycastAngle = np.radians(45)
@@ -29,9 +37,15 @@ class CarAI(Car):
         self.raycastsKivy = []
 
         #AI
-        self.brain = None
+        self.learningRate = learningRate
         self.isDead = False
         self.reward = 0
+
+        #Create sequential model
+        if(model == None):
+            self.model = self.createSequentialModel(self.raycastCount+1, self.action_space)
+        else:
+            self.model = model
 
     #Calculate distance for every raycast
     def calculateRaycasts(self, space):
@@ -131,7 +145,30 @@ class CarAI(Car):
 
     #Create new NN
     def generateRandomBrain(self):
-        self.brain = NeuralModel(input_size=self.raycastCount+1, output_size=self.action_space)
+        self.model = self.createSequentialModel(input_size=self.raycastCount+1, output_size=self.action_space)
+
+    #Creates sequential model
+    def createSequentialModel(self, input_size, output_size, structure=None):
+        #Default model
+        if(structure==None):
+            #Create model
+            model = keras.Sequential([
+                keras.layers.Dense(64, activation="relu", input_dim=input_size),
+                keras.layers.Dense(128, activation="relu"),
+                keras.layers.Dense(64, activation="relu"),
+                keras.layers.Dense(output_size, activation="linear")
+            ])
+        else:
+            pass
+            #Custom model editing
+
+        #Optimizer
+        adam = keras.optimizers.Adam(lr=self.learningRate)
+
+        #Compile model
+        model.compile(loss='mean_squared_error', optimizer=adam)
+
+        return model
 
     #Generate random decision
     def randomDecision(self):
@@ -147,7 +184,7 @@ class CarAI(Car):
         #If no action provided, predict here
         if(action == None):
             #Predict action based on rays
-            results = self.brain.predict(rc)
+            results = self.model.predict(rc)
             action = np.argmax(results[0])
 
         if(action == 0):

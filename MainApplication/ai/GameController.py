@@ -111,15 +111,13 @@ class GameController():
         #Prepare enviroment simulation
         self.simulation.simulationSpeed = self.showSpeed
         self.simulation.removeCars()
-
-        car = self.simulation.addCarAI()
         
         if(self.dqnCar != None):
             #Copy brain
-            car.model = self.dqnCar.model
+            car = self.simulation.addCarAI(self.dqnCar.model)
         else:
             #Generate random
-            car.generateRandomBrain()
+            car = self.simulation.addCarAI()
 
         self.testCar = car
 
@@ -151,14 +149,11 @@ class GameController():
 
         #If respawn save brain then load it again
         if(self.dqnCar != None):
-            model = self.dqnCar.model
-            self.dqnCar = self.simulation.addCarAI()  
-            self.dqnCar.model = model
+            self.dqnCar = self.simulation.addCarAI(self.dqnCar.model)
 
         #First spawn --> create brain
         else:
-            self.dqnCar = self.simulation.addCarAI()   
-            self.dqnCar.generateRandomBrain()
+            self.dqnCar = self.simulation.addCarAI()
 
         #Set camera
         self.simulation.canvasWindow.selectedCar = self.dqnCar 
@@ -244,11 +239,14 @@ class GameController():
                 #Punish if close to the wall
                 for ob in obs[0]:
                     if(ob < 0.1):
-                        reward = 0
+                        reward = -0.1
+                    elif(ob < 0.05):
+                        reward = -0.5
+                        break
 
                 #Punish if died
                 if(self.dqnCar.isDead):
-                    reward = -10
+                    reward = -1
                 
                 #Add reward to overall reward
                 self.dqnCar.reward += reward

@@ -44,6 +44,7 @@ class CarAI(Car):
         #Create sequential model
         if(model == None):
             self.model = self.createSequentialModel(self.raycastCount+1, self.action_space)
+            print("Creating new model")
         else:
             self.model = model
 

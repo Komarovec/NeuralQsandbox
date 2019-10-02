@@ -222,10 +222,10 @@ class Simulation():
             car.paint(self.canvasWindow)
 
     #Add one car as a AI model
-    def addCarAI(self):
+    def addCarAI(self, model=None):
         point = self.findSpawnpoint()
         if(point != None):
-            car = CarAI(10, (100,50), self.findSpawnpoint(), ground_friction=1, angular_friction=3)
+            car = CarAI(10, (100,50), self.findSpawnpoint(), ground_friction=1, angular_friction=3, model=model)
             self.space.add(car.body, car)
             self.repaintObjects()
             return car

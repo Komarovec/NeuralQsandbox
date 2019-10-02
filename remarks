@@ -12,7 +12,7 @@
 25.7.2019 - 9h - Start a Finish class, Kolizní masky, Level editor (pohyb Auta, Segmentu)
 26.7.2019 - 9h - Level editor, zvyraznění těles, pohyb segmentu (celých), úprava kódu, test textur, build do exe
 29.7.2019 - 6h - Rozdeleni hlavnich trid, zlepseni prehlednosti kodu, stavovy bar, serializace objektu (zacatek)
-30.7.2019 - 8h - Serializace pomocí pickle, a nakonec ukladani do XML
+30.7.2019 - 8h - Serializace pomocí pickle, a nakonec ukladani do XMLyY
 31.7.2019 - 9h - Kompletní přepsání statických herních objektů za účelem jednodušího kódu a větší modulárnosti
 1.8.2019 - 11h - Uživatelské rozhraní, přídávání objektu pomocí ObjectMenu, vyber barev pomoci popupu a ColorPickeru.
 2.8.2019 - 9h - přidavaní boxu, Pickle binární export a import levelu, grafické vytvarení boxu, oprava bugů
@@ -59,3 +59,4 @@
 29.9.2019 - 2h - Návrh grafiky, Testování nastavení
 30.9.2019 - 4h - nastavení menu, JSON nastavovací panely, ukladani nn modelu, zatim pouze struktura take JSON
 1.10.2019 - 6h - Export/Import NeuralModelu, optimalizace NeuralModel --> nefunkci nechcese ucit DQN memory?, Overeni spravneho cteni a nacitani vseho.
+2.10.2019 - 5h - Studium NEAT dokumentace

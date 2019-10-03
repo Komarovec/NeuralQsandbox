@@ -60,3 +60,4 @@
 30.9.2019 - 4h - nastavení menu, JSON nastavovací panely, ukladani nn modelu, zatim pouze struktura take JSON
 1.10.2019 - 6h - Export/Import NeuralModelu, optimalizace NeuralModel --> nefunkci nechcese ucit DQN memory?, Overeni spravneho cteni a nacitani vseho.
 2.10.2019 - 5h - Studium NEAT dokumentace
+3.10.2019 - 7h - Reimplamentace experience replaye (late ver), zacatky paralelizace /multiprocessing a asychroniho uceni

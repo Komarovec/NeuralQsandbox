@@ -19,6 +19,7 @@ class DQN():
 
         #Variable for storing state-action pairs
         self.memory = deque()
+        self.hm_steps = 0
 
         #Temp variables
         self.tempSAPair = None
@@ -26,6 +27,11 @@ class DQN():
     #Reset exploration rate
     def resetExplorationRate(self):
         self.exploration_rate = self.exploration_max
+
+    #Decreases exploration rate by decay
+    def decayExplorationRate(self):
+        self.exploration_rate *= self.exploration_decay
+        self.exploration_rate = max(self.exploration_min, self.exploration_rate)
 
     #New run, Prepare vars for new run
     def newRun(self):
@@ -67,8 +73,7 @@ class DQN():
             model.fit(obs, q_values, verbose=0)
         
         #Decrease exploration rate
-        self.exploration_rate *= self.exploration_decay
-        self.exploration_rate = max(self.exploration_min, self.exploration_rate)
+        self.decayExplorationRate()
 
     #Half Q-Learning
     def fast_experience_replay(self, model):
@@ -101,5 +106,38 @@ class DQN():
         model.fit(obsToLearn, actionsToLearn, verbose=0)
         
         #Decrease exploration rate
-        self.exploration_rate *= self.exploration_decay
-        self.exploration_rate = max(self.exploration_min, self.exploration_rate)
+        self.decayExplorationRate()
+
+    #Q-Learning after run
+    def late_experience_replay(self, model):
+        if(len(self.memory) < self.batch_size):
+            return
+
+        batch = []
+        for _ in range(self.hm_steps):
+            #Select random memories
+            batch.extend(random.sample(self.memory, self.batch_size))
+
+        self.hm_steps = 0
+
+        obsToLearn = []
+        actionsToLearn = []
+
+        for obs, action, obs1, reward in batch:
+            #Calculate New Update Q-Value
+            q_update = reward + self.discount * np.amax(model.predict(obs1)[0])
+
+            #Predict on current value
+            q_values = model.predict(obs)
+
+            #Update actual Q-Value
+            q_values[0][action] = q_update
+
+            #Fit on calculated Q-Values
+            obsToLearn.append(obs[0])
+            actionsToLearn.append(q_values[0])
+        
+        obsToLearn = np.array(obsToLearn)
+        actionsToLearn = np.array(actionsToLearn)
+
+        model.fit(obsToLearn, actionsToLearn, verbose=0)

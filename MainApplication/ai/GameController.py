@@ -199,6 +199,10 @@ class GameController():
         
         #Update all GUI
         self.simulation.canvasWindow.window.stateInfoBar.addPlotPointRight(self.game, self.dqnCar.reward)
+        self.simulation.canvasWindow.window.stateInfoBar.addPlotPointLeft(self.game, self.DQN.exploration_rate)
+
+        #Late experience replay
+        self.DQN.late_experience_replay(self.dqnCar.model)
 
         #Reset reward counting
         self.dqnCar.reward = 0
@@ -219,7 +223,7 @@ class GameController():
                 self.DQN.tempSAPair = (obs1, action1)
                 self.pos0 = self.dqnCar.body.position
             
-            #Every other ts
+            #Every other time-step
             else:
                 #Load prev state-actions
                 obs = self.DQN.tempSAPair[0]
@@ -238,11 +242,11 @@ class GameController():
                 
                 #Punish if close to the wall
                 for ob in obs[0]:
-                    if(ob < 0.1):
-                        reward = -0.1
-                    elif(ob < 0.05):
+                    if(ob < 0.05):
                         reward = -0.5
                         break
+                    elif(ob < 0.1):
+                        reward = -0.1
 
                 #Punish if died
                 if(self.dqnCar.isDead):
@@ -255,7 +259,8 @@ class GameController():
                 self.DQN.remember(obs, action, obs1, reward)
 
                 #Experience replay
-                self.DQN.fast_experience_replay(self.dqnCar.model)
+                self.DQN.hm_steps += 1 
+                self.DQN.decayExplorationRate()
 
                 #Replace old observation with new observation
                 self.DQN.tempSAPair = (obs1, action1)

@@ -202,7 +202,7 @@ class GameController():
         self.simulation.canvasWindow.window.stateInfoBar.addPlotPointLeft(self.game, self.DQN.exploration_rate)
 
         #Late experience replay
-        self.DQN.late_experience_replay(self.dqnCar.model)
+        #self.DQN.late_experience_replay(self.dqnCar.model)
 
         #Reset reward counting
         self.dqnCar.reward = 0
@@ -259,8 +259,11 @@ class GameController():
                 self.DQN.remember(obs, action, obs1, reward)
 
                 #Experience replay
-                self.DQN.hm_steps += 1 
-                self.DQN.decayExplorationRate()
+                self.DQN.fast_experience_replay(self.dqnCar.model)
+
+                #Late Experience replay
+                #self.DQN.hm_steps += 1 
+                #self.DQN.decayExplorationRate()
 
                 #Replace old observation with new observation
                 self.DQN.tempSAPair = (obs1, action1)

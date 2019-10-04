@@ -2,7 +2,11 @@ import keras
 import random
 import math
 import numpy as np
+import multiprocessing as mp
 from collections import deque
+
+#Sequence generator
+from ai.SeqGen import SeqGen
 
 class DQN():
     def __init__(self, discount=0.95, exploration_min=0.01, exploration_max=1, exploration_decay=0.995, batch_size=20):
@@ -140,4 +144,10 @@ class DQN():
         obsToLearn = np.array(obsToLearn)
         actionsToLearn = np.array(actionsToLearn)
 
-        model.fit(obsToLearn, actionsToLearn, verbose=0)
+        workers = mp.cpu_count()
+
+        batch_gen_size = round(len(obsToLearn)/workers)
+
+        print("batch size: {}".format(batch_gen_size))
+
+        model.fit_generator(generator=SeqGen(obsToLearn, actionsToLearn, batch_size=batch_gen_size), epochs=1, verbose=0, workers=workers)

@@ -17,6 +17,8 @@ import keras
 from objs.Car import Car
 from objs.kivyObjs import points_from_poly, centerPoint, getVector, normalizeVector, distXY
 
+from ai.models import SequentialModel
+
 class CarAI(Car):
     CARAI = "carai"
 
@@ -35,6 +37,7 @@ class CarAI(Car):
 
         #Kivy
         self.raycastsKivy = []
+        self.draw = True
 
         #AI
         self.learningRate = learningRate
@@ -43,7 +46,7 @@ class CarAI(Car):
 
         #Create sequential model
         if(model == None):
-            self.model = self.createSequentialModel(self.raycastCount+1, self.action_space)
+            self.model = SequentialModel(self.raycastCount+1, self.action_space, self.learningRate)
             print("Creating new model")
         else:
             self.model = model
@@ -146,30 +149,7 @@ class CarAI(Car):
 
     #Create new NN
     def generateRandomBrain(self):
-        self.model = self.createSequentialModel(input_size=self.raycastCount+1, output_size=self.action_space)
-
-    #Creates sequential model
-    def createSequentialModel(self, input_size, output_size, structure=None):
-        #Default model
-        if(structure==None):
-            #Create model
-            model = keras.Sequential([
-                keras.layers.Dense(64, activation="relu", input_dim=input_size),
-                keras.layers.Dense(128, activation="relu"),
-                keras.layers.Dense(64, activation="relu"),
-                keras.layers.Dense(output_size, activation="linear")
-            ])
-        else:
-            pass
-            #Custom model editing
-
-        #Optimizer
-        adam = keras.optimizers.Adam(lr=self.learningRate)
-
-        #Compile model
-        model.compile(loss='mean_squared_error', optimizer=adam)
-
-        return model
+        self.model = SequentialModel(self.raycastCount+1, self.action_space, self.learningRate)
 
     #Generate random decision
     def randomDecision(self):

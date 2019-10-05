@@ -13,39 +13,24 @@ class GameController():
     PLAYING_STATE = 3
 
     REINFORCEMENT_LEARN = "reinforcement"
-    EVOLUTION_LEARN = "evolution"
+    GENETIC_LEARN = "genetic"
+    NEAT_LEARN = "neat"
 
     def __init__(self, simulation):
         self.simulation = simulation
         self.bestPercentage = 0.2
         self.game = 0
 
-        #Movement check vars
-        self.minMoveDist = 200
-        self.lastPos = None
-        self.minStepsDelta = 100
-        self.initialSteps = 0
-
         #Training vars
         self.learningType = self.REINFORCEMENT_LEARN
         self.state = self.IDLE_STATE
         self.stepLimit = 5000
         self.startSteps = 0
-        self.game_data = []
-        self.game_data_packets = []
-        self.scores = []
 
         #Learning objects
         self.DQN = DQN()
 
-        #One-Gen statistical values
-        self.bestGenFit = 0
-
-        #Whole statistical values
-        self.bestFit = 0
-
         #Cars
-        self.dqnCar = None
         self.testCar = None
 
         #Network to Export
@@ -54,8 +39,6 @@ class GameController():
         #Training speed / Show speed
         self.trainingSpeed = 8
         self.showSpeed = 2
-
-        self.deadCarsKy = []
 
     #Get neural model
     def getNetwork(self):
@@ -67,10 +50,10 @@ class GameController():
 
     #Set neural network
     def setNetwork(self, model):
-        self.dqnCar = self.simulation.addCarAI()   
-        self.dqnCar.model = model
-        self.exportModel = model
         self.DQN = DQN()
+        self.DQN.dqnCar = self.simulation.addCarAI()   
+        self.DQN.dqnCar.model = model
+        self.exportModel = model
 
         self.simulation.canvasWindow.changeGameState("exit")
 
@@ -78,8 +61,8 @@ class GameController():
     def getNetworkFromCar(self):
         #Return dqnCar if learning via reinforcement learning
         if(self.state == self.LEARNING_STATE and self.learningType == self.REINFORCEMENT_LEARN):
-            if(self.dqnCar != None):
-                return self.dqnCar.model
+            if(self.DQN.dqnCar != None):
+                return self.DQN.dqnCar.model
         
         #Return testCar if testing
         elif(self.state == self.TESTING_STATE):
@@ -96,14 +79,13 @@ class GameController():
         self.simulation.simulationSpeed = self.trainingSpeed
         self.game = 0
 
-        #DQN Preparation
-        self.DQN.newRun()
-
-        #Spawn car
-        self.respawnCar()
+        self.DQN.respawnCar(self.simulation)
 
     #Changes state to testing
     def startTest(self):
+        #Load model first
+        model = self.exportModel
+
         #Prepare Controller
         self.testCar = None
         self.state = self.TESTING_STATE
@@ -112,9 +94,10 @@ class GameController():
         self.simulation.simulationSpeed = self.showSpeed
         self.simulation.removeCars()
         
-        if(self.dqnCar != None):
+        #Copy model or create new
+        if(model != None):
             #Copy brain
-            car = self.simulation.addCarAI(self.dqnCar.model)
+            car = self.simulation.addCarAI(model)
         else:
             #Generate random
             car = self.simulation.addCarAI()
@@ -141,25 +124,6 @@ class GameController():
         self.simulation.simulationSpeed = self.showSpeed
         self.simulation.removeCars()
 
-    #Respawn controller ONLY FOR LEARNING
-    def respawnCar(self):
-        #Reset level & steps
-        self.simulation.resetLevel()
-        self.startSteps = self.simulation.space.steps
-
-        #If respawn save brain then load it again
-        if(self.dqnCar != None):
-            self.dqnCar = self.simulation.addCarAI(self.dqnCar.model)
-
-        #First spawn --> create brain
-        else:
-            self.dqnCar = self.simulation.addCarAI()
-
-        #Set camera
-        self.simulation.canvasWindow.selectedCar = self.dqnCar 
-
-        self.initMovementCheck()
-
     #Handle car collisions
     def handleCollision(self, car, otherObject):
         #If collide object is sensor, dont call for collision
@@ -173,122 +137,53 @@ class GameController():
         elif(self.state == self.PLAYING_STATE and otherObject.objectType == StaticGameObject.FINISH):
             car.respawn(self.simulation)
 
-    #Check if testedCar has moved
-    def checkMovement(self):
-        pos = self.dqnCar.body.position
-        if(self.lastPos != None):
-            #If did not pass 
-            if(not(self.minMoveDist < distXY(self.lastPos,pos))):
-                self.dqnCar.kill(self.simulation.canvasWindow)
-                #print("Did NOT pass Dist: {}".format(distXY(self.lastPos,pos)))
-            
-            #If passed
-            else:
-                #print("Did pass Dist: {}".format(distXY(self.lastPos,pos)))
-                self.lastPos = pos
-                self.initialSteps = self.simulation.space.steps
-
-    #Set default values for movement check
-    def initMovementCheck(self):
-        self.lastPos = self.dqnCar.body.position
-        self.initialSteps = self.simulation.space.steps
-
     #End of the Run (Car died or timer is up)
     def endOfRun(self):
         self.game += 1
-        
-        #Update all GUI
-        self.simulation.canvasWindow.window.stateInfoBar.addPlotPointRight(self.game, self.dqnCar.reward)
-        self.simulation.canvasWindow.window.stateInfoBar.addPlotPointLeft(self.game, self.DQN.exploration_rate)
 
-        #Late experience replay
-        #self.DQN.late_experience_replay(self.dqnCar.model)
-
-        #Reset reward counting
-        self.dqnCar.reward = 0
-
-        #Prepare for next game
-        self.respawnCar()
-
-    def learnModel(self):
         if(self.learningType == self.REINFORCEMENT_LEARN):
-            #Take observation
-            obs1 = self.dqnCar.calculateRaycasts(self.simulation.space)
-            action1 = self.DQN.act(self.dqnCar.model, obs1, action_space=self.dqnCar.action_space)
+            #Update all GUI
+            self.simulation.canvasWindow.window.stateInfoBar.addPlotPointRight(self.game, self.DQN.dqnCar.reward)
+            self.simulation.canvasWindow.window.stateInfoBar.addPlotPointLeft(self.game, self.DQN.exploration_rate)
 
-            self.dqnCar.think(None, action1)
+            #Prepare for next game
+            self.DQN.respawnCar(self.simulation)
 
-            #First time-step --> Save obs & action and use them in next time-step
-            if(self.DQN.tempSAPair == None):
-                self.DQN.tempSAPair = (obs1, action1)
-                self.pos0 = self.dqnCar.body.position
-            
-            #Every other time-step
-            else:
-                #Load prev state-actions
-                obs = self.DQN.tempSAPair[0]
-                action = self.DQN.tempSAPair[1]
+        elif(self.learningType == self.GENETIC_LEARN):
+            pass
 
-                #Calculate immediate reward
-                reward = 0
+        elif(self.learningType == self.NEAT_LEARN):
+            pass
 
-                #Reward if fast
-                pos0 = self.pos0
-                pos1 = self.dqnCar.body.position
-                self.pos0 = pos1
-                vel = distXY(pos0, pos1)
-                if(vel >= 7.5):
-                    reward = 1
-                
-                #Punish if close to the wall
-                for ob in obs[0]:
-                    if(ob < 0.05):
-                        reward = -0.5
-                        break
-                    elif(ob < 0.1):
-                        reward = -0.1
+        #Reset timer
+        self.startSteps = self.simulation.space.steps
 
-                #Punish if died
-                if(self.dqnCar.isDead):
-                    reward = -1
-                
-                #Add reward to overall reward
-                self.dqnCar.reward += reward
-
-                #Remember state-action pairs
-                self.DQN.remember(obs, action, obs1, reward)
-
-                #Experience replay
-                self.DQN.fast_experience_replay(self.dqnCar.model)
-
-                #Late Experience replay
-                #self.DQN.hm_steps += 1 
-                #self.DQN.decayExplorationRate()
-
-                #Replace old observation with new observation
-                self.DQN.tempSAPair = (obs1, action1)
-
-    #Training loop
+    #Training loop --> run every game
     def loop(self):
         #Training model
         if(self.state == self.LEARNING_STATE):
-            #Movement check
-            if(self.simulation.space.steps >= self.initialSteps+self.minStepsDelta):
-                self.checkMovement()
-
-            #Test if time ran out
+            #If time ran out end the round without punish
             if((self.simulation.space.steps-self.startSteps) > self.stepLimit):
-                self.dqnCar.kill(self.simulation.canvasWindow)
-
-            #End of Run (Car died or timer is up)
-            if(self.dqnCar.isDead):
-                self.learnModel()
                 self.endOfRun()
 
-            #Current test continues --> Did NOT died
-            else:
-                #Perform action from observation and learning
-                self.learnModel()
+            #DQN Learning
+            elif(self.learningType == self.REINFORCEMENT_LEARN):
+                #If car died, punish it and then end the round
+                if(self.DQN.dqnCar.isDead):
+                    self.DQN.learn(self.simulation)
+                    self.endOfRun()
+
+                #Current test continues --> Did NOT died
+                else:
+                    self.DQN.learn(self.simulation)
+            
+            #SGA Learning
+            elif(self.learningType == self.GENETIC_LEARN):
+                pass
+
+            #NEAT Learning
+            elif(self.learningType == self.NEAT_LEARN):
+                pass
 
         #Testing model
         elif(self.state == self.TESTING_STATE):

@@ -7,6 +7,7 @@ from collections import deque
 
 #Sequence generator
 from ai.SeqGen import SeqGen
+from objs.kivyObjs import distXY
 
 class DQN():
     def __init__(self, discount=0.95, exploration_min=0.01, exploration_max=1, exploration_decay=0.995, batch_size=20):
@@ -18,6 +19,7 @@ class DQN():
         self.batch_size = batch_size
 
         #Prepare variables
+        self.tempSAPair = None
         self.exploration_rate = None #Create it just you know it exists :)
         self.resetExplorationRate()
 
@@ -25,8 +27,8 @@ class DQN():
         self.memory = deque()
         self.hm_steps = 0
 
-        #Temp variables
-        self.tempSAPair = None
+        #Learning object
+        self.dqnCar = None
 
     #Reset exploration rate
     def resetExplorationRate(self):
@@ -37,9 +39,79 @@ class DQN():
         self.exploration_rate *= self.exploration_decay
         self.exploration_rate = max(self.exploration_min, self.exploration_rate)
 
-    #New run, Prepare vars for new run
-    def newRun(self):
-        self.tempSAPair = None
+    #Respawn object
+    def respawnCar(self, simulation):
+        #Reset level & steps
+        simulation.resetLevel()
+        self.startSteps = simulation.space.steps
+
+        #If respawn save brain then load it again
+        if(self.dqnCar != None):
+            self.dqnCar = simulation.addCarAI(self.dqnCar.model)
+
+        #First spawn --> create brain
+        else:
+            self.dqnCar = simulation.addCarAI()
+
+        #Set camera
+        simulation.canvasWindow.selectedCar = self.dqnCar
+
+        #Reset reward when new spawn
+        self.dqnCar.reward = 0
+
+    #Do DQN learning
+    def learn(self, simulation):
+        #Take observation
+        obs1 = self.dqnCar.calculateRaycasts(simulation.space)
+        action1 = self.act(self.dqnCar.model, obs1, action_space=self.dqnCar.action_space)
+
+        self.dqnCar.think(None, action1)
+
+        #First time-step --> Save obs & action and use them in next time-step
+        if(self.tempSAPair == None):
+            self.tempSAPair = (obs1, action1)
+            self.pos0 = self.dqnCar.body.position
+        
+        #Every other time-step
+        else:
+            #Load prev state-actions
+            obs = self.tempSAPair[0]
+            action = self.tempSAPair[1]
+
+            #Calculate immediate reward
+            reward = 0
+
+            #Reward if fast
+            pos0 = self.pos0
+            pos1 = self.dqnCar.body.position
+            self.pos0 = pos1
+            vel = distXY(pos0, pos1)
+            if(vel >= 7.5):
+                reward = 1
+            
+            #Punish if close to the wall
+            for ob in obs[0]:
+                if(ob < 0.05):
+                    reward = -0.5
+                    break
+                elif(ob < 0.1):
+                    reward = -0.1
+
+            #Punish if died
+            if(self.dqnCar.isDead):
+                reward = -1
+            
+            #Add reward to overall reward
+            self.dqnCar.reward += reward
+
+            #Remember state-action pairs
+            self.remember(obs, action, obs1, reward)
+
+            #Experience replay
+            self.fast_experience_replay(self.dqnCar.model)
+
+            #Replace old observation with new observation
+            self.tempSAPair = (obs1, action1) 
 
     #Choose action based in observation or explore
     def act(self, model, obs, action_space=2):
@@ -55,30 +127,6 @@ class DQN():
     def remember(self, obs, action, obs1, reward):
         self.memory.append((obs, action, obs1, reward))
 
-    #Full Q-Learning -Extremely slow
-    def experience_replay(self, model):
-        if(len(self.memory) < self.batch_size):
-            return
-
-        #Select random memories
-        batch = random.sample(self.memory, self.batch_size)
-
-        for obs, action, obs1, reward in batch:
-            #Calculate New Update Q-Value
-            q_update = reward + self.discount * np.amax(model.predict(obs1)[0])
-
-            #Predict on current value
-            q_values = model.predict(obs)
-
-            #Update actual Q-Value
-            q_values[0][action] = q_update
-
-            #Fit on calculated Q-Values
-            model.fit(obs, q_values, verbose=0)
-        
-        #Decrease exploration rate
-        self.decayExplorationRate()
-
     #Half Q-Learning
     def fast_experience_replay(self, model):
         if(len(self.memory) < self.batch_size):
@@ -86,12 +134,11 @@ class DQN():
 
         #Select random memories
         batch = random.sample(self.memory, self.batch_size)
-
         obsToLearn = []
         actionsToLearn = []
 
         for obs, action, obs1, reward in batch:
-            #Calculate New Update Q-Value
+            #Q Function : Immediate reward + Future reward
             q_update = reward + self.discount * np.amax(model.predict(obs1)[0])
 
             #Predict on current value
@@ -100,54 +147,15 @@ class DQN():
             #Update actual Q-Value
             q_values[0][action] = q_update
 
-            #Fit on calculated Q-Values
+            #Save Q-Values for fitting
             obsToLearn.append(obs[0])
             actionsToLearn.append(q_values[0])
         
         obsToLearn = np.array(obsToLearn)
         actionsToLearn = np.array(actionsToLearn)
 
+        #Fit on calculated Q-Values
         model.fit(obsToLearn, actionsToLearn, verbose=0)
         
         #Decrease exploration rate
         self.decayExplorationRate()
-
-    #Q-Learning after run
-    def late_experience_replay(self, model):
-        if(len(self.memory) < self.batch_size):
-            return
-
-        batch = []
-        for _ in range(self.hm_steps):
-            #Select random memories
-            batch.extend(random.sample(self.memory, self.batch_size))
-
-        self.hm_steps = 0
-
-        obsToLearn = []
-        actionsToLearn = []
-
-        for obs, action, obs1, reward in batch:
-            #Calculate New Update Q-Value
-            q_update = reward + self.discount * np.amax(model.predict(obs1)[0])
-
-            #Predict on current value
-            q_values = model.predict(obs)
-
-            #Update actual Q-Value
-            q_values[0][action] = q_update
-
-            #Fit on calculated Q-Values
-            obsToLearn.append(obs[0])
-            actionsToLearn.append(q_values[0])
-        
-        obsToLearn = np.array(obsToLearn)
-        actionsToLearn = np.array(actionsToLearn)
-
-        workers = mp.cpu_count()
-
-        batch_gen_size = round(len(obsToLearn)/workers)
-
-        print("batch size: {}".format(batch_gen_size))
-
-        model.fit_generator(generator=SeqGen(obsToLearn, actionsToLearn, batch_size=batch_gen_size), epochs=1, verbose=0, workers=workers)

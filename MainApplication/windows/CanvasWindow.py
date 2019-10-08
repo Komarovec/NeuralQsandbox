@@ -16,7 +16,7 @@ from kivy.uix.behaviors import ToggleButtonBehavior
 from kivy.graphics import Color
 from kivy.garden.graph import Graph, MeshLinePlot
 
-#Testing
+#Animation
 from kivy.animation import Animation
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
@@ -131,13 +131,13 @@ class StateInfoBar(GameWidget):
 
         #Rescaling of y axis
         if(y > (graph.ymax - (graph.ymax/10))):
-            graph.ymax = y + (y/10) #Move max more up by fraction of y --> better look
+            graph.ymax = int(math.ceil(y + (y/10))) #Move max more up by fraction of y --> better look
 
             if(y > abs(graph.ymin)):
                 graph.y_ticks_major = math.floor(y/2)
 
         if(y < (graph.ymin - (graph.ymin/10))):
-            graph.ymin = y + (y/10) #Move max more up by fraction of y --> better look
+            graph.ymin = int(math.ceil(y + (y/10))) #Move max more up by fraction of y --> better look
 
             if(abs(y) > graph.ymax):
                 graph.y_ticks_major = abs(math.floor(y/2))
@@ -170,7 +170,6 @@ class StateInfoBar(GameWidget):
     #Changes Game value
     def setGameVal(self, game):
         self.ids["game"].text = "Game: "+str(game)
-
 
 #Menu for choosing mode --> Play, Train, Test
 class StartMenu(GameWidget):

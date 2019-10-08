@@ -1,6 +1,6 @@
 from objs.kivyObjs import distXY
-from ai.bank import calculateFitness, printPackets, unpack
 from ai.DQN import DQN
+from ai.SGA import SGA
 from objs.GameObjects import StaticGameObject
 
 import numpy as np
@@ -22,13 +22,14 @@ class GameController():
         self.game = 0
 
         #Training vars
-        self.learningType = self.REINFORCEMENT_LEARN
+        self.learningType = self.GENETIC_LEARN
         self.state = self.IDLE_STATE
-        self.stepLimit = 5000
+        self.stepLimit = 500
         self.startSteps = 0
 
         #Learning objects
         self.DQN = DQN()
+        self.SGA = SGA()
 
         #Cars
         self.testCar = None
@@ -79,7 +80,19 @@ class GameController():
         self.simulation.simulationSpeed = self.trainingSpeed
         self.game = 0
 
-        self.DQN.respawnCar(self.simulation)
+        #Prepare DQN
+        if(self.learningType == self.REINFORCEMENT_LEARN):
+            self.DQN.respawnCar(self.simulation)
+        
+        #Prepare SGA
+        elif(self.learningType == self.GENETIC_LEARN):
+            #If no population generate it
+            if(self.SGA.population == []):
+                self.SGA.randomPopulation(self.simulation)
+
+        #Prepare NEAT
+        elif(self.learningType == self.NEAT_LEARN):
+            pass
 
     #Changes state to testing
     def startTest(self):
@@ -130,10 +143,19 @@ class GameController():
         if(otherObject.sensor):
             return
 
+        #Learning
         if(self.state == self.LEARNING_STATE):
             car.kill(self.simulation.canvasWindow)
+
+            #When learning by neuroevolution calculate fitness on death
+            if(self.learningType == self.GENETIC_LEARN):
+                self.SGA.carDied(car, self.simulation)
+        
+        #Testing
         elif(self.state == self.TESTING_STATE):
             car.respawn(self.simulation)
+        
+        #Playing
         elif(self.state == self.PLAYING_STATE and otherObject.objectType == StaticGameObject.FINISH):
             car.respawn(self.simulation)
 
@@ -170,16 +192,16 @@ class GameController():
             elif(self.learningType == self.REINFORCEMENT_LEARN):
                 #If car died, punish it and then end the round
                 if(self.DQN.dqnCar.isDead):
-                    self.DQN.learn(self.simulation)
+                    self.DQN.step(self.simulation)
                     self.endOfRun()
 
                 #Current test continues --> Did NOT died
                 else:
-                    self.DQN.learn(self.simulation)
+                    self.DQN.step(self.simulation)
             
             #SGA Learning
             elif(self.learningType == self.GENETIC_LEARN):
-                pass
+                self.SGA.step(self.simulation)
 
             #NEAT Learning
             elif(self.learningType == self.NEAT_LEARN):

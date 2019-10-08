@@ -47,7 +47,6 @@ class CarAI(Car):
         #Create sequential model
         if(model == None):
             self.model = SequentialModel(self.raycastCount+1, self.action_space, self.learningRate)
-            print("Creating new model")
         else:
             self.model = model
 
@@ -154,7 +153,6 @@ class CarAI(Car):
     #Generate random decision
     def randomDecision(self):
         decision = []
-
         for _ in range(2):
             decision.append(np.random.random())
 

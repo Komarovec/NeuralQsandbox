@@ -8,17 +8,6 @@ Function bank for AI
 
 """
 
-
-#Calculate fitness of a model
-def calculateFitness(car, simulation):
-    dist = car.distToFinish(simulation)
-    if(dist != 0):
-        fitness = fitness = 1/dist
-    else:
-        fitness = fitness = 1/(dist+0.0001)
-    fitness *= 100000
-    return fitness
-
 #Print packet data
 def printPackets(packets):
     for packet in packets:

@@ -32,6 +32,8 @@ from objs.CarAI import CarAI
 from objs.kivyObjs import ellipse_from_circle, points_from_poly, newRectangle, distXY, calculateRectangle
 from windows.Simulation import Simulation
 from windows.ImportExport import IELevel, IENetwork
+from windows.PopNot import InfoPopup, ConfirmPopup
+import windows.PopNot as PN
 from ai.GameController import GameController
 
 class CanvasHandler(RelativeLayout):
@@ -380,9 +382,12 @@ class CanvasHandler(RelativeLayout):
 
     #Import neural network
     def importNetwork(self):
-        model = IENetwork.importNetwork()
-        self.simulation.gameController.setNetwork(model)
-        self.focus = True
+        def importNetworkConfirmed():
+            model = IENetwork.importNetwork()
+            self.simulation.gameController.setNetwork(model)
+            self.focus = True
+
+        ConfirmPopup("All progress will be lost!\nAre you sure?", "Importing network", importNetworkConfirmed, PN.WARNING_ICON)
 
     #Change tool
     def changeTool(self, tool):

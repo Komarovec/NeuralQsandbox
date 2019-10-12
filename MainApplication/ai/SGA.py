@@ -5,6 +5,13 @@ import numpy as np
 
 class SGA():
     def __init__(self, pop_size=10, mutation_rate=0.1, population=[]):
+        #Max reward
+        self.highestReward = 0
+        self.highestRewardedModel = None
+
+        #Avarage reward
+        self.averageReward = 0
+
         #Basic variables
         self.pop_size = pop_size
         self.mutation_rate = mutation_rate
@@ -37,6 +44,17 @@ class SGA():
 
         return parents
 
+    #Calculate average fitness
+    def averageFitness(self):
+        fitness_sum = 0
+        for individual in self.population:
+            fitness_sum += individual.reward
+
+        fitness_average = fitness_sum / self.pop_size
+        self.averageReward = fitness_average
+
+        return fitness_average
+
     #Crossover
     def crossover(self, parents):
         for car in self.population:
@@ -56,8 +74,8 @@ class SGA():
 
                     #Get weights from all parents
                     parentsWeights = []
-                    for p in range(len(parents)):
-                        pWeights = parents[p].model.layers[k].get_weights()[j]
+                    for parent in parents:
+                        pWeights = parent.model.layers[k].get_weights()[j]
                         pWeights = pWeights.reshape(-1)
                         parentsWeights.append(pWeights)
 
@@ -103,12 +121,24 @@ class SGA():
             fitness = fitness = 100000
             print("Solution found!")
 
-        return fitness
+        return fitness*10000
 
     #Create new population
     def newPopulation(self, simulation):
+        #Calculate average reward
+        self.averageFitness()
+
         #Selection --> select the best
         parents = self.selectParents()
+
+        #Save the best model and his reward
+        highestReward = parents[0].reward
+        highestRewardedModel = parents[0]
+
+        #Count only the best of the best
+        if(self.highestReward < highestReward):
+            self.highestReward = highestReward
+            self.highestRewardedModel = highestRewardedModel
 
         #Make new population
         self.crossover(parents)
@@ -117,12 +147,15 @@ class SGA():
         for car in self.population:
             car.respawn(simulation)
 
+        #Increment generation number
+        self.generation += 1
+
     #Car died --> calculate fitness
     def carDied(self, car, simulation):
         car.reward = self.calculateFitness(car, simulation)
 
-    #Calls every step
-    def step(self, simulation):
+    #Check cars
+    def isDone(self, simulation):
         done = True
 
         #Episode continues
@@ -131,9 +164,7 @@ class SGA():
                 car.think(rc=car.calculateRaycasts(simulation.space))
                 done = False
         
-        #End of episode
-        if(done):
-            self.newPopulation(simulation)
+        return done
             
 
 

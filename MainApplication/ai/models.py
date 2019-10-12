@@ -4,6 +4,7 @@ import keras
 
 #Creates sequential model
 def SequentialModel(input_size, output_size, learningRate, structure=None):
+    print("creating new model")
     #Default model
     if(structure==None):
         #Create model

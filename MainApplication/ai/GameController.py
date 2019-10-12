@@ -22,9 +22,9 @@ class GameController():
         self.game = 0
 
         #Training vars
-        self.learningType = self.GENETIC_LEARN
+        self.learningType = self.REINFORCEMENT_LEARN
         self.state = self.IDLE_STATE
-        self.stepLimit = 500
+        self.stepLimit = 5000
         self.startSteps = 0
 
         #Learning objects
@@ -38,7 +38,7 @@ class GameController():
         self.exportModel = None
 
         #Training speed / Show speed
-        self.trainingSpeed = 8
+        self.trainingSpeed = 20
         self.showSpeed = 2
 
     #Get neural model
@@ -51,19 +51,33 @@ class GameController():
 
     #Set neural network
     def setNetwork(self, model):
-        self.DQN = DQN()
-        self.DQN.dqnCar = self.simulation.addCarAI()   
-        self.DQN.dqnCar.model = model
+        self.resetNetwork()
         self.exportModel = model
 
+    #New network
+    def resetNetwork(self):
+        #Reset all learning object and values
+        self.DQN = DQN()
+        self.SGA = SGA()
+        self.exportModel = None
+        self.game = 0
+
+        #Start idling
         self.simulation.canvasWindow.changeGameState("exit")
 
     #Get neural model from states
     def getNetworkFromCar(self):
-        #Return dqnCar if learning via reinforcement learning
-        if(self.state == self.LEARNING_STATE and self.learningType == self.REINFORCEMENT_LEARN):
-            if(self.DQN.dqnCar != None):
-                return self.DQN.dqnCar.model
+        #Return car if learning
+        if(self.state == self.LEARNING_STATE):
+            #via Reinforcement learn
+            if(self.learningType == self.REINFORCEMENT_LEARN):
+                if(self.DQN.dqnCar != None):
+                    return self.DQN.dqnCar.model
+
+            #via Genetic learn
+            elif(self.learningType == self.GENETIC_LEARN):
+                if(self.SGA.highestRewardedModel != None):
+                    return self.SGA.highestRewardedModel.model
         
         #Return testCar if testing
         elif(self.state == self.TESTING_STATE):
@@ -89,6 +103,8 @@ class GameController():
             #If no population generate it
             if(self.SGA.population == []):
                 self.SGA.randomPopulation(self.simulation)
+            else:
+                self.simulation.loadCars(self.SGA.population)
 
         #Prepare NEAT
         elif(self.learningType == self.NEAT_LEARN):
@@ -130,8 +146,9 @@ class GameController():
 
     #Changes state to IDLE
     def startIdle(self):
-        #Save model first
-        self.exportModel = self.getNetworkFromCar()
+        #Save model first, but do not save model when playing --> nothing to save
+        if(self.state != self.PLAYING_STATE):
+            self.exportModel = self.getNetworkFromCar()
 
         self.state = self.IDLE_STATE
         self.simulation.simulationSpeed = self.showSpeed
@@ -159,23 +176,57 @@ class GameController():
         elif(self.state == self.PLAYING_STATE and otherObject.objectType == StaticGameObject.FINISH):
             car.respawn(self.simulation)
 
+    #GUI Update --> call at the end of the Run
+    def updateGUI(self):
+        guiObject = self.simulation.canvasWindow.window.stateInfoBar
+
+        #Update all GUI
+        if(self.learningType == self.REINFORCEMENT_LEARN):
+            #Add point to graphs
+            guiObject.addPlotPointRight(self.DQN.deathCount, self.DQN.dqnCar.reward)
+            guiObject.addPlotPointLeft(self.DQN.deathCount, (self.DQN.exploration_rate*100))
+
+            #Change values overall
+            guiObject.setValue1("Learning type", "DQN")
+            guiObject.setValue2("Memories", len(self.DQN.memory))
+
+            #Current run
+            guiObject.setValue3("Exploration rate", (self.DQN.exploration_rate*100))
+            guiObject.setValue4("Max reward", self.DQN.highestReward)
+
+        elif(self.learningType == self.GENETIC_LEARN):
+            #Add point to graphs
+            guiObject.addPlotPointRight(self.SGA.generation, self.SGA.highestReward)
+            guiObject.addPlotPointLeft(self.SGA.generation, self.SGA.averageReward)
+
+            #Change values overall
+            guiObject.setValue1("Learning type", "SGA")
+            guiObject.setValue2("Generation", self.SGA.generation)
+
+            #Current run
+            guiObject.setValue3("Average reward", self.SGA.averageReward)
+            guiObject.setValue4("Max reward", self.SGA.highestReward)
+
+        elif(self.learningType == self.NEAT_LEARN):
+            pass
+
     #End of the Run (Car died or timer is up)
     def endOfRun(self):
         self.game += 1
 
         if(self.learningType == self.REINFORCEMENT_LEARN):
-            #Update all GUI
-            self.simulation.canvasWindow.window.stateInfoBar.addPlotPointRight(self.game, self.DQN.dqnCar.reward)
-            self.simulation.canvasWindow.window.stateInfoBar.addPlotPointLeft(self.game, self.DQN.exploration_rate)
-
             #Prepare for next game
             self.DQN.respawnCar(self.simulation)
 
         elif(self.learningType == self.GENETIC_LEARN):
-            pass
+            #Generate new population
+            self.SGA.newPopulation(self.simulation)
 
         elif(self.learningType == self.NEAT_LEARN):
             pass
+
+        #Update GUI
+        self.updateGUI()
 
         #Reset timer
         self.startSteps = self.simulation.space.steps
@@ -201,7 +252,8 @@ class GameController():
             
             #SGA Learning
             elif(self.learningType == self.GENETIC_LEARN):
-                self.SGA.step(self.simulation)
+                if(self.SGA.isDone(self.simulation)):
+                    self.endOfRun()
 
             #NEAT Learning
             elif(self.learningType == self.NEAT_LEARN):

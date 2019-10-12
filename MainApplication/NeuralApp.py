@@ -14,7 +14,7 @@ from kivy.uix.settings import SettingsWithSidebar
 from kivy.config import ConfigParser
 
 from windows.CanvasWindow import CanvasWindow
-from config import settings_json
+from config import ai_settings_json, game_settings_json
 
 from kivy.config import Config
 Config.set('graphics', 'width', '1280')
@@ -45,14 +45,34 @@ class NeuralApp(App):
         return sm
 
     def build_config(self, config):
-        config.setdefaults("Debug", {
+        config.setdefaults("Game", {
             "boolraycasts": False,
             "numraycasts": 3,
             "angleraycasts": 35
         })
 
+        config.setdefaults("AI", {
+            "learn_type": "DQN",
+            "network_type": "Sequential",
+        })
+
+        config.setdefaults("DQN", {
+            "dqn_discount_factor": 0.95,
+            "dqn_exploration_max": 1,
+            "dqn_exploration_min": 0.01,
+            "dqn_exploration_decay": 0.995,
+            "dqn_batch_size": 20,
+            "dqn_experience_type": "ER",
+        })
+
+        config.setdefaults("SGA", {
+            "sga_mutation_rate": 0.01,
+            "sga_population_size": 30,
+        })
+
     def build_settings(self, settings):
-        settings.add_json_panel("Debug panel", self.config, data=settings_json)
+        settings.add_json_panel("AI panel", self.config, data=ai_settings_json)
+        settings.add_json_panel("Game panel", self.config, data=game_settings_json)
 
     def on_config_change(self, config, section, key, value):
         pass

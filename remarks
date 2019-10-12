@@ -64,3 +64,5 @@
 4.10.2019 - 3h - Příprava pro separaci DQN
 5.10.2019 - 10h - Separace DQN, přípravy pro implemetaci SGA, Zobecnění GameControlleru
 8.10.2019 - 6h - Jednoduchý genetický algorytmus (SGA), Populace, selekce, mutace, dědičnost...
+9.10.2019 - 6h - Popupy - Informační, potvrzující (pro nebezpečné akce) a hlašení výjimek.
+12.10.2019 - 10h - GUI: Posílaní korektních informací pro různe učicí algoritmy, Informační hodnoty ve StateInfoBaru (U grafů) nyní funkční, Dokočení implementace SGA do GameControlleru

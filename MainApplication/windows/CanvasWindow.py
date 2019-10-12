@@ -124,11 +124,8 @@ class StateInfoBar(GameWidget):
 
         self.addPlotPoint(self.graph1, plot, x, y)
 
-    #Add point to graph
-    def addPlotPoint(self, graph, plot, x, y):
-        #Add data to graph
-        plot.points.append((x, y))
-
+    #Rescale y axis on graph
+    def rescaleY(self, graph, y):
         #Rescaling of y axis
         if(y > (graph.ymax - (graph.ymax/10))):
             graph.ymax = int(math.ceil(y + (y/10))) #Move max more up by fraction of y --> better look
@@ -142,6 +139,13 @@ class StateInfoBar(GameWidget):
             if(abs(y) > graph.ymax):
                 graph.y_ticks_major = abs(math.floor(y/2))
 
+    #Add point to graph
+    def addPlotPoint(self, graph, plot, x, y):
+        #Add data to graph
+        plot.points.append((x, y))
+
+        self.rescaleY(graph, y)
+
         #Rescaling of x axis
         if((x+1) > graph.xmax):
             graph.xmax = x+1
@@ -153,23 +157,24 @@ class StateInfoBar(GameWidget):
         #Reset graph if x < xmax
         else:
             self.resetPlot(graph, plot)
-            self.addPlotPoint(graph, plot, x, y)
+            plot.points.append((x, y))
+            self.rescaleY(graph, y)
 
-    #Changes generation value
-    def setGeneration(self, gen):
-        self.ids["generation"].text = "Generation: "+str(gen)
+    #Changes top value
+    def setValue1(self, name, value):
+        self.ids["val1"].text = str(name)+": "+str(value)
 
-    #Changes bestFit value
-    def setBestFit(self, fit):
-        self.ids["bestFit"].text = "Overall best: "+str(fit)
+    #Changes second value
+    def setValue2(self, name, value):
+        self.ids["val2"].text = str(name)+": "+str(value)
 
-    #Changes bestGenFit value
-    def setBestGenFit(self, fit):
-        self.ids["bestGenFit"].text = "Current best: "+str(fit)
+    #Changes third value
+    def setValue3(self, name, value):
+        self.ids["val3"].text = str(name)+": "+str(value)
 
-    #Changes Game value
-    def setGameVal(self, game):
-        self.ids["game"].text = "Game: "+str(game)
+    #Changes bottom value
+    def setValue4(self, name, value):
+        self.ids["val4"].text = str(name)+": "+str(value)
 
 #Menu for choosing mode --> Play, Train, Test
 class StartMenu(GameWidget):
@@ -506,12 +511,6 @@ class PopupColor(Popup):
 class CanvasWindow(Screen):
     def __init__(self, **kwargs):
         super(CanvasWindow, self).__init__(**kwargs)
-
-    def build(self):
-        # create a button, and  attach animate() method as a on_press handler
-        button = Button(size_hint=(None, None), text='Kivy button',
-                        on_press=self.animate)
-        return button
 
     #Entered the screen
     def on_enter(self):

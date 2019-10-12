@@ -19,6 +19,9 @@ class DQN():
         self.batch_size = batch_size
 
         #Prepare variables
+        self.highestReward = 0
+        self.highestRewardedModel = None
+        self.deathCount = 0
         self.tempSAPair = None
         self.exploration_rate = None #Create it just you know it exists :)
         self.resetExplorationRate()
@@ -41,6 +44,13 @@ class DQN():
 
     #Respawn object
     def respawnCar(self, simulation):
+        #Save best rewarded (reward + model)
+        if(self.dqnCar != None):
+            self.deathCount += 1
+            if(self.dqnCar.reward > self.highestReward):
+                self.highestReward = self.dqnCar.reward
+                self.highestRewardedModel = self.dqnCar.model
+
         #Reset level & steps
         simulation.resetLevel()
         self.startSteps = simulation.space.steps

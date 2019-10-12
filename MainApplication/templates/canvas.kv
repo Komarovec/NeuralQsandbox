@@ -227,6 +227,8 @@
 
             Button:
                 text: "AI Settings"
+                on_press:
+                    app.open_settings()
 
             Label:
                 text: ""
@@ -332,11 +334,11 @@
                             radius: (10,10,10,10)
 
                     Label:
-                        id: game
-                        text: "Game: "
+                        id: val1
+                        text: "Learning type: "
                     Label:
-                        id: bestGenFit
-                        text: "Current best: "
+                        id: val2
+                        text: ""
                     Separator:
                         color: 1,1,1,0
 
@@ -356,11 +358,11 @@
                             radius: (10,10,10,10)
 
                     Label:
-                        id: generation
-                        text: "Generation: "
+                        id: val3
+                        text: ""
                     Label:
-                        id: bestFit
-                        text: "Overall best: "
+                        id: val4
+                        text: ""
                     Separator:
                         color: 1,1,1,0
 
@@ -423,21 +425,43 @@
                     app_icon: ''
                     font_size: root.scaleFactor/12.5
 
-                #File interaction buttons
+                #Level interaction buttons
                 ActionGroup:
                     mode: 'spinner'
-                    text: 'File'
+                    text: 'Level'
                     font_size: root.scaleFactor/12.5
                     ActionButton:
-                        text: 'Save File'
+                        text: 'Save Level'
                         font_size: root.scaleFactor/12.5
                         on_press:
                             root.game.exportFile()
                     ActionButton:
-                        text: 'Load File'
+                        text: 'Load Level'
                         font_size: root.scaleFactor/12.5
                         on_press:
                             root.game.importFile()
+
+
+                #Model interaction buttons
+                ActionGroup:
+                    mode: 'spinner'
+                    text: 'Model'
+                    font_size: root.scaleFactor/12.5
+                    ActionButton:
+                        text: 'New Model'
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.simulation.gameController.resetNetwork()
+                    ActionButton:
+                        text: 'Save Model'
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.exportNetwork()
+                    ActionButton:
+                        text: 'Load Model'
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.importNetwork()                   
 
                 #View
                 ActionGroup:
@@ -451,12 +475,20 @@
                         on_press:
                             root.game.changeCamera("center")
 
-    	        #Reset button
-                ActionButton:
-                    text: 'Reset Model'
-                    font_size: root.scaleFactor/12.5
-                    on_press: 
-                        root.game.reset()
+                    ActionSeparator:
+
+                    ActionButton:
+                        text: 'Follow mode'
+                        minimum_width: root.scaleFactor*0.8
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.changeCamera("follow")
+                    ActionButton:
+                        text: 'Free mode'
+                        minimum_width: root.scaleFactor*0.8
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.changeCamera("free")
 
 
 <ToolBarGame>:
@@ -506,24 +538,33 @@
                     app_icon: ''
                     font_size: root.scaleFactor/12.5
 
-                #File interaction buttons
+                #Level interaction buttons
                 ActionGroup:
                     mode: 'spinner'
-                    text: 'File'
+                    text: 'Level'
                     font_size: root.scaleFactor/12.5
                     ActionButton:
-                        text: 'Save File'
+                        text: 'Save Level'
                         font_size: root.scaleFactor/12.5
                         on_press:
                             root.game.exportFile()
                     ActionButton:
-                        text: 'Load File'
+                        text: 'Load Level'
                         font_size: root.scaleFactor/12.5
                         on_press:
                             root.game.importFile()
 
-                    ActionSeparator:
 
+                #Model interaction buttons
+                ActionGroup:
+                    mode: 'spinner'
+                    text: 'Model'
+                    font_size: root.scaleFactor/12.5
+                    ActionButton:
+                        text: 'New Model'
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.simulation.gameController.resetNetwork()
                     ActionButton:
                         text: 'Save Model'
                         font_size: root.scaleFactor/12.5
@@ -561,10 +602,3 @@
                         font_size: root.scaleFactor/12.5
                         on_press:
                             root.game.changeCamera("free")
-
-    	        #Reset button
-                ActionButton:
-                    text: 'Reset Model'
-                    font_size: root.scaleFactor/12.5
-                    on_press: 
-                        root.game.reset()

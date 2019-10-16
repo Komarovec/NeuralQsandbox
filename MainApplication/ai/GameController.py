@@ -3,6 +3,8 @@ from ai.DQN import DQN
 from ai.SGA import SGA
 from objs.GameObjects import StaticGameObject
 
+from kivy.app import App
+
 import numpy as np
 import math
 
@@ -38,7 +40,7 @@ class GameController():
         self.exportModel = None
 
         #Training speed / Show speed
-        self.trainingSpeed = 20
+        self.trainingSpeed = 8
         self.showSpeed = 2
 
     #Get neural model
@@ -56,9 +58,21 @@ class GameController():
 
     #New network
     def resetNetwork(self):
+        config = App.get_running_app().config
+
+        #Training vars
+        learn_type = config.get('AI', 'learn_type')
+        if(learn_type == "DQN"):
+            self.learningType = self.REINFORCEMENT_LEARN
+        elif(learn_type == "SGA"):
+            self.learningType = self.GENETIC_LEARN
+
         #Reset all learning object and values
-        self.DQN = DQN()
-        self.SGA = SGA()
+        self.DQN = DQN(float(config.get('DQN','dqn_discount_factor')), float(config.get('DQN','dqn_exploration_min')),
+                    float(config.get('DQN','dqn_exploration_max')), float(config.get('DQN','dqn_exploration_decay')), 
+                    int(config.get('DQN','dqn_batch_size')))
+
+        self.SGA = SGA(int(config.get('SGA','sga_population_size')), float(config.get('SGA','sga_mutation_rate')))
         self.exportModel = None
         self.game = 0
 
@@ -214,6 +228,9 @@ class GameController():
     def endOfRun(self):
         self.game += 1
 
+        #Update GUI
+        self.updateGUI()
+
         if(self.learningType == self.REINFORCEMENT_LEARN):
             #Prepare for next game
             self.DQN.respawnCar(self.simulation)
@@ -224,9 +241,6 @@ class GameController():
 
         elif(self.learningType == self.NEAT_LEARN):
             pass
-
-        #Update GUI
-        self.updateGUI()
 
         #Reset timer
         self.startSteps = self.simulation.space.steps

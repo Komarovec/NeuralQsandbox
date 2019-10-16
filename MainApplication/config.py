@@ -9,13 +9,13 @@ game_settings_json = json.dumps([
      "section": "Game",
      "key": "boolraycasts"},
 
-    {"type": "numeric",
-     "title": "Number of raycasts",
+    {"type": "raycasts",
+     "title": "Number of raycasts. 1 - 20",
      "section": "Game",
      "key": "numraycasts"},
 
-    {"type": "numeric",
-     "title": "Angle of raycasts",
+    {"type": "angle",
+     "title": "Angle of raycasts. 1 - 180",
      "section": "Game",
      "key": "angleraycasts"}
 ])
@@ -40,33 +40,33 @@ ai_settings_json = json.dumps([
 
     {"type": "title",
      "title": "DQN settings"},
-    {"type": "numeric",
+    {"type": "multiplier",
      "title": "Discount factor",
-     "desc": "Discout of future estimated reward. (Multiplier)",
+     "desc": "Discout of future estimated reward. <0,1>",
      "section": "DQN",
      "key": "dqn_discount_factor"},
 
-    {"type": "numeric",
+    {"type": "multiplier",
      "title": "Exploration max",
-     "desc": "Starting exploration value 1 (100%) - 0 (0%)",
+     "desc": "Starting exploration value. <0,1>",
      "section": "DQN",
      "key": "dqn_exploration_max"},
 
-    {"type": "numeric",
+    {"type": "multiplier",
      "title": "Exploration min",
-     "desc": "Minimal exploration value 1 (100%) - 0 (0%)",
+     "desc": "Minimal exploration value. <0,1>",
      "section": "DQN",
      "key": "dqn_exploration_min"},
 
-    {"type": "numeric",
+    {"type": "multiplier",
      "title": "Exploration decay",
-     "desc": "How much will exploration decrease over time. (Multiplier)",
+     "desc": "How much will exploration decrease over time. <0,1>",
      "section": "DQN",
      "key": "dqn_exploration_decay"},
 
-    {"type": "numeric",
+    {"type": "batch",
      "title": "Batch size",
-     "desc": "Change the batch size of experience replay",
+     "desc": "Change the batch size of experience replay. 10 - 100",
      "section": "DQN",
      "key": "dqn_batch_size"},
 
@@ -80,15 +80,15 @@ ai_settings_json = json.dumps([
 
     {"type": "title",
      "title": "SGA settings"},
-    {"type": "numeric",
+    {"type": "multiplier",
      "title": "Mutation rate",
      "desc": "How often will mutation occur.",
      "section": "SGA",
      "key": "sga_mutation_rate"},
 
-    {"type": "numeric",
+    {"type": "population",
      "title": "Population size",
-     "desc": "How many individuals will be created.",
+     "desc": "How many individuals will be created. 8 - 50",
      "section": "SGA",
      "key": "sga_population_size"}
 ])

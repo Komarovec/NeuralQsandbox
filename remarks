@@ -66,3 +66,5 @@
 8.10.2019 - 6h - Jednoduchý genetický algorytmus (SGA), Populace, selekce, mutace, dědičnost...
 9.10.2019 - 6h - Popupy - Informační, potvrzující (pro nebezpečné akce) a hlašení výjimek.
 12.10.2019 - 10h - GUI: Posílaní korektních informací pro různe učicí algoritmy, Informační hodnoty ve StateInfoBaru (U grafů) nyní funkční, Dokočení implementace SGA do GameControlleru
+15.10.2019 - 2h - Začátek dokumentace
+16.10.2019 - 5h - Kontrola Uživatelského vstupu (nastavení), připojení nastavení (funkční nastaveni DQN, SGA, ...), test nastavení

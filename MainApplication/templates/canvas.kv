@@ -221,6 +221,8 @@
 
         BoxLayout:
             orientation: "vertical"
+            spacing: 5
+            padding: 10,0,10,0
 
             Label:
                 text: ""
@@ -230,8 +232,10 @@
                 on_press:
                     app.open_settings()
 
-            Label:
-                text: ""
+            Button:
+                text: "Reset settings"
+                on_press:
+                    app.config_reset()
               
 
 <StateBar>:
@@ -521,8 +525,7 @@
                     text: 'EXIT'
                     font_size: root.scaleFactor/12.5
                     on_press:
-                        root.manager.transition.direction = 'right'
-                        root.manager.current = 'mainmenu'
+                        app.exit_game()
 
                 ActionButton:
                     text: 'Back'

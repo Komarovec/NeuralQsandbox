@@ -112,7 +112,7 @@ class DQN():
 
         #Fit on calculated Q-Values
         model.fit(obsToLearn, actionsToLearn, verbose=0)
-        
+
         #Decrease exploration rate
         self.decayExplorationRate()
 

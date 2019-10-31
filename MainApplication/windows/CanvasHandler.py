@@ -1,9 +1,10 @@
 
+#RNG
 import random
 random.seed(5)
 
+#KIVY, kivy, kivy!
 import kivy
-kivy.require('1.0.7')
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
@@ -21,6 +22,10 @@ from kivy.graphics import Ellipse, Line, Color, Triangle, Quad, Rectangle, Mesh
 from kivy.core.window import Window
 from kivy.core.image import Image as CoreImage
 
+#Threading
+import threading as th
+
+#Other
 import pymunk
 import math
 import time
@@ -143,7 +148,7 @@ class CanvasHandler(RelativeLayout):
 
         #Game mode
         if(self.state != "editor"):
-            self.simulation.update(dt)
+            #self.simulation.update()
 
             self.window.statebar.ids["steps"].text = "Steps: "+str(self.simulation.space.steps)
 
@@ -271,7 +276,6 @@ class CanvasHandler(RelativeLayout):
         #If we want to draw
         if(self.isDrawing):
             #Draw all kivy objects from space.shapes
-
             self.paintKivy()
 
             #Update camere if neccesary
@@ -619,7 +623,6 @@ class CanvasHandler(RelativeLayout):
             
             self.simulation.space.reindex_shapes_for_body(self.movingVar.body)
 
-
     def on_touch_down(self, touch):
         #Scale screen if mouse scroll
         if(touch.button == "scrolldown"):
@@ -659,12 +662,12 @@ class CanvasHandler(RelativeLayout):
                 with self.canvas:
                     Color(1,0,0,0.5)
                     if(self.addingShape == "Segment"):
-                        temp_shape = Line(points = [p[0], p[1], p[0], p[1]], width = 10)
+                        temp_shape = Line(points = [p[0], p[1], p[0], p[1]], width = 20*self.scaller)
                     elif(self.addingShape == "Circle"):
                         temp_shape = Ellipse(pos=(p[0]+1, p[1]+1), size=(1,1))
                     elif(self.addingShape == "Box"):
                         if(self.addingStage == 0):
-                            temp_shape = Line(points = [p[0], p[1], p[0], p[1]], width = 10)
+                            temp_shape = Line(points = [p[0], p[1], p[0], p[1]], width = 20*self.scaller)
                         else:
                             temp_shape = self.temp_barrier
                 

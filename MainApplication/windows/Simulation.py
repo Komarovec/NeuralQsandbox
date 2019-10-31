@@ -5,6 +5,9 @@ random.seed(5)
 #Kivy
 from kivy.graphics import Color
 
+#Tensorflow
+import tensorflow as tf
+
 #Pymunk
 import cffi
 import pymunk
@@ -12,6 +15,11 @@ import pymunk.autogeometry
 from pymunk.vec2d import Vec2d
 
 import math
+
+#Threading
+import threading as th
+
+from time import sleep
 
 #Custom function and classes
 from objs.GameObjects import StaticGameObject
@@ -31,8 +39,25 @@ class Simulation():
         #Learning vars
         self.gameController = GameController(self)
 
+        #Create thread for physics
+        self.stopThread = True
+
+        #Tensorflow computational graph
+        self.graph = tf.get_default_graph()
+
+    #Thread function for physics
+    def physicsThread(self):
+        while True:
+            self.update()
+            if(self.stopThread):
+                break
+
     #Create new space
     def setupSpace(self):
+        if(hasattr(self, "thread")):
+            self.stopThread = True
+            self.thread.join()
+
         self.space = space = pymunk.Space()
 
         self.addCallbacks()
@@ -41,6 +66,9 @@ class Simulation():
         space.sleep_time_threshold = 0.3
         space.steps = 0
 
+        self.stopThread = False
+        self.thread = th.Thread(target=self.physicsThread)
+        self.thread.start()
         return space
 
     #Prepare collisions callbacks
@@ -73,7 +101,6 @@ class Simulation():
 
         self.addCallbacks()
 
-
     #Creates sample level --> WILL BE REMOVED
     def start(self):
         self.setupSpace()
@@ -90,13 +117,11 @@ class Simulation():
         finish = StaticGameObject(StaticGameObject.FINISH, rgba=(.8,0,0,1))
         finish.createSegment((1800,400), (1800,600), 20, self.canvasWindow)
 
-    #Main looping function
-    def update(self, dt):
-       #Physics simulation
-        for _ in range(self.simulationSpeed):
-            #If training
-            self.trainLoop(dt)
-            self.stepSpace()
+    #Main looping function - Run in thread
+    def update(self):
+        #If training
+        self.trainLoop()
+        self.stepSpace()
 
     #Step simulation space
     def stepSpace(self):
@@ -125,7 +150,7 @@ class Simulation():
 
 
     #Training loop
-    def trainLoop(self, dt):
+    def trainLoop(self):
         if(self.gameController != None):
             self.gameController.loop()
 

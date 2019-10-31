@@ -159,11 +159,13 @@ class CarAI(Car):
         return decision
 
     #Makes car think
-    def think(self, rc, action=None):
+    def think(self, rc, graph, action=None):
         #If no action provided, predict here
         if(action == None):
             #Predict action based on rays
-            results = self.model.predict(rc)
+            with graph.as_default():
+                results = self.model.predict(rc)
+
             action = np.argmax(results[0])
 
         if(action == 0):

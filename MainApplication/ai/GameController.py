@@ -278,4 +278,4 @@ class GameController():
             if(self.testCar != None):
                 car = self.testCar
                 observation = np.array(car.calculateRaycasts(self.simulation.space))
-                car.think(observation)
+                car.think(observation, graph=self.simulation.graph)

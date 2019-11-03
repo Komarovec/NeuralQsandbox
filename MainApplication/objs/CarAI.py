@@ -159,7 +159,7 @@ class CarAI(Car):
         return decision
 
     #Makes car think
-    def think(self, rc, graph, action=None):
+    def think(self, rc, action=None, graph=None):
         #If no action provided, predict here
         if(action == None):
             #Predict action based on rays

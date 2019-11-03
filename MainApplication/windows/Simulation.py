@@ -45,13 +45,6 @@ class Simulation():
         #Tensorflow computational graph
         self.graph = tf.get_default_graph()
 
-    #Thread function for physics
-    def physicsThread(self):
-        while True:
-            self.update()
-            if(self.stopThread):
-                break
-
     #Create new space
     def setupSpace(self):
         if(hasattr(self, "thread")):
@@ -66,9 +59,8 @@ class Simulation():
         space.sleep_time_threshold = 0.3
         space.steps = 0
 
-        self.stopThread = False
-        self.thread = th.Thread(target=self.physicsThread)
-        self.thread.start()
+       
+        self.startPhysicsThread()
         return space
 
     #Prepare collisions callbacks
@@ -101,7 +93,7 @@ class Simulation():
 
         self.addCallbacks()
 
-    #Creates sample level --> WILL BE REMOVED
+    #Creates sample level --> WILL BE REMOVED; Why is this still here, someone do something!; I really should improve this
     def start(self):
         self.setupSpace()
 
@@ -116,11 +108,36 @@ class Simulation():
 
         finish = StaticGameObject(StaticGameObject.FINISH, rgba=(.8,0,0,1))
         finish.createSegment((1800,400), (1800,600), 20, self.canvasWindow)
+   
+        
+    """ 
+            Threaded loop functions 
+    """
+    #Start thread --> MUST BE CALLED FROM MAIN THREAD
+    def startPhysicsThread(self):
+        self.stopThread = False
+        self.thread = th.Thread(target=self.physicsThread, name="PhysicsThread")
+        self.thread.start()
+
+    #End thread --> MUST BE CALLED FROM MAIN THREAD
+    def endPhysicsThread(self):
+        self.stopThread = True
+        self.thread.join()
+
+    #Thread function for physics
+    def physicsThread(self):
+        while True:
+            self.update()
+            if(self.stopThread):
+                break
 
     #Main looping function - Run in thread
     def update(self):
-        #If training
-        self.trainLoop()
+        #Game logic loop
+        if(self.gameController != None):
+            self.gameController.loop()
+
+        #Physics loop
         self.stepSpace()
 
     #Step simulation space
@@ -144,16 +161,13 @@ class Simulation():
                 shape.body.angular_velocity *= 1 - (self.step*angular_friction)
 
         #Stepping space simul
-        #print()
         self.space.step(self.step)
         self.space.steps += 1
 
 
-    #Training loop
-    def trainLoop(self):
-        if(self.gameController != None):
-            self.gameController.loop()
-
+    """ 
+        Enviroment functions 
+    """
     #Reset level
     def resetLevel(self):
         #Delete all Cars from level and canvas
@@ -164,7 +178,6 @@ class Simulation():
                     shape.deleteRaycasts(self.canvasWindow)
                 self.space.remove(shape.body, shape)
                 self.canvasWindow.canvas.remove(shape.ky)
-
 
     #Adding
     def addSegment(self, a, b, radius, typeVal, collisions, rgba, change="change"):
@@ -313,7 +326,7 @@ class Simulation():
                     spawnPoint = self.getCenterPos(shape)
         
         return spawnPoint
-
+    
     #Find nearest finish
     def findNearestFinish(self, point):
         finishPoint = None

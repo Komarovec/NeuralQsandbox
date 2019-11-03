@@ -127,21 +127,17 @@ class CanvasHandler(RelativeLayout):
         self.simulation.gameController.forceStop()
         self.simulation.gameController = GameController(self.simulation)
 
-    #Stops end DELETES entire universe!!
+    #Stops end DELETES entire universe!!d
     def stop(self):
+        self.simulation.endPhysicsThread()
         self.clear_widgets()
         self.update_event.cancel()
         self.canvas.clear()
 
 
     """
-    ----> Main loop method <----
-    
-    Calls for physics computation
-    Handles car controls
-    Undo action
-    Highlighting
-    Drawing
+    ----> Main loop method <---- Ran in main thread
+
     """
     def draw(self, dt):
         self.loops += 1

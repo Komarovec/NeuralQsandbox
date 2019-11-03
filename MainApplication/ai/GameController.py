@@ -103,8 +103,10 @@ class GameController():
 
     #Changes state to train
     def startTrain(self, *args):
+        #Pause physics thread
+        self.simulation.endPhysicsThread()
+
         #Prepare game vars
-        self.state = self.LEARNING_STATE
         self.simulation.simulationSpeed = self.trainingSpeed
         self.game = 0
 
@@ -124,14 +126,25 @@ class GameController():
         elif(self.learningType == self.NEAT_LEARN):
             pass
 
+        #Change state last --> Threaded
+        self.state = self.LEARNING_STATE
+
+        #Reset start steps
+        self.startSteps = self.simulation.space.steps
+
+        #Resume physics thread
+        self.simulation.startPhysicsThread()
+
     #Changes state to testing
     def startTest(self):
+        #Pause physics thread
+        self.simulation.endPhysicsThread()
+
         #Load model first
         model = self.exportModel
 
         #Prepare Controller
         self.testCar = None
-        self.state = self.TESTING_STATE
 
         #Prepare enviroment simulation
         self.simulation.simulationSpeed = self.showSpeed
@@ -150,16 +163,33 @@ class GameController():
         #Set camera
         self.simulation.canvasWindow.selectedCar = car
 
+        #Change state last --> Threaded
+        self.state = self.TESTING_STATE
+
+        #Resume physics thread
+        self.simulation.startPhysicsThread()
+
     #Changes state to free play
     def startFreePlay(self):
-        self.state = self.PLAYING_STATE
+        #Pause physics thread
+        self.simulation.endPhysicsThread()
+
         car = self.simulation.addPlayer()
 
         #Set camera
         self.simulation.canvasWindow.selectedCar = car
 
+        #Change state last --> Threaded
+        self.state = self.PLAYING_STATE
+
+        #Resume physics thread
+        self.simulation.startPhysicsThread()
+
     #Changes state to IDLE
     def startIdle(self):
+        #Pause physics thread
+        self.simulation.endPhysicsThread()
+
         #Save model first, but do not save model when playing --> nothing to save
         if(self.state != self.PLAYING_STATE):
             self.exportModel = self.getNetworkFromCar()
@@ -167,6 +197,9 @@ class GameController():
         self.state = self.IDLE_STATE
         self.simulation.simulationSpeed = self.showSpeed
         self.simulation.removeCars()
+
+        #Resume physics thread
+        self.simulation.startPhysicsThread()
 
     #Handle car collisions
     def handleCollision(self, car, otherObject):

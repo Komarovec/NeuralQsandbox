@@ -3,8 +3,9 @@
     "",
     "\\MainApplication",
     "\\MainApplication\\ai",
+    "\\MainApplication\\templates",
     "\\MainApplication\\windows"
   ],
-  "SelectedNode": "\\MainApplication\\windows\\CanvasHandler.py",
+  "SelectedNode": "\\MainApplication\\templates\\canvas.kv",
   "PreviewInSolutionExplorer": false
 }

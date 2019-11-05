@@ -20,12 +20,15 @@ import math
 import threading as th
 
 from time import sleep
+import os
+import sys
 
 #Custom function and classes
 from objs.GameObjects import StaticGameObject
 from objs.CarAI import CarAI
 from objs.Car import Car
 from objs.kivyObjs import distXY, centerPoint
+from windows.ImportExport import IELevel
 
 from ai.GameController import GameController
 
@@ -45,11 +48,12 @@ class Simulation():
         #Tensorflow computational graph
         self.graph = tf.get_default_graph()
 
+        #Default level
+        self.defaultLevel = os.path.abspath(os.path.dirname(sys.argv[0]))+"\levels\conti.lvl"
+
     #Create new space
     def setupSpace(self):
-        if(hasattr(self, "thread")):
-            self.stopThread = True
-            self.thread.join()
+        self.endPhysicsThread()
 
         self.space = space = pymunk.Space()
 
@@ -59,8 +63,8 @@ class Simulation():
         space.sleep_time_threshold = 0.3
         space.steps = 0
 
-       
         self.startPhysicsThread()
+
         return space
 
     #Prepare collisions callbacks
@@ -93,36 +97,49 @@ class Simulation():
 
         self.addCallbacks()
 
-    #Creates sample level --> WILL BE REMOVED; Why is this still here, someone do something!; I really should improve this
+    #First start, setup space and import level
     def start(self):
         self.setupSpace()
 
-        #Spawning objects
-        StaticGameObject(StaticGameObject.BARRIER).createSegment((0,0), (2000,0), 20, self.canvasWindow)
-        StaticGameObject(StaticGameObject.BARRIER).createSegment((2000,0), (2000,1000), 20, self.canvasWindow)
-        StaticGameObject(StaticGameObject.BARRIER).createSegment((2000,1000), (0,1000), 20, self.canvasWindow)
-        StaticGameObject(StaticGameObject.BARRIER).createSegment((0,0), (0,1000), 20, self.canvasWindow)
+        #Check if default level exists
+        if(not IELevel.importLevelSilent(self, self.defaultLevel)):
+            #Spawning objects
+            StaticGameObject(StaticGameObject.BARRIER).createSegment((0,0), (2000,0), 20, self.canvasWindow)
+            StaticGameObject(StaticGameObject.BARRIER).createSegment((2000,0), (2000,1000), 20, self.canvasWindow)
+            StaticGameObject(StaticGameObject.BARRIER).createSegment((2000,1000), (0,1000), 20, self.canvasWindow)
+            StaticGameObject(StaticGameObject.BARRIER).createSegment((0,0), (0,1000), 20, self.canvasWindow)
         
-        start = StaticGameObject(StaticGameObject.START, rgba=(0,.8,0,1))
-        start.createSegment((100,400), (100,600), 20, self.canvasWindow)
+            start = StaticGameObject(StaticGameObject.START, rgba=(0,.8,0,1))
+            start.createSegment((100,400), (100,600), 20, self.canvasWindow)
 
-        finish = StaticGameObject(StaticGameObject.FINISH, rgba=(.8,0,0,1))
-        finish.createSegment((1800,400), (1800,600), 20, self.canvasWindow)
-   
+            finish = StaticGameObject(StaticGameObject.FINISH, rgba=(.8,0,0,1))
+            finish.createSegment((1800,400), (1800,600), 20, self.canvasWindow)
         
     """ 
             Threaded loop functions 
     """
     #Start thread --> MUST BE CALLED FROM MAIN THREAD
     def startPhysicsThread(self):
+        if(hasattr(self, "thread")):
+            if(self.thread != None):
+                self.endPhysicsThread()
+                print("Tried to start a new thread when there still is running thread!") #DEBUG
+
         self.stopThread = False
         self.thread = th.Thread(target=self.physicsThread, name="PhysicsThread")
         self.thread.start()
 
     #End thread --> MUST BE CALLED FROM MAIN THREAD
     def endPhysicsThread(self):
-        self.stopThread = True
-        self.thread.join()
+        if(hasattr(self, "thread")):
+            if(self.thread != None):
+                self.stopThread = True
+                self.thread.join()
+                self.thread = None
+            else:
+                print("Tried to end non-existing thread! NONE") #DEBUG
+        else:
+            print("Tried to end non-existing thread! ATTR") #DEBUG
 
     #Thread function for physics
     def physicsThread(self):

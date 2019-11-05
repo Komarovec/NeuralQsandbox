@@ -29,7 +29,7 @@ class IENetwork():
         root = tk.Tk()
         root.withdraw()
 
-        pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"//networks"
+        pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"/networks"
         if not os.path.exists(pathname):
             os.makedirs(pathname)
 
@@ -54,7 +54,7 @@ class IENetwork():
         root = tk.Tk()
         root.withdraw()
 
-        pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"\\networks"
+        pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"/networks"
         if not os.path.exists(pathname):
             os.makedirs(pathname)
 
@@ -150,12 +150,10 @@ class IELevel():
             try:
                 with open(file_path, "rb") as f:
                     loaded_space = pickle.load(f)
-
             #If exception occured print something
             except:
                 InfoPopup("Something went wrong!", "Level import", PN.DANGER_ICON)
-
-            #If everythin went ok
+            #If everything went ok
             else:
                 simulation.deleteSpace()
                 simulation.loadSpace(loaded_space)
@@ -167,5 +165,71 @@ class IELevel():
             
 
             simulation.canvasWindow.startDrawing()
+
+    @classmethod
+    def exportLevelSilent(self, simulation, path):
+        if(path != ""):
+            simulation.canvasWindow.stopDrawing()
+            cars = []
+            space = simulation.space
+            for shape in space.shapes:
+                if(isinstance(shape, Car)):
+                    cars.append(shape)
+
+                simulation.canvasWindow.canvas.remove(shape.ky)
+                shape.ky = None
+
+            simulation.removeCallbacks()
+            for car in cars:
+                simulation.space.remove(car.body, car)
+
+            space_copy = simulation.space.copy()
+
+            simulation.addCallbacks()
+            for car in cars:
+                simulation.space.add(car.body, car)
+
+            #Try exporting level
+            try:
+                with open(path, "wb") as f:
+                    pickle.dump(space_copy, f, pickle.HIGHEST_PROTOCOL)
+
+            #If exception occured print something
+            except:
+                InfoPopup("Something went wrong!", "Level export", PN.DANGER_ICON)
+                simulation.canvasWindow.startDrawing()
+                return False
+            
+            #If everything went ok
+            else:
+                for shape in space.shapes:
+                    paintObject(shape, simulation.canvasWindow)
+                InfoPopup("Level successfully exported!", "Level export", PN.INFO_ICON)
+                simulation.canvasWindow.startDrawing()
+                return True
+        else:
+            return False
+
+    @classmethod
+    def importLevelSilent(self, simulation, path):
+        if(path != ""):
+            loaded_space = None
+
+            try: #Try importing level
+                with open(path, "rb") as f:
+                    loaded_space = pickle.load(f)
+            except: #If exception occured print something
+                return False
+            else: #If everything went ok
+                simulation.deleteSpace()
+                simulation.loadSpace(loaded_space)
+
+                for shape in simulation.space.shapes:
+                    paintObject(shape, simulation.canvasWindow)
+
+            return True
+        else:
+            return False
+        
         
         

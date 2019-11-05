@@ -438,6 +438,9 @@ class CanvasHandler(RelativeLayout):
             #Closes edit menu (if opened)
             self.window.editMenu.setEditObject(None)
 
+            #Start physics thread
+            self.simulation.startPhysicsThread()
+
             #Load cars
             self.simulation.loadCars(self.savedCars)
             self.savedCars = []
@@ -455,6 +458,9 @@ class CanvasHandler(RelativeLayout):
 
         elif(state == self.EDITOR_STATE):
             self.updateStatebar()
+                
+            #End physics thread
+            self.simulation.endPhysicsThread()
 
             #Save cars
             self.savedCars = self.simulation.getCars()

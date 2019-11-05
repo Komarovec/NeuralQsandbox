@@ -3,9 +3,10 @@
     "",
     "\\MainApplication",
     "\\MainApplication\\ai",
+    "\\MainApplication\\objs",
     "\\MainApplication\\templates",
     "\\MainApplication\\windows"
   ],
-  "SelectedNode": "\\MainApplication\\templates\\canvas.kv",
+  "SelectedNode": "\\remarks",
   "PreviewInSolutionExplorer": false
 }

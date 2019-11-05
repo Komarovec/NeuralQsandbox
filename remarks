@@ -71,3 +71,4 @@
 31.10.2019 - 6h - Threading, paralelizace --> lehka implementace (nový branch, zatím nefunkční)
 1.11.2019 - 4h - Threading, reimplementace fyziky, učení DQN, Remote TF Graphy
 2.11.2019 - 4h - Threading, SGA --> nefunkční
+3.11.2019 - 6h - Threading, SGA opraveno a paralelizováno, crossover stále velmi pomalý (multiprocessing?), stále hodně chyb (vypnití a zapnuti testu...)

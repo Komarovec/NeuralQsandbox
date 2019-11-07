@@ -58,6 +58,7 @@ class SGA():
     #Crossover
     def crossover(self, parents):
         for car in self.population:
+            print("Crossover for {}".format(car))
             model = car.model
 
             #Iterate through layers
@@ -141,7 +142,8 @@ class SGA():
             self.highestRewardedModel = highestRewardedModel
 
         #Make new population
-        self.crossover(parents)
+        with simulation.graph.as_default():
+            self.crossover(parents)
 
         #Respawn population
         for car in self.population:
@@ -161,7 +163,7 @@ class SGA():
         #Episode continues
         for car in self.population:
             if(not car.isDead):
-                car.think(rc=car.calculateRaycasts(simulation.space))
+                car.think(rc=car.calculateRaycasts(simulation.space), graph=simulation.graph)
                 done = False
         
         return done

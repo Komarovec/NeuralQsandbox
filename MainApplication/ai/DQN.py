@@ -84,7 +84,7 @@ class DQN():
         self.memory.append((obs, action, obs1, reward))
 
     #Half Q-Learning
-    def fast_experience_replay(self, model):
+    def fast_experience_replay(self, model, graph):
         if(len(self.memory) < self.batch_size):
             return
 
@@ -95,10 +95,11 @@ class DQN():
 
         for obs, action, obs1, reward in batch:
             #Q Function : Immediate reward + Future reward
-            q_update = reward + self.discount * np.amax(model.predict(obs1)[0])
+            with graph.as_default():
+                q_update = reward + self.discount * np.amax(model.predict(obs1)[0])
 
-            #Predict on current value
-            q_values = model.predict(obs)
+                #Predict on current value
+                q_values = model.predict(obs)
 
             #Update actual Q-Value
             q_values[0][action] = q_update
@@ -111,8 +112,9 @@ class DQN():
         actionsToLearn = np.array(actionsToLearn)
 
         #Fit on calculated Q-Values
-        model.fit(obsToLearn, actionsToLearn, verbose=0)
-        
+        with graph.as_default():
+            model.fit(obsToLearn, actionsToLearn, verbose=0)
+
         #Decrease exploration rate
         self.decayExplorationRate()
 
@@ -162,7 +164,7 @@ class DQN():
             self.remember(obs, action, obs1, reward)
 
             #Experience replay
-            self.fast_experience_replay(self.dqnCar.model)
+            self.fast_experience_replay(self.dqnCar.model, graph=simulation.graph)
 
             #Replace old observation with new observation
             self.tempSAPair = (obs1, action1) 

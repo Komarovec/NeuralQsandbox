@@ -55,6 +55,7 @@ class GameController():
     def setNetwork(self, model):
         self.resetNetwork()
         self.exportModel = model
+        self.simulation.gameController.updateGUI()
 
     #New network
     def resetNetwork(self):
@@ -75,6 +76,9 @@ class GameController():
         self.SGA = SGA(int(config.get('SGA','sga_population_size')), float(config.get('SGA','sga_mutation_rate')))
         self.exportModel = None
         self.game = 0
+
+        #Reset graphics
+        self.updateGUI()
 
         #Start idling
         self.simulation.canvasWindow.changeGameState("exit")
@@ -103,8 +107,10 @@ class GameController():
 
     #Changes state to train
     def startTrain(self, *args):
+        #Pause physics thread
+        self.simulation.endPhysicsThread()
+
         #Prepare game vars
-        self.state = self.LEARNING_STATE
         self.simulation.simulationSpeed = self.trainingSpeed
         self.game = 0
 
@@ -124,14 +130,25 @@ class GameController():
         elif(self.learningType == self.NEAT_LEARN):
             pass
 
+        #Change state last --> Threaded
+        self.state = self.LEARNING_STATE
+
+        #Reset start steps
+        self.startSteps = self.simulation.space.steps
+
+        #Resume physics thread
+        self.simulation.startPhysicsThread()
+
     #Changes state to testing
     def startTest(self):
+        #Pause physics thread
+        self.simulation.endPhysicsThread()
+
         #Load model first
         model = self.exportModel
 
         #Prepare Controller
         self.testCar = None
-        self.state = self.TESTING_STATE
 
         #Prepare enviroment simulation
         self.simulation.simulationSpeed = self.showSpeed
@@ -150,16 +167,33 @@ class GameController():
         #Set camera
         self.simulation.canvasWindow.selectedCar = car
 
+        #Change state last --> Threaded
+        self.state = self.TESTING_STATE
+
+        #Resume physics thread
+        self.simulation.startPhysicsThread()
+
     #Changes state to free play
     def startFreePlay(self):
-        self.state = self.PLAYING_STATE
+        #Pause physics thread
+        self.simulation.endPhysicsThread()
+
         car = self.simulation.addPlayer()
 
         #Set camera
         self.simulation.canvasWindow.selectedCar = car
 
+        #Change state last --> Threaded
+        self.state = self.PLAYING_STATE
+
+        #Resume physics thread
+        self.simulation.startPhysicsThread()
+
     #Changes state to IDLE
     def startIdle(self):
+        #Pause physics thread
+        self.simulation.endPhysicsThread()
+
         #Save model first, but do not save model when playing --> nothing to save
         if(self.state != self.PLAYING_STATE):
             self.exportModel = self.getNetworkFromCar()
@@ -167,6 +201,9 @@ class GameController():
         self.state = self.IDLE_STATE
         self.simulation.simulationSpeed = self.showSpeed
         self.simulation.removeCars()
+
+        #Resume physics thread
+        self.simulation.startPhysicsThread()
 
     #Handle car collisions
     def handleCollision(self, car, otherObject):
@@ -196,22 +233,32 @@ class GameController():
 
         #Update all GUI
         if(self.learningType == self.REINFORCEMENT_LEARN):
+            #Change graph names
+            guiObject.changeGraphLabel(guiObject.graph1, "Deaths", "Reward")
+            guiObject.changeGraphLabel(guiObject.graph2, "Deaths", "Exploration rate")
+
             #Add point to graphs
-            guiObject.addPlotPointRight(self.DQN.deathCount, self.DQN.dqnCar.reward)
-            guiObject.addPlotPointLeft(self.DQN.deathCount, (self.DQN.exploration_rate*100))
+            if(self.DQN.dqnCar != None):
+                guiObject.addPlotPointRight(self.DQN.deathCount, self.DQN.dqnCar.reward)
+                guiObject.addPlotPointLeft(self.DQN.deathCount, (self.DQN.exploration_rate*100))
 
             #Change values overall
             guiObject.setValue1("Learning type", "DQN")
             guiObject.setValue2("Memories", len(self.DQN.memory))
 
             #Current run
-            guiObject.setValue3("Exploration rate", (self.DQN.exploration_rate*100))
-            guiObject.setValue4("Max reward", self.DQN.highestReward)
+            guiObject.setValue3("Exploration rate", round((self.DQN.exploration_rate*100),2))
+            guiObject.setValue4("Max reward", round(self.DQN.highestReward,2))
 
         elif(self.learningType == self.GENETIC_LEARN):
+            #Change graph names
+            guiObject.changeGraphLabel(guiObject.graph1, "Gen", "Fitness")
+            guiObject.changeGraphLabel(guiObject.graph2, "Gen", "MaxFitness")
+
             #Add point to graphs
-            guiObject.addPlotPointRight(self.SGA.generation, self.SGA.highestReward)
-            guiObject.addPlotPointLeft(self.SGA.generation, self.SGA.averageReward)
+            if(self.SGA.generation != 0):
+                guiObject.addPlotPointRight(self.SGA.generation, self.SGA.highestReward)
+                guiObject.addPlotPointLeft(self.SGA.generation, self.SGA.averageReward)
 
             #Change values overall
             guiObject.setValue1("Learning type", "SGA")
@@ -223,6 +270,10 @@ class GameController():
 
         elif(self.learningType == self.NEAT_LEARN):
             pass
+
+        else: #Testing stage
+            pass
+
 
     #End of the Run (Car died or timer is up)
     def endOfRun(self):
@@ -278,4 +329,4 @@ class GameController():
             if(self.testCar != None):
                 car = self.testCar
                 observation = np.array(car.calculateRaycasts(self.simulation.space))
-                car.think(observation)
+                car.think(observation, graph=self.simulation.graph)

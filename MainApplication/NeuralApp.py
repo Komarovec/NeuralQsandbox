@@ -39,9 +39,11 @@ Builder.load_file("templates/canvas.kv")
 
 #Screen manager
 sm = ScreenManager()
-screens = [MainMenuWindow(name="mainmenu"), CanvasWindow(name="canvas")]
-for screen in screens:
-    sm.add_widget(screen)
+mainMenu = MainMenuWindow(name="mainmenu")
+canvasWindow = CanvasWindow(name="canvas")
+
+sm.add_widget(mainMenu)
+sm.add_widget(canvasWindow)
 
 sm.current = "mainmenu"
 

@@ -5,6 +5,9 @@ random.seed(5)
 #Kivy
 from kivy.graphics import Color
 
+#Tensorflow
+import tensorflow as tf
+
 #Pymunk
 import cffi
 import pymunk
@@ -13,11 +16,19 @@ from pymunk.vec2d import Vec2d
 
 import math
 
+#Threading
+import threading as th
+
+from time import sleep
+import os
+import sys
+
 #Custom function and classes
 from objs.GameObjects import StaticGameObject
 from objs.CarAI import CarAI
 from objs.Car import Car
 from objs.kivyObjs import distXY, centerPoint
+from windows.ImportExport import IELevel
 
 from ai.GameController import GameController
 
@@ -31,8 +42,19 @@ class Simulation():
         #Learning vars
         self.gameController = GameController(self)
 
+        #Create thread for physics
+        self.stopThread = True
+
+        #Tensorflow computational graph
+        self.graph = tf.get_default_graph()
+
+        #Default level
+        self.defaultLevel = os.path.abspath(os.path.dirname(sys.argv[0]))+"\levels\conti.lvl"
+
     #Create new space
     def setupSpace(self):
+        self.endPhysicsThread()
+
         self.space = space = pymunk.Space()
 
         self.addCallbacks()
@@ -40,6 +62,8 @@ class Simulation():
         space.gravity = 0, 0
         space.sleep_time_threshold = 0.3
         space.steps = 0
+
+        self.startPhysicsThread()
 
         return space
 
@@ -73,30 +97,65 @@ class Simulation():
 
         self.addCallbacks()
 
-
-    #Creates sample level --> WILL BE REMOVED
+    #First start, setup space and import level
     def start(self):
         self.setupSpace()
 
-        #Spawning objects
-        StaticGameObject(StaticGameObject.BARRIER).createSegment((0,0), (2000,0), 20, self.canvasWindow)
-        StaticGameObject(StaticGameObject.BARRIER).createSegment((2000,0), (2000,1000), 20, self.canvasWindow)
-        StaticGameObject(StaticGameObject.BARRIER).createSegment((2000,1000), (0,1000), 20, self.canvasWindow)
-        StaticGameObject(StaticGameObject.BARRIER).createSegment((0,0), (0,1000), 20, self.canvasWindow)
+        #Check if default level exists
+        if(not IELevel.importLevelSilent(self, self.defaultLevel)):
+            #Spawning objects
+            StaticGameObject(StaticGameObject.BARRIER).createSegment((0,0), (2000,0), 20, self.canvasWindow)
+            StaticGameObject(StaticGameObject.BARRIER).createSegment((2000,0), (2000,1000), 20, self.canvasWindow)
+            StaticGameObject(StaticGameObject.BARRIER).createSegment((2000,1000), (0,1000), 20, self.canvasWindow)
+            StaticGameObject(StaticGameObject.BARRIER).createSegment((0,0), (0,1000), 20, self.canvasWindow)
         
-        start = StaticGameObject(StaticGameObject.START, rgba=(0,.8,0,1))
-        start.createSegment((100,400), (100,600), 20, self.canvasWindow)
+            start = StaticGameObject(StaticGameObject.START, rgba=(0,.8,0,1))
+            start.createSegment((100,400), (100,600), 20, self.canvasWindow)
 
-        finish = StaticGameObject(StaticGameObject.FINISH, rgba=(.8,0,0,1))
-        finish.createSegment((1800,400), (1800,600), 20, self.canvasWindow)
+            finish = StaticGameObject(StaticGameObject.FINISH, rgba=(.8,0,0,1))
+            finish.createSegment((1800,400), (1800,600), 20, self.canvasWindow)
+        
+    """ 
+            Threaded loop functions 
+    """
+    #Start thread --> MUST BE CALLED FROM MAIN THREAD
+    def startPhysicsThread(self):
+        if(hasattr(self, "thread")):
+            if(self.thread != None):
+                self.endPhysicsThread()
+                print("Tried to start a new thread when there still is running thread!") #DEBUG
 
-    #Main looping function
-    def update(self, dt):
-       #Physics simulation
-        for _ in range(self.simulationSpeed):
-            #If training
-            self.trainLoop(dt)
-            self.stepSpace()
+        self.stopThread = False
+        self.thread = th.Thread(target=self.physicsThread, name="PhysicsThread")
+        self.thread.start()
+
+    #End thread --> MUST BE CALLED FROM MAIN THREAD
+    def endPhysicsThread(self):
+        if(hasattr(self, "thread")):
+            if(self.thread != None):
+                self.stopThread = True
+                self.thread.join()
+                self.thread = None
+            else:
+                print("Tried to end non-existing thread! NONE") #DEBUG
+        else:
+            print("Tried to end non-existing thread! ATTR") #DEBUG
+
+    #Thread function for physics
+    def physicsThread(self):
+        while True:
+            self.update()
+            if(self.stopThread):
+                break
+
+    #Main looping function - Run in thread
+    def update(self):
+        #Game logic loop
+        if(self.gameController != None):
+            self.gameController.loop()
+
+        #Physics loop
+        self.stepSpace()
 
     #Step simulation space
     def stepSpace(self):
@@ -119,16 +178,13 @@ class Simulation():
                 shape.body.angular_velocity *= 1 - (self.step*angular_friction)
 
         #Stepping space simul
-        #print()
         self.space.step(self.step)
         self.space.steps += 1
 
 
-    #Training loop
-    def trainLoop(self, dt):
-        if(self.gameController != None):
-            self.gameController.loop()
-
+    """ 
+        Enviroment functions 
+    """
     #Reset level
     def resetLevel(self):
         #Delete all Cars from level and canvas
@@ -139,7 +195,6 @@ class Simulation():
                     shape.deleteRaycasts(self.canvasWindow)
                 self.space.remove(shape.body, shape)
                 self.canvasWindow.canvas.remove(shape.ky)
-
 
     #Adding
     def addSegment(self, a, b, radius, typeVal, collisions, rgba, change="change"):
@@ -288,7 +343,7 @@ class Simulation():
                     spawnPoint = self.getCenterPos(shape)
         
         return spawnPoint
-
+    
     #Find nearest finish
     def findNearestFinish(self, point):
         finishPoint = None

@@ -1,9 +1,10 @@
 
+#RNG
 import random
 random.seed(5)
 
+#KIVY, kivy, kivy!
 import kivy
-kivy.require('1.0.7')
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
@@ -21,6 +22,10 @@ from kivy.graphics import Ellipse, Line, Color, Triangle, Quad, Rectangle, Mesh
 from kivy.core.window import Window
 from kivy.core.image import Image as CoreImage
 
+#Threading
+import threading as th
+
+#Other
 import pymunk
 import math
 import time
@@ -65,6 +70,7 @@ class CanvasHandler(RelativeLayout):
 
         #Draw
         self.isDrawing = True
+        self.isDrawingRaycasts = False
 
         #Adding object
         self.adding_barrier = False
@@ -122,28 +128,24 @@ class CanvasHandler(RelativeLayout):
         self.simulation.gameController.forceStop()
         self.simulation.gameController = GameController(self.simulation)
 
-    #Stops end DELETES entire universe!!
+    #Stops end DELETES entire universe!!d
     def stop(self):
+        self.simulation.endPhysicsThread()
         self.clear_widgets()
         self.update_event.cancel()
         self.canvas.clear()
 
 
     """
-    ----> Main loop method <----
-    
-    Calls for physics computation
-    Handles car controls
-    Undo action
-    Highlighting
-    Drawing
+    ----> Main loop method <---- Ran in main thread
+
     """
     def draw(self, dt):
         self.loops += 1
 
         #Game mode
         if(self.state != "editor"):
-            self.simulation.update(dt)
+            #self.simulation.update()
 
             self.window.statebar.ids["steps"].text = "Steps: "+str(self.simulation.space.steps)
 
@@ -271,7 +273,6 @@ class CanvasHandler(RelativeLayout):
         #If we want to draw
         if(self.isDrawing):
             #Draw all kivy objects from space.shapes
-
             self.paintKivy()
 
             #Update camere if neccesary
@@ -310,8 +311,8 @@ class CanvasHandler(RelativeLayout):
                     shape.ky.points = points_from_poly(shape, scaller)
 
                 if isinstance(shape, CarAI):
-                    pass
-                    #shape.drawRaycasts(self)
+                    if(self.isDrawingRaycasts):
+                        shape.drawRaycasts(self)
 
     #Highlight object
     def highlightObject(self, obj):
@@ -438,6 +439,9 @@ class CanvasHandler(RelativeLayout):
             #Closes edit menu (if opened)
             self.window.editMenu.setEditObject(None)
 
+            #Start physics thread
+            self.simulation.startPhysicsThread()
+
             #Load cars
             self.simulation.loadCars(self.savedCars)
             self.savedCars = []
@@ -455,6 +459,9 @@ class CanvasHandler(RelativeLayout):
 
         elif(state == self.EDITOR_STATE):
             self.updateStatebar()
+                
+            #End physics thread
+            self.simulation.endPhysicsThread()
 
             #Save cars
             self.savedCars = self.simulation.getCars()
@@ -619,7 +626,6 @@ class CanvasHandler(RelativeLayout):
             
             self.simulation.space.reindex_shapes_for_body(self.movingVar.body)
 
-
     def on_touch_down(self, touch):
         #Scale screen if mouse scroll
         if(touch.button == "scrolldown"):
@@ -659,12 +665,12 @@ class CanvasHandler(RelativeLayout):
                 with self.canvas:
                     Color(1,0,0,0.5)
                     if(self.addingShape == "Segment"):
-                        temp_shape = Line(points = [p[0], p[1], p[0], p[1]], width = 10)
+                        temp_shape = Line(points = [p[0], p[1], p[0], p[1]], width = 20*self.scaller)
                     elif(self.addingShape == "Circle"):
                         temp_shape = Ellipse(pos=(p[0]+1, p[1]+1), size=(1,1))
                     elif(self.addingShape == "Box"):
                         if(self.addingStage == 0):
-                            temp_shape = Line(points = [p[0], p[1], p[0], p[1]], width = 10)
+                            temp_shape = Line(points = [p[0], p[1], p[0], p[1]], width = 20*self.scaller)
                         else:
                             temp_shape = self.temp_barrier
                 

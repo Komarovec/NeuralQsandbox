@@ -55,6 +55,7 @@ class GameController():
     def setNetwork(self, model):
         self.resetNetwork()
         self.exportModel = model
+        self.simulation.gameController.updateGUI()
 
     #New network
     def resetNetwork(self):
@@ -75,6 +76,9 @@ class GameController():
         self.SGA = SGA(int(config.get('SGA','sga_population_size')), float(config.get('SGA','sga_mutation_rate')))
         self.exportModel = None
         self.game = 0
+
+        #Reset graphics
+        self.updateGUI()
 
         #Start idling
         self.simulation.canvasWindow.changeGameState("exit")
@@ -229,22 +233,32 @@ class GameController():
 
         #Update all GUI
         if(self.learningType == self.REINFORCEMENT_LEARN):
+            #Change graph names
+            guiObject.changeGraphLabel(guiObject.graph1, "Deaths", "Reward")
+            guiObject.changeGraphLabel(guiObject.graph2, "Deaths", "Exploration rate")
+
             #Add point to graphs
-            guiObject.addPlotPointRight(self.DQN.deathCount, self.DQN.dqnCar.reward)
-            guiObject.addPlotPointLeft(self.DQN.deathCount, (self.DQN.exploration_rate*100))
+            if(self.DQN.dqnCar != None):
+                guiObject.addPlotPointRight(self.DQN.deathCount, self.DQN.dqnCar.reward)
+                guiObject.addPlotPointLeft(self.DQN.deathCount, (self.DQN.exploration_rate*100))
 
             #Change values overall
             guiObject.setValue1("Learning type", "DQN")
             guiObject.setValue2("Memories", len(self.DQN.memory))
 
             #Current run
-            guiObject.setValue3("Exploration rate", (self.DQN.exploration_rate*100))
-            guiObject.setValue4("Max reward", self.DQN.highestReward)
+            guiObject.setValue3("Exploration rate", round((self.DQN.exploration_rate*100),2))
+            guiObject.setValue4("Max reward", round(self.DQN.highestReward,2))
 
         elif(self.learningType == self.GENETIC_LEARN):
+            #Change graph names
+            guiObject.changeGraphLabel(guiObject.graph1, "Gen", "Fitness")
+            guiObject.changeGraphLabel(guiObject.graph2, "Gen", "MaxFitness")
+
             #Add point to graphs
-            guiObject.addPlotPointRight(self.SGA.generation, self.SGA.highestReward)
-            guiObject.addPlotPointLeft(self.SGA.generation, self.SGA.averageReward)
+            if(self.SGA.generation != 0):
+                guiObject.addPlotPointRight(self.SGA.generation, self.SGA.highestReward)
+                guiObject.addPlotPointLeft(self.SGA.generation, self.SGA.averageReward)
 
             #Change values overall
             guiObject.setValue1("Learning type", "SGA")
@@ -256,6 +270,10 @@ class GameController():
 
         elif(self.learningType == self.NEAT_LEARN):
             pass
+
+        else: #Testing stage
+            pass
+
 
     #End of the Run (Car died or timer is up)
     def endOfRun(self):

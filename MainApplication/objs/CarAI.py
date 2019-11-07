@@ -3,6 +3,7 @@ import pymunk
 import pymunk.autogeometry
 from pymunk.vec2d import Vec2d
 from kivy.graphics import Color, Quad, Line
+from kivy.app import App
 import math
 import numpy as np
 from statistics import median, mean
@@ -27,10 +28,12 @@ class CarAI(Car):
         super(CarAI, self).__init__(mass, size, pos, friction, ground_friction, angular_friction, forward_speed, 
                                     backward_speed, angular_speed, elasticity, rgba, texture)
         
+        config = App.get_running_app().config
+
         self.objectType = self.CARAI
         self.raycastLenght = 2000
-        self.raycastAngle = np.radians(45)
-        self.raycastCount = 2
+        self.raycastAngle = np.radians(float(config.get('Game','angleraycasts')))
+        self.raycastCount = int(config.get('Game','numraycasts'))
         self.raycastObjects = []
 
         self.action_space = 3
@@ -49,6 +52,7 @@ class CarAI(Car):
             self.model = SequentialModel(self.raycastCount+1, self.action_space, self.learningRate)
         else:
             self.model = model
+            self.raycastCount = self.model.layers[0].input_shape[1]-1
 
     #Calculate distance for every raycast
     def calculateRaycasts(self, space):

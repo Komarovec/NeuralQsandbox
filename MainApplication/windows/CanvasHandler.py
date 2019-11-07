@@ -70,6 +70,7 @@ class CanvasHandler(RelativeLayout):
 
         #Draw
         self.isDrawing = True
+        self.isDrawingRaycasts = False
 
         #Adding object
         self.adding_barrier = False
@@ -310,8 +311,8 @@ class CanvasHandler(RelativeLayout):
                     shape.ky.points = points_from_poly(shape, scaller)
 
                 if isinstance(shape, CarAI):
-                    pass
-                    #shape.drawRaycasts(self)
+                    if(self.isDrawingRaycasts):
+                        shape.drawRaycasts(self)
 
     #Highlight object
     def highlightObject(self, obj):

@@ -2,6 +2,7 @@ MainApplication/dist/
 MainApplication/build/
 MainApplication/__pycache__/
 .vscode/
+.vs/
 venv/
 build/
 dist/

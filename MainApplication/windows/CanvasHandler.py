@@ -293,26 +293,27 @@ class CanvasHandler(RelativeLayout):
         #Repaint all graphics
         for shape in self.simulation.space.shapes:
             if(hasattr(shape, "ky") and (not shape.body.is_sleeping or scallerChanged)):
-                if isinstance(shape, pymunk.Circle):
-                    body = shape.body
-                    shape.ky.size = [shape.radius*2*self.scaller, shape.radius*2*self.scaller]
-                    shape.ky.pos = (body.position - (shape.radius, shape.radius)) * (self.scaller, self.scaller)
+                if(shape.ky != None):
+                    if isinstance(shape, pymunk.Circle):
+                        body = shape.body
+                        shape.ky.size = [shape.radius*2*self.scaller, shape.radius*2*self.scaller]
+                        shape.ky.pos = (body.position - (shape.radius, shape.radius)) * (self.scaller, self.scaller)
 
-                if isinstance(shape, pymunk.Segment):
-                    #If Is barrier class than increase width by scaller
-                    shape.ky.width = shape.radius * self.scaller
+                    if isinstance(shape, pymunk.Segment):
+                        #If Is barrier class than increase width by scaller
+                        shape.ky.width = shape.radius * self.scaller
 
-                    body = shape.body
-                    p1 = body.position + shape.a.cpvrotate(body.rotation_vector) 
-                    p2 = body.position + shape.b.cpvrotate(body.rotation_vector)
-                    shape.ky.points = p1.x * self.scaller, p1.y * self.scaller, p2.x * self.scaller, p2.y * self.scaller
+                        body = shape.body
+                        p1 = body.position + shape.a.cpvrotate(body.rotation_vector) 
+                        p2 = body.position + shape.b.cpvrotate(body.rotation_vector)
+                        shape.ky.points = p1.x * self.scaller, p1.y * self.scaller, p2.x * self.scaller, p2.y * self.scaller
 
-                if isinstance(shape, pymunk.Poly):
-                    shape.ky.points = points_from_poly(shape, scaller)
+                    if isinstance(shape, pymunk.Poly):
+                        shape.ky.points = points_from_poly(shape, scaller)
 
-                if isinstance(shape, CarAI):
-                    if(self.isDrawingRaycasts):
-                        shape.drawRaycasts(self)
+                    if isinstance(shape, CarAI):
+                        if(self.isDrawingRaycasts):
+                            shape.drawRaycasts(self)
 
     #Highlight object
     def highlightObject(self, obj):

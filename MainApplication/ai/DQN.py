@@ -33,6 +33,9 @@ class DQN():
         #Learning object
         self.dqnCar = None
 
+        #Test vars
+        self.memoryStep = 0
+
     #Reset exploration rate
     def resetExplorationRate(self):
         self.exploration_rate = self.exploration_max
@@ -133,38 +136,46 @@ class DQN():
         
         #Every other time-step
         else:
-            #Load prev state-actions
-            obs = self.tempSAPair[0]
-            action = self.tempSAPair[1]
+            #Memory step
+            self.memoryStep += 1
+            if(self.memoryStep >= 3):
+                self.memoryStep = 0
 
-            #Calculate immediate reward
-            reward = 1
+            if(self.memoryStep == 0):
+                #Load prev state-actions
+                obs = self.tempSAPair[0]
+                action = self.tempSAPair[1]
 
-            #Reward if fast
-            pos0 = self.pos0
-            pos1 = self.dqnCar.body.position
-            self.pos0 = pos1
-            vel = distXY(pos0, pos1)
-            if(vel >= 7.5):
-                reward = 2
+                #Calculate immediate reward
+                reward = 1
+
+                #Reward if fast
+                pos0 = self.pos0
+                pos1 = self.dqnCar.body.position
+                self.pos0 = pos1
+                vel = distXY(pos0, pos1)
+                if((vel/2) >= 7.5 and (vel/2) < 20):
+                    reward = 2
+                    print(vel/2)
+               
             
-            #Punish if close to the wall
-            for ob in obs[0]:
-                if(ob < 0.1):
-                    reward = -1/(ob*100)
+                #Punish if close to the wall
+                for ob in obs[0]:
+                    if(ob < 0.1):
+                        reward = -1/(ob*100)
 
-            #Punish if died
-            if(self.dqnCar.isDead):
-                reward = -10
+                #Punish if died
+                if(self.dqnCar.isDead):
+                    reward = -10
             
-            #Add reward to overall reward
-            self.dqnCar.reward += reward
+                #Add reward to overall reward
+                self.dqnCar.reward += reward
 
-            #Remember state-action pairs
-            self.remember(obs, action, obs1, reward)
+                #Remember state-action pairs
+                self.remember(obs, action, obs1, reward)
 
-            #Experience replay
-            self.fast_experience_replay(self.dqnCar.model, graph=simulation.graph)
+                #Experience replay
+                self.fast_experience_replay(self.dqnCar.model, graph=simulation.graph)
 
-            #Replace old observation with new observation
-            self.tempSAPair = (obs1, action1) 
+                #Replace old observation with new observation
+                self.tempSAPair = (obs1, action1) 

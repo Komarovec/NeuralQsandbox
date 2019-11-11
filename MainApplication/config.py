@@ -28,7 +28,7 @@ ai_settings_json = json.dumps([
      "desc": "Change the way neural network is learned.",
      "section": "AI",
      "key": "learn_type",
-     "options": ["DQN","SGA"]},
+     "options": ["DQN"]},
 
     {"type": "options",
      "title": "Network type",
@@ -75,20 +75,5 @@ ai_settings_json = json.dumps([
      "desc": "Change model of ER",
      "section": "DQN",
      "key": "dqn_experience_type",
-     "options": ["ER","HER","PER"]},
-
-
-    {"type": "title",
-     "title": "SGA settings"},
-    {"type": "multiplier",
-     "title": "Mutation rate",
-     "desc": "How often will mutation occur.",
-     "section": "SGA",
-     "key": "sga_mutation_rate"},
-
-    {"type": "population",
-     "title": "Population size",
-     "desc": "How many individuals will be created. 8 - 50",
-     "section": "SGA",
-     "key": "sga_population_size"}
+     "options": ["ER"]},
 ])

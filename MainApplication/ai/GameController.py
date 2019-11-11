@@ -15,8 +15,6 @@ class GameController():
     PLAYING_STATE = 3
 
     REINFORCEMENT_LEARN = "reinforcement"
-    GENETIC_LEARN = "genetic"
-    NEAT_LEARN = "neat"
 
     def __init__(self, simulation):
         self.simulation = simulation
@@ -31,7 +29,6 @@ class GameController():
 
         #Learning objects
         self.DQN = DQN()
-        self.SGA = SGA()
 
         #Cars
         self.testCar = None
@@ -73,7 +70,6 @@ class GameController():
                     float(config.get('DQN','dqn_exploration_max')), float(config.get('DQN','dqn_exploration_decay')), 
                     int(config.get('DQN','dqn_batch_size')))
 
-        self.SGA = SGA(int(config.get('SGA','sga_population_size')), float(config.get('SGA','sga_mutation_rate')))
         self.exportModel = None
         self.game = 0
 
@@ -91,11 +87,6 @@ class GameController():
             if(self.learningType == self.REINFORCEMENT_LEARN):
                 if(self.DQN.dqnCar != None):
                     return self.DQN.dqnCar.model
-
-            #via Genetic learn
-            elif(self.learningType == self.GENETIC_LEARN):
-                if(self.SGA.highestRewardedModel != None):
-                    return self.SGA.highestRewardedModel.model
         
         #Return testCar if testing
         elif(self.state == self.TESTING_STATE):
@@ -117,18 +108,6 @@ class GameController():
         #Prepare DQN
         if(self.learningType == self.REINFORCEMENT_LEARN):
             self.DQN.respawnCar(self.simulation)
-        
-        #Prepare SGA
-        elif(self.learningType == self.GENETIC_LEARN):
-            #If no population generate it
-            if(self.SGA.population == []):
-                self.SGA.randomPopulation(self.simulation)
-            else:
-                self.simulation.loadCars(self.SGA.population)
-
-        #Prepare NEAT
-        elif(self.learningType == self.NEAT_LEARN):
-            pass
 
         #Change state last --> Threaded
         self.state = self.LEARNING_STATE
@@ -214,10 +193,6 @@ class GameController():
         #Learning
         if(self.state == self.LEARNING_STATE):
             car.kill(self.simulation.canvasWindow)
-
-            #When learning by neuroevolution calculate fitness on death
-            if(self.learningType == self.GENETIC_LEARN):
-                self.SGA.carDied(car, self.simulation)
         
         #Testing
         elif(self.state == self.TESTING_STATE):
@@ -250,27 +225,6 @@ class GameController():
             guiObject.setValue3("Exploration rate", round((self.DQN.exploration_rate*100),2))
             guiObject.setValue4("Max reward", round(self.DQN.highestReward,2))
 
-        elif(self.learningType == self.GENETIC_LEARN):
-            #Change graph names
-            guiObject.changeGraphLabel(guiObject.graph1, "Gen", "Fitness")
-            guiObject.changeGraphLabel(guiObject.graph2, "Gen", "MaxFitness")
-
-            #Add point to graphs
-            if(self.SGA.generation != 0):
-                guiObject.addPlotPointRight(self.SGA.generation, self.SGA.highestReward)
-                guiObject.addPlotPointLeft(self.SGA.generation, self.SGA.averageReward)
-
-            #Change values overall
-            guiObject.setValue1("Learning type", "SGA")
-            guiObject.setValue2("Generation", self.SGA.generation)
-
-            #Current run
-            guiObject.setValue3("Average reward", self.SGA.averageReward)
-            guiObject.setValue4("Max reward", self.SGA.highestReward)
-
-        elif(self.learningType == self.NEAT_LEARN):
-            pass
-
         else: #Testing stage
             pass
 
@@ -285,13 +239,6 @@ class GameController():
         if(self.learningType == self.REINFORCEMENT_LEARN):
             #Prepare for next game
             self.DQN.respawnCar(self.simulation)
-
-        elif(self.learningType == self.GENETIC_LEARN):
-            #Generate new population
-            self.SGA.newPopulation(self.simulation)
-
-        elif(self.learningType == self.NEAT_LEARN):
-            pass
 
         #Reset timer
         self.startSteps = self.simulation.space.steps
@@ -314,15 +261,6 @@ class GameController():
                 #Current test continues --> Did NOT died
                 else:
                     self.DQN.step(self.simulation)
-            
-            #SGA Learning
-            elif(self.learningType == self.GENETIC_LEARN):
-                if(self.SGA.isDone(self.simulation)):
-                    self.endOfRun()
-
-            #NEAT Learning
-            elif(self.learningType == self.NEAT_LEARN):
-                pass
 
         #Testing model
         elif(self.state == self.TESTING_STATE):

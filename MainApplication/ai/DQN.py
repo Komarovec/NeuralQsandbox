@@ -123,59 +123,57 @@ class DQN():
 
     #Calls every step
     def step(self, simulation):
-        #Take observation
-        obs1 = self.dqnCar.calculateRaycasts(simulation.space)
-        action1 = self.act(self.dqnCar.model, obs1, action_space=self.dqnCar.action_space)
+        #Memory step
+        self.memoryStep += 1
+        if(self.memoryStep >= 3):
+            self.memoryStep = 0
 
-        self.dqnCar.think(None, action1)
+        if(self.memoryStep == 0):
+            #Take observation
+            obs1 = self.dqnCar.calculateRaycasts(simulation.space)
+            action1 = self.act(self.dqnCar.model, obs1, action_space=self.dqnCar.action_space)
 
-        #First time-step --> Save obs & action and use them in next time-step
-        if(self.tempSAPair == None):
-            self.tempSAPair = (obs1, action1)
-            self.pos0 = self.dqnCar.body.position
-        
-        #Every other time-step
-        else:
-            #Memory step
-            self.memoryStep += 1
-            if(self.memoryStep >= 3):
-                self.memoryStep = 0
+            self.dqnCar.think(None, action1)
 
-            if(self.memoryStep == 0):
-                #Load prev state-actions
-                obs = self.tempSAPair[0]
-                action = self.tempSAPair[1]
+            #First time-step --> Save obs & action and use them in next time-step
+            if(self.tempSAPair == None):
+                self.tempSAPair = (obs1, action1)
+                self.pos0 = self.dqnCar.body.position
 
-                #Calculate immediate reward
-                reward = 1
+            #Load prev state-actions
+            obs = self.tempSAPair[0]
+            action = self.tempSAPair[1]
 
-                #Reward if fast
-                pos0 = self.pos0
-                pos1 = self.dqnCar.body.position
-                self.pos0 = pos1
-                vel = distXY(pos0, pos1)
-                if((vel/2) >= 7.5 and (vel/2) < 20):
-                    reward = 2
-                    print(vel/2)
+            #Calculate immediate reward
+            reward = 0
+
+            #Reward if fast
+            pos0 = self.pos0
+            pos1 = self.dqnCar.body.position
+            self.pos0 = pos1
+            vel = distXY(pos0, pos1)
+            if(vel >= 7.5 and vel < 20):
+                reward = 2
+                print(vel)
                
             
-                #Punish if close to the wall
-                for ob in obs[0]:
-                    if(ob < 0.1):
-                        reward = -1/(ob*100)
+            #Punish if close to the wall
+            for ob in obs[0]:
+                if(ob < 0.1):
+                    reward = -1/(ob*100)
 
-                #Punish if died
-                if(self.dqnCar.isDead):
-                    reward = -10
+            #Punish if died
+            if(self.dqnCar.isDead):
+                reward = -10
             
-                #Add reward to overall reward
-                self.dqnCar.reward += reward
+            #Add reward to overall reward
+            self.dqnCar.reward += reward
 
-                #Remember state-action pairs
-                self.remember(obs, action, obs1, reward)
+            #Remember state-action pairs
+            self.remember(obs, action, obs1, reward)
 
-                #Experience replay
-                self.fast_experience_replay(self.dqnCar.model, graph=simulation.graph)
+            #Experience replay
+            self.fast_experience_replay(self.dqnCar.model, graph=simulation.graph)
 
-                #Replace old observation with new observation
-                self.tempSAPair = (obs1, action1) 
+            #Replace old observation with new observation
+            self.tempSAPair = (obs1, action1) 

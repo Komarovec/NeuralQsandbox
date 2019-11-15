@@ -74,3 +74,4 @@
 3.11.2019 - 6h - Threading, SGA opraveno a paralelizováno, crossover stále velmi pomalý (multiprocessing?), stále hodně chyb (vypnití a zapnuti testu...)
 6.11.2019 - 3h - Threading, oprava bugů a extrémních situací
 7.11.2019 - 6h - Threading implementován., Grafy konečně ukazují správné hodnoty pořád, Více možností v nastavení (Uhel a počet raycastů)
+15.11.2019 - 5h - Raycasty nyni funguji mnohem lepe a jsou optimalizovane /Kivy best practices/ :), DQN Memory step implementovany i do test módu  

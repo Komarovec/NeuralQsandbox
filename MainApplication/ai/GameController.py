@@ -21,6 +21,10 @@ class GameController():
         self.bestPercentage = 0.2
         self.game = 0
 
+        #Skip step
+        self.memoryStep = 0;
+        self.memoryAction = None;
+
         #Training vars
         self.learningType = self.REINFORCEMENT_LEARN
         self.state = self.IDLE_STATE
@@ -260,11 +264,24 @@ class GameController():
 
                 #Current test continues --> Did NOT died
                 else:
-                    self.DQN.step(self.simulation)
+                    if(self.memoryStep == 0):
+                        self.DQN.step(self.simulation)
+                    else:
+                        self.DQN.dqnCar.takeLastAction()
 
         #Testing model
         elif(self.state == self.TESTING_STATE):
             if(self.testCar != None):
                 car = self.testCar
-                observation = np.array(car.calculateRaycasts(self.simulation.space))
-                car.think(observation, graph=self.simulation.graph)
+
+                if(self.memoryStep == 0):
+                    observation = np.array(car.calculateRaycasts(self.simulation.space))
+                    car.think(observation, graph=self.simulation.graph)
+                else:
+                    car.takeLastAction()
+
+        #Reset memory step
+        if(self.state != self.PLAYING_STATE):
+            self.memoryStep += 1
+            if(self.memoryStep >= 3):
+                self.memoryStep = 0;

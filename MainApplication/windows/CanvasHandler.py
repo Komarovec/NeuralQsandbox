@@ -313,7 +313,8 @@ class CanvasHandler(RelativeLayout):
 
                     if isinstance(shape, CarAI):
                         if(self.isDrawingRaycasts):
-                            shape.drawRaycasts(self)
+                            pass
+                            #shape.drawRaycasts(self)
 
     #Highlight object
     def highlightObject(self, obj):

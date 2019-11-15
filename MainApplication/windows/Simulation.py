@@ -49,7 +49,7 @@ class Simulation():
         self.graph = tf.get_default_graph()
 
         #Default level
-        self.defaultLevel = os.path.abspath(os.path.dirname(sys.argv[0]))+"\levels\conti.lvl"
+        self.defaultLevel = os.path.abspath(os.path.dirname(sys.argv[0]))+"/levels/conti.lvl"
 
     #Create new space
     def setupSpace(self):
@@ -173,7 +173,7 @@ class Simulation():
                 if(shape.body.velocity.length < 0.001):
                     shape.body.velocity = Vec2d(0,0)
 
-                #Apply friction every frame *not frame dependent /dt/*
+                #Apply friction every step
                 shape.body.velocity *= 1 - (self.step*friction)
                 shape.body.angular_velocity *= 1 - (self.step*angular_friction)
 
@@ -192,7 +192,7 @@ class Simulation():
             if(isinstance(shape, Car)):
                 #Delete any raycast if CarAI
                 if(isinstance(shape, CarAI)):
-                    shape.deleteRaycasts(self.canvasWindow)
+                    shape.deleteRaycasts(self)
                 self.space.remove(shape.body, shape)
                 self.canvasWindow.canvas.remove(shape.ky)
 
@@ -276,11 +276,12 @@ class Simulation():
         for car in cars:
             car.paint(self.canvasWindow)
 
-    #Add one car as a AI model
+    #Add one car as an AI model
     def addCarAI(self, model=None):
         point = self.findSpawnpoint()
         if(point != None):
             car = CarAI(10, (100,50), self.findSpawnpoint(), ground_friction=1, angular_friction=3, model=model)
+            car.createRaycasts(self)
             self.space.add(car.body, car)
             self.repaintObjects()
             return car
@@ -315,6 +316,8 @@ class Simulation():
         
         for car in cars:
             self.space.add(car.body, car)
+            if(isinstance(car, CarAI)):
+                car.loadRaycasts(self)
             car.paint(self.canvasWindow)
         
         self.canvasWindow.selectedCar = cars[0]
@@ -327,7 +330,7 @@ class Simulation():
             if(isinstance(shape, Car)):
                 #Delete any raycast if CarAI
                 if(isinstance(shape, CarAI)):
-                    shape.deleteRaycasts(self.canvasWindow)
+                    shape.deleteRaycasts(self)
                 self.space.remove(shape.body, shape)
                 self.canvasWindow.canvas.remove(shape.ky)
 

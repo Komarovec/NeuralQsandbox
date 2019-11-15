@@ -228,6 +228,14 @@ class NeuralApp(App):
         sm.transition.direction = 'right'
         sm.current = 'mainmenu'
 
+    #On config change
+    def on_config_change(self, config, section, key, value):
+        global canvasWindow
+        if config is self.config:
+            token = (section, key)
+            if token == ('Game', 'boolraycasts'):
+                canvasWindow.game.isDrawingRaycasts = (int(value) != 0)
+
     #Called when exiting canvas
     def exit_game(self):
         ConfirmPopup("Exiting will erase your progress!\n Do you really wish to continue?", 

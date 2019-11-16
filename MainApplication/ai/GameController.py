@@ -254,6 +254,8 @@ class GameController():
     def loop(self):
         # Training model
         if(self.state == self.LEARNING_STATE):
+            if(self.DQN.dqnCar == None): return
+
             # If time ran out end the round without punish
             if((self.simulation.space.steps-self.startSteps) > self.stepLimit):
                 self.endOfRun()

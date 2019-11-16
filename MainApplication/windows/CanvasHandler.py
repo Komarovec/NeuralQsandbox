@@ -44,6 +44,9 @@ class CanvasHandler(RelativeLayout):
     GAME_STATE = "game"
     EDITOR_STATE = "editor"
 
+    # Thread signals
+    TS_SPAWN_ERROR = "spawnerror"
+
     def init(self, window):
         # Important values
         self.touches = {}
@@ -86,6 +89,9 @@ class CanvasHandler(RelativeLayout):
 
         # Highlighted object
         self.tempHighlight = None
+
+        #Thread signals
+        self.t_signal = None
 
     def start(self, simulation):
         self.simulation = simulation
@@ -138,6 +144,9 @@ class CanvasHandler(RelativeLayout):
     """
     def draw(self, dt):
         self.loops += 1
+        
+        # Check thread signals
+        self.checkSignals()
 
         # Game mode
         if(self.state != "editor"):
@@ -265,7 +274,6 @@ class CanvasHandler(RelativeLayout):
                     elif(self.tempHighlight != None):
                         self.canvas.remove(self.tempHighlight)
                         self.tempHighlight = None
-
         # If we want to draw
         if(self.isDrawing):
             # Draw all kivy objects from space.shapes
@@ -273,6 +281,15 @@ class CanvasHandler(RelativeLayout):
 
             # Update camere if neccesary
             self.updateCamera()
+
+    # Check thread signals
+    def checkSignals(self):
+        if(self.t_signal == None): return
+
+        if(self.t_signal == self.TS_SPAWN_ERROR):
+            InfoPopup("Error! Can't spawn agent!\nMaybe Start is missing?", "Spawn error", PN.WARNING_ICON)
+            self.simulation.canvasWindow.changeGameState("exit")
+            self.t_signal = None
 
     # Painting all objects in space.shapes // calculates scaller
     def paintKivy(self):
@@ -364,6 +381,7 @@ class CanvasHandler(RelativeLayout):
 
     # Pickle export
     def exportFile(self):
+        self.changeGameState("exit")
         IELevel.exportLevel(self.simulation)
         self.focus = True
 
@@ -371,6 +389,7 @@ class CanvasHandler(RelativeLayout):
     def importFile(self):
         IELevel.importLevel(self.simulation)
         self.focus = True
+        self.changeGameState("exit")
 
     # Export neural network
     def exportNetwork(self):
@@ -384,6 +403,7 @@ class CanvasHandler(RelativeLayout):
             model = IENetwork.importNetwork(self.simulation)
             self.simulation.gameController.setNetwork(model)
             self.focus = True
+            self.changeGameState("exit")
 
         ConfirmPopup("All progress will be lost!\nAre you sure?", "Importing network", importNetworkConfirmed, PN.WARNING_ICON)
 

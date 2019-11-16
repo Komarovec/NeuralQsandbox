@@ -8,6 +8,8 @@ from collections import deque
 # Sequence generator
 from ai.SeqGen import SeqGen
 from objs.kivyObjs import distXY
+from windows.PopNot import InfoPopup
+import windows.PopNot as PN
 
 class DQN():
     def __init__(self, discount=0.95, exploration_min=0.01, exploration_max=1, exploration_decay=0.995, batch_size=20):
@@ -58,10 +60,12 @@ class DQN():
         # If respawn save brain then load it again
         if(self.dqnCar != None):
             self.dqnCar = simulation.addCarAI(self.dqnCar.model)
-
         # First spawn --> create brain
         else:
             self.dqnCar = simulation.addCarAI()
+
+        # Test car
+        if(self.dqnCar == None): return
 
         # Set camera
         simulation.canvasWindow.selectedCar = self.dqnCar

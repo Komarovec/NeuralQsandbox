@@ -158,7 +158,6 @@ class CarAI(Car):
                                 raycast.b[0]*canvasHandler.scaller,raycast.b[1]*canvasHandler.scaller)
                 raycast.ky = Line(points=scalled_points, width=raycast.radius*canvasHandler.scaller)
 
-
     # Delete raycasts from canvas
     def deleteRaycasts(self, simulation):
         for raycast in self.raycastObjects:

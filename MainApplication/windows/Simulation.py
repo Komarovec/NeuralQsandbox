@@ -282,6 +282,7 @@ class Simulation():
             self.repaintObjects()
             return car
         else:
+            self.canvasWindow.t_signal = self.canvasWindow.TS_SPAWN_ERROR
             return None
 
     # Add one car as a player
@@ -293,6 +294,7 @@ class Simulation():
             self.repaintObjects()
             return car
         else:
+            self.canvasWindow.t_signal = self.canvasWindow.TS_SPAWN_ERROR
             return None
 
     # Returns all car instances from space.shapes
@@ -441,21 +443,16 @@ class Simulation():
         if(isinstance(arbiter.shapes[0], Car) or isinstance(arbiter.shapes[1], Car)):        
             car = None
             otherObject = None
-
             if(isinstance(arbiter.shapes[0], Car)):
                 car = arbiter.shapes[0]
                 otherObject = arbiter.shapes[1]
-
             else:
                 car = arbiter.shapes[1]
                 otherObject = arbiter.shapes[0]
 
-
             if(otherObject.objectType != StaticGameObject.START):
                 self.gameController.handleCollision(car, otherObject)
-
             return True
-
         return True
 
     def coll_pre(self, arbiter, space, data):

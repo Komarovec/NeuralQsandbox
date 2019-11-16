@@ -1,4 +1,4 @@
-#:kivy 1.0
+# :kivy 1.0
 
 
 
@@ -61,7 +61,7 @@
             Rectangle:
                 size: self.size
                 pos: self.pos
-                #radius: [(root.width+root.height)/ root.scaleFactor,]
+                # radius: [(root.width+root.height)/ root.scaleFactor,]
 
         ToggleButton:
             id: deleteBtn
@@ -85,7 +85,7 @@
             id: inObjectMenu
             rows: 4
             spacing: 2
-            #padding: 0,50,0,50
+            # padding: 0,50,0,50
             size: self.parent.size
             pos: self.parent.pos
 
@@ -108,9 +108,9 @@
             Rectangle:
                 size: self.size
                 pos: self.pos
-                #radius: [(root.width+root.height)/ root.scaleFactor,]
+                # radius: [(root.width+root.height)/ root.scaleFactor,]
 
-        #Deleting
+        # Deleting
         Label:
             text: "Tools"
             size_hint: 1,0.15
@@ -124,7 +124,7 @@
         Separator:
             color: .2, .2, .2, 1
 
-        #Change layer position
+        # Change layer position
         Label:
             text: "Layer shift"
             size_hint: 1,0.15
@@ -161,7 +161,7 @@
         Separator:
             color: .2, .2, .2, 1
 
-        #Properties editing
+        # Properties editing
         Label:
             text: "Properties"
             size_hint: 1,0.15
@@ -169,7 +169,7 @@
             id: inEditMenu
             rows: 4
             spacing: 2
-            #padding: 0,50,0,50
+            # padding: 0,50,0,50
             size: self.parent.size
             pos: self.parent.pos
 
@@ -192,7 +192,7 @@
             Rectangle:
                 size: self.size
                 pos: self.pos
-                #radius: [(root.width+root.height)/ root.scaleFactor,]
+                # radius: [(root.width+root.height)/ root.scaleFactor,]
 
         BoxLayout:
             orientation: "vertical"
@@ -293,27 +293,27 @@
                 pos: self.pos
                 size: self.size
 
-        #Base layout
+        # Base layout
         BoxLayout:
             orientation: 'horizontal'
             pos: self.pos
             size: self.size
 
-            #Graph2
+            # Graph2
             BoxLayout:
                 id: graph2
                 orientation: "vertical"
 
-                #Graph2
+                # Graph2
 
-            #Graph1
+            # Graph1
             BoxLayout:
                 id: graph1
                 orientation: "vertical"
 
-                #Graph1
+                # Graph1
 
-            #Other info
+            # Other info
             BoxLayout:
                 id: info
                 orientation: "vertical"
@@ -325,7 +325,7 @@
                         pos: self.pos[0], self.pos[1]
                         size: self.size[0], self.size[1]
 
-                #Info about current session
+                # Info about current session
                 BoxLayout:
                     orientation: "vertical"
                     
@@ -349,7 +349,7 @@
                 Separator:
                     color: 1,1,1,0
 
-                #Overall info
+                # Overall info
                 BoxLayout:
                     orientation: "vertical"
 
@@ -379,16 +379,16 @@
     app_icon_width: 40
     app_icon_height: 40
 
-    #width: len(self.title) * 10
-    #size_hint_x: None
+    # width: len(self.title) * 10
+    # size_hint_x: None
 
 <ToolBarEditor>:
-    #Editor action bar
+    # Editor action bar
     BoxLayout:
         orientation: "horizontal"
         size: root.width, root.height
 
-        #Special bar
+        # Special bar
         ActionBar:
             id: mainActionBarGame
             pos_hint: {"top": 1}
@@ -408,20 +408,20 @@
                     on_press:
                         root.screen.endLevelEditor()
 
-                #Tools
+                # Tools
                 ActionGroup:
                     mode: 'spinner'
                     text: 'Tools'
                     font_size: root.scaleFactor/12.5
                     
-                    #Obect menu
+                    # Obect menu
                     ActionButton:
                         text: 'Tool window'
                         font_size: root.scaleFactor/12.5
                         on_press:
                             root.screen.toggleObjectMenu()
 
-            #Common bar
+            # Common bar
             ActionView:
                 HiddenIcon_ActionPrevious:
                     title: ''
@@ -429,11 +429,16 @@
                     app_icon: ''
                     font_size: root.scaleFactor/12.5
 
-                #Level interaction buttons
+                # Level interaction buttons
                 ActionGroup:
                     mode: 'spinner'
                     text: 'Level'
                     font_size: root.scaleFactor/12.5
+					ActionButton:
+                        text: 'New Level'
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.simulation.deleteSpace()
                     ActionButton:
                         text: 'Save Level'
                         font_size: root.scaleFactor/12.5
@@ -446,7 +451,7 @@
                             root.game.importFile()
 
 
-                #Model interaction buttons
+                # Model interaction buttons
                 ActionGroup:
                     mode: 'spinner'
                     text: 'Model'
@@ -467,7 +472,7 @@
                         on_press:
                             root.game.importNetwork()                   
 
-                #View
+                # View
                 ActionGroup:
                     mode: 'spinner'
                     text: 'View'
@@ -496,12 +501,12 @@
 
 
 <ToolBarGame>:
-    #Game action bar
+    # Game action bar
     BoxLayout:
         orientation: "horizontal"
         size: root.width, root.height
 
-        #Special Bar
+        # Special Bar
         ActionBar:
             id: mainActionBarGame
             pos_hint: {"top": 1}
@@ -533,7 +538,7 @@
                     on_press:
                         root.game.changeGameState("exit")
 
-            #Common bar
+            # Common bar
             ActionView:
                 HiddenIcon_ActionPrevious:
                     title: ''
@@ -541,11 +546,16 @@
                     app_icon: ''
                     font_size: root.scaleFactor/12.5
 
-                #Level interaction buttons
+                # Level interaction buttons
                 ActionGroup:
                     mode: 'spinner'
                     text: 'Level'
                     font_size: root.scaleFactor/12.5
+					ActionButton:
+                        text: 'New Level'
+                        font_size: root.scaleFactor/12.5
+                        on_press:
+                            root.game.simulation.deleteSpace()
                     ActionButton:
                         text: 'Save Level'
                         font_size: root.scaleFactor/12.5
@@ -558,7 +568,7 @@
                             root.game.importFile()
 
 
-                #Model interaction buttons
+                # Model interaction buttons
                 ActionGroup:
                     mode: 'spinner'
                     text: 'Model'
@@ -579,7 +589,7 @@
                         on_press:
                             root.game.importNetwork()                   
 
-                #View
+                # View
                 ActionGroup:
                     mode: 'spinner'
                     text: 'View'

@@ -2,6 +2,7 @@ import cffi
 import pymunk
 from objs.GameObjects import StaticGameObject
 from objs.Car import Car
+from objs.CarAI import CarAI
 from objs.kivyObjs import paintObject
 
 import tkinter as tk
@@ -112,13 +113,13 @@ class IELevel():
                 simulation.canvasWindow.canvas.remove(shape.ky)
                 shape.ky = None
 
-            simulation.removeCallbacks()
             for car in cars:
                 simulation.space.remove(car.body, car)
 
+            simulation.removeCallbacks()
             space_copy = simulation.space.copy()
-
             simulation.addCallbacks()
+
             for car in cars:
                 simulation.space.add(car.body, car)
 
@@ -126,11 +127,9 @@ class IELevel():
             try:
                 with open(file_path, "wb") as f:
                     pickle.dump(space_copy, f, pickle.HIGHEST_PROTOCOL)
-
             # If exception occured print something
             except:
                 InfoPopup("Something went wrong!", "Level export", PN.DANGER_ICON)
-            
             # If everything went ok
             else:
                 for shape in space.shapes:
@@ -195,12 +194,16 @@ class IELevel():
             simulation.removeCallbacks()
             for car in cars:
                 simulation.space.remove(car.body, car)
+                if(isinstance(car, CarAI)):
+                    car.deleteRaycasts(simulation)
 
             space_copy = simulation.space.copy()
 
             simulation.addCallbacks()
             for car in cars:
                 simulation.space.add(car.body, car)
+                if(isinstance(car, CarAI)):
+                    car.loadRaycasts(simulation)
 
             # Try exporting level
             try:

@@ -16,23 +16,22 @@ from kivy.uix.behaviors import ToggleButtonBehavior
 from kivy.graphics import Color
 from kivy.garden.graph import Graph, MeshLinePlot
 
-#Animation
+# Animation
 from kivy.animation import Animation
 from kivy.uix.button import Button
 from kivy.uix.dropdown import DropDown
 from kivy.uix.label import Label
 
-
-#Custom classes
+# Custom classes
 from windows.Simulation import Simulation
 from windows.CanvasHandler import CanvasHandler
 from objs.GameObjects import StaticGameObject
 
 import math
 
-#Widgets
+# Widgets
 class GameWidget(Widget):
-    #Factor of scaling (Fonts, UI) !!! DOES NOT AFFECT RESOLUTION SCALER ONLY MULTIPLIES THE EFFECT !!!
+    # Factor of scaling (Fonts, UI) !!! DOES NOT AFFECT RESOLUTION SCALER ONLY MULTIPLIES THE EFFECT !!!
     scaleFactor = NumericProperty(200)
 
     def __init__(self, game, screen, **kwargs):
@@ -40,7 +39,7 @@ class GameWidget(Widget):
         self.game = game
         self.screen = screen
 
-#Action bars (Game, Level editor)
+# Action bars (Game, Level editor)
 class ToolBar(GameWidget):
     def __init__(self, manager, game, screen, **kwargs):
         super(ToolBar, self).__init__(game, screen, **kwargs)
@@ -52,11 +51,11 @@ class ToolBarGame(ToolBar):
 class ToolBarEditor(ToolBar):
     pass
 
-#Stator, shows ingame vars on the bottom of the UI
+# Stator, shows ingame vars on the bottom of the UI
 class StateBar(GameWidget):
     pass
 
-#Extends stator if needed
+# Extends stator if needed
 class StateInfoBar(GameWidget):
     DEFAULT_YMAX = 0.00001
     DEFAULT_YMIN = 0
@@ -68,7 +67,7 @@ class StateInfoBar(GameWidget):
     def __init__(self, game, screen, **kwargs):
         super(StateInfoBar, self).__init__(game, screen, **kwargs)
 
-        #Right graph
+        # Right graph
         self.graph1 = graph1 = Graph(xlabel='Game', ylabel='Reward',
             x_ticks_major=self.DEFAULT_X_TICKS_MAJOR, y_ticks_major=self.DEFAULT_Y_TICKS_MAJOR,
             y_grid_label=True, x_grid_label=True, padding=5,
@@ -80,7 +79,7 @@ class StateInfoBar(GameWidget):
 
         self.ids["graph1"].add_widget(graph1)
 
-        #Left graph
+        # Left graph
         self.graph2 = graph2 = Graph(xlabel='Generation', ylabel='MaxFitness',
             x_ticks_major=self.DEFAULT_X_TICKS_MAJOR, y_ticks_major=self.DEFAULT_Y_TICKS_MAJOR,
             y_grid_label=True, x_grid_label=True, padding=5,
@@ -92,7 +91,7 @@ class StateInfoBar(GameWidget):
 
         self.ids["graph2"].add_widget(graph2)
 
-    #Reset plot on graph:
+    # Reset plot on graph:
     def resetPlot(self, graph, plot):
         graph.xmax = self.DEFAULT_XMAX
         graph.xmin = self.DEFAULT_XMIN
@@ -102,7 +101,7 @@ class StateInfoBar(GameWidget):
         graph.y_ticks_major = self.DEFAULT_Y_TICKS_MAJOR
         plot.points = []
 
-    #Change graph labels
+    # Change graph labels
     def changeGraphLabel(self, graph, xlabel=None, ylabel=None):
         if(xlabel != None):
             graph.xlabel = xlabel
@@ -110,95 +109,95 @@ class StateInfoBar(GameWidget):
         if(ylabel != None):
             graph.ylabel = ylabel
 
-    #Left graph
+    # Left graph
     def addPlotPointLeft(self, x, y, plot=None):
         if(plot == None):
             plot = self.plot2
 
         self.addPlotPoint(self.graph2, plot, x, y)
 
-    #Right graph
+    # Right graph
     def addPlotPointRight(self, x, y, plot=None):
         if(plot == None):
             plot = self.plot1
 
         self.addPlotPoint(self.graph1, plot, x, y)
 
-    #Rescale y axis on graph
+    # Rescale y axis on graph
     def rescaleY(self, graph, y):
-        #Rescaling of y axis
+        # Rescaling of y axis
         if(y > (graph.ymax - (graph.ymax/10))):
-            graph.ymax = int(math.ceil(y + (y/10))) #Move max more up by fraction of y --> better look
+            graph.ymax = int(math.ceil(y + (y/10))) # Move max more up by fraction of y --> better look
 
             if(y > abs(graph.ymin)):
                 graph.y_ticks_major = math.floor(y/2)
 
         if(y < (graph.ymin - (graph.ymin/10))):
-            graph.ymin = int(math.ceil(y + (y/10))) #Move max more up by fraction of y --> better look
+            graph.ymin = int(math.ceil(y + (y/10))) # Move max more up by fraction of y --> better look
 
             if(abs(y) > graph.ymax):
                 graph.y_ticks_major = abs(math.floor(y/2))
 
-    #Add point to graph
+    # Add point to graph
     def addPlotPoint(self, graph, plot, x, y):
-        #Add data to graph
+        # Add data to graph
         plot.points.append((x, y))
 
         self.rescaleY(graph, y)
 
-        #Rescaling of x axis
+        # Rescaling of x axis
         if((x+1) > graph.xmax):
             graph.xmax = x+1
 
-            #Change major points only dividable by 5
+            # Change major points only dividable by 5
             if(x % 5 == 0):
                 graph.x_ticks_major = math.floor(x/5) if((x/5) > 1) else 1
 
-        #Reset graph if x < xmax
+        # Reset graph if x < xmax
         else:
             self.resetPlot(graph, plot)
             plot.points.append((x, y))
             self.rescaleY(graph, y)
 
-    #Changes top value
+    # Changes top value
     def setValue1(self, name, value):
         self.ids["val1"].text = str(name)+": "+str(value)
 
-    #Changes second value
+    # Changes second value
     def setValue2(self, name, value):
         self.ids["val2"].text = str(name)+": "+str(value)
 
-    #Changes third value
+    # Changes third value
     def setValue3(self, name, value):
         self.ids["val3"].text = str(name)+": "+str(value)
 
-    #Changes bottom value
+    # Changes bottom value
     def setValue4(self, name, value):
         self.ids["val4"].text = str(name)+": "+str(value)
 
-#Menu for choosing mode --> Play, Train, Test
+# Menu for choosing mode --> Play, Train, Test
 class StartMenu(GameWidget):
     pass
 
-#Object adding
+# Object adding
 class ObjectMenu(GameWidget):
     visible = False
 
     def __init__(self, game, screen, **kwargs):
         super(ObjectMenu, self).__init__(game, screen, **kwargs)
-        #Defaults
+        # Defaults
         self.colorVal = (0.2,0.2,0.2, 1)
         self.collisionsVal = True
         self.shapeVal = "Segment"
         self.typeVal = "Barrier"
 
-        #Grids
+        # Grids
         self.shapeGrid = GridLayout(cols=2)
         self.typeGrid = GridLayout(cols=2)
         self.colorGrid = GridLayout(cols=2)
         self.collisionGrid = GridLayout(cols=2)
 
-        #Shape Label + Dropdown
+        # Shape Label + Dropdown
         self.shapeDropDown = ShapeDropDown(self)
         self.shapeButton = Button(text="Segment")
         self.shapeButton.bind(on_release=self.shapeDropDown.open)
@@ -206,7 +205,7 @@ class ObjectMenu(GameWidget):
         self.shapeGrid.add_widget(Label(text="Shape: "))
         self.shapeGrid.add_widget(self.shapeButton)
 
-        #Type Label + Dropdown
+        # Type Label + Dropdown
         self.typeDropDown = TypeDropDown(self)
         self.typeButton = Button(text="Barrier")
         self.typeButton.bind(on_release=self.typeDropDown.open)
@@ -214,22 +213,22 @@ class ObjectMenu(GameWidget):
         self.typeGrid.add_widget(Label(text="Type: "))
         self.typeGrid.add_widget(self.typeButton)
 
-        #COLOR
+        # COLOR
         self.colorGrid.add_widget(Label(text="Color: "))
         self.colorButton = Button(background_normal=('Image.extension'), background_color=self.colorVal, text="", on_release=lambda instance: self.showColorpicker())
         self.colorGrid.add_widget(self.colorButton)
 
-        #Collisions
+        # Collisions
         self.collisionGrid.add_widget(Label(text="Collisions: "))
         self.collisionGrid.add_widget(ToggleButton(self))
 
-        #Add all layouts
+        # Add all layouts
         self.ids["inObjectMenu"].add_widget(self.shapeGrid)
         self.ids["inObjectMenu"].add_widget(self.typeGrid)
         self.ids["inObjectMenu"].add_widget(self.colorGrid)
         self.ids["inObjectMenu"].add_widget(self.collisionGrid)
 
-    #Change game tools base on buttons
+    # Change game tools base on buttons
     def changeTool(self, state, btn):
         if(state == "down"):
             if(btn == "add"):
@@ -239,7 +238,7 @@ class ObjectMenu(GameWidget):
         else:
             self.game.changeTool("move")
 
-    #Change buttons state
+    # Change buttons state
     def changeButtonState(self, state, btn):
         if(state == "down"):
             if(btn == "delete"):
@@ -259,7 +258,7 @@ class ObjectMenu(GameWidget):
         popup.color = self.colorVal
         popup.open()
 
-    #Resulting callbacks
+    # Resulting callbacks
     def resultShape(self, shape):
         self.shapeVal = shape
 
@@ -288,13 +287,13 @@ class ObjectMenu(GameWidget):
         data = {"shape": self.shapeVal, "type": self.typeVal, "color": self.colorVal, "collisions": self.collisionsVal}
         return data
 
-#Object editing
+# Object editing
 class EditMenu(GameWidget):
     visible = False
 
     def __init__(self, game, screen, **kwargs):
         super(EditMenu, self).__init__(game, screen, **kwargs)
-        #Defaults
+        # Defaults
         self.editObject = None
         self.highlight = None
         self.colorVal = (0.2,0.2,0.2, 1)
@@ -302,12 +301,12 @@ class EditMenu(GameWidget):
         self.shapeVal = "Segment"
         self.typeVal = "Barrier"
 
-        #Grids
+        # Grids
         self.typeGrid = GridLayout(cols=2)
         self.colorGrid = GridLayout(cols=2)
         self.collisionGrid = GridLayout(cols=2)
 
-        #Type Label + Dropdown
+        # Type Label + Dropdown
         self.typeDropDown = TypeDropDown(self)
         self.typeButton = Button(text="Barrier")
         self.typeButton.bind(on_release=self.typeDropDown.open)
@@ -315,25 +314,25 @@ class EditMenu(GameWidget):
         self.typeGrid.add_widget(Label(text="Type: "))
         self.typeGrid.add_widget(self.typeButton)
 
-        #COLOR
+        # COLOR
         self.colorGrid.add_widget(Label(text="Color: "))
         self.colorButton = Button(background_normal=('Image.extension'), text="", on_release=lambda instance: self.showColorpicker())
         self.colorGrid.add_widget(self.colorButton)
 
-        #Collisions
+        # Collisions
         self.collisionGrid.add_widget(Label(text="Collisions: "))
         self.collisionToggleButton = ToggleButton(self)
         self.collisionGrid.add_widget(self.collisionToggleButton)
 
-        #Add all layouts
+        # Add all layouts
         self.ids["inEditMenu"].add_widget(self.typeGrid)
         self.ids["inEditMenu"].add_widget(self.colorGrid)
         self.ids["inEditMenu"].add_widget(self.collisionGrid) 
 
-    #Get object
+    # Get object
     def setEditObject(self, obj):
         if(obj == None):
-            #Disable widget
+            # Disable widget
             self.disableMenu()
             return
 
@@ -342,16 +341,16 @@ class EditMenu(GameWidget):
 
         self.editObject = obj
 
-        #Create highlight
+        # Create highlight
         if(self.highlight != None):
             self.game.canvas.remove(self.highlight)
         self.highlight = self.game.highlightObject(self.editObject)
 
         if(hasattr(self.editObject, "objectType")):
-            #Set layer height
+            # Set layer height
             self.ids["layerLabel"].text = str(self.game.simulation.getLayer(self.editObject))
 
-            #Set type button
+            # Set type button
             if(self.editObject.objectType == StaticGameObject.BARRIER or self.editObject.objectType == StaticGameObject.NOBARRIER):
                 self.typeButton.text = "Barrier"
             elif(self.editObject.objectType == StaticGameObject.START):
@@ -359,33 +358,33 @@ class EditMenu(GameWidget):
             elif(self.editObject.objectType == StaticGameObject.FINISH):
                 self.typeButton.text = "Finish"
 
-            #Set color
+            # Set color
             self.colorButton.background_color = self.editObject.rgba
 
-            #Set collisions
+            # Set collisions
             if(self.editObject.sensor):
                 self.collisionToggleButton.forceState(False)
             else:
                 self.collisionToggleButton.forceState(True)
 
         else:
-            #Propably chosen a car --> Cant edit
+            # Propably chosen a car --> Cant edit
             self.editObject = None
             self.screen.remove_widget(self)
 
-    #Shift selected object
+    # Shift selected object
     def shiftLayer(self, shift, spec=False):
         if(self.editObject != None):
             self.game.simulation.shiftLayer(self.editObject, shift, spec)
 
         self.ids["layerLabel"].text = str(self.game.simulation.getLayer(self.editObject))
 
-    #Deletes selected object
+    # Deletes selected object
     def deleteObject(self):
         self.game.simulation.deleteObject(self.editObject)
         self.disableMenu()
         
-    #Disable widget
+    # Disable widget
     def disableMenu(self):
         if(self.highlight != None):
             self.game.canvas.remove(self.highlight)
@@ -394,30 +393,30 @@ class EditMenu(GameWidget):
         self.highlight = None
         self.editObject = None
 
-    #Color picker
+    # Color picker
     def showColorpicker(self):
         popup = PopupColor(self)
         popup_color = ColorPicker()
         popup.color = self.colorVal
         popup.open()
 
-    #Resulting callbacks
+    # Resulting callbacks
     def resultType(self, typeVal):
         self.typeVal = typeVal
 
         if(self.editObject != None):
             if(typeVal == "Finish"):
-                #When changed to finish force collisions
+                # When changed to finish force collisions
                 self.editObject.objectType = StaticGameObject.FINISH
                 self.editObject.sensor = False
                 self.collisionToggleButton.forceState(True)
             elif(typeVal == "Start"):
-                #When changed to start force no collisions
+                # When changed to start force no collisions
                 self.editObject.objectType = StaticGameObject.START
                 self.editObject.sensor = True
                 self.collisionToggleButton.forceState(False)
             elif(typeVal == "Barrier"):
-                #When changed to barrier check sensor behav
+                # When changed to barrier check sensor behav
                 if(self.editObject.sensor):
                     self.editObject.objectType = StaticGameObject.NOBARRIER
                 else:
@@ -450,7 +449,7 @@ class EditMenu(GameWidget):
         data = {"type": self.typeVal, "color": self.colorVal, "collisions": self.collisionsVal}
         return data
 
-#Custom GUI objects
+# Custom GUI objects
 class ShapeDropDown(DropDown):
     def __init__(self, menu, **kwargs):
         super(ShapeDropDown, self).__init__(**kwargs)
@@ -496,7 +495,7 @@ class ToggleButton(ToggleButtonBehavior, Image):
         else:
             self.source = 'atlas://data/images/defaulttheme/checkbox_off'
 
-#Popup
+# Popup
 class PopupColor(Popup):
     def __init__(self, menu, *args):
         super(PopupColor, self).__init__(*args)
@@ -507,12 +506,12 @@ class PopupColor(Popup):
         color = colorpicker.color
         self.menu.resultColor(color)
 
-#Main class
+# Main class
 class CanvasWindow(Screen):
     def __init__(self, **kwargs):
         super(CanvasWindow, self).__init__(**kwargs)
 
-    #Entered the screen
+    # Entered the screen
     def on_enter(self):
         self.game = CanvasHandler()
         self.gameToolbar = ToolBarGame(self.manager, self.game, self)
@@ -536,34 +535,34 @@ class CanvasWindow(Screen):
         self.game.start(self.simulation)
         
         self.toggleStartMenu(True)
-        #self.add_widget(self.build())
+        # self.add_widget(self.build())
 
-    #Screen left
+    # Screen left
     def on_leave(self):
         self.game.stop()
         self.clear_widgets()
         self.remove_widget(self.game)
 
-    #Open/Close start menu // True/False
+    # Open/Close start menu // True/False
     def toggleStartMenu(self, state):
         if(state):
             self.add_widget(self.startMenu)
         else:
             self.remove_widget(self.startMenu) 
 
-    #Open/Close start menu
+    # Open/Close start menu
     def toggleObjectMenu(self):
         if(self.objectMenu.visible):
             self.disableObjectMenu()
         else:
             self.enableObjectMenu()
 
-    #Closes object menu
+    # Closes object menu
     def disableObjectMenu(self):
         self.remove_widget(self.objectMenu)
         self.objectMenu.visible = False
 
-    #Opens object menu
+    # Opens object menu
     def enableObjectMenu(self):
         size = self.objectMenu.ids["mainLayout"].size[1]
         self.objectMenu.ids["mainLayout"].size[1] = 0
@@ -574,14 +573,14 @@ class CanvasWindow(Screen):
         animation = Animation(size=(self.objectMenu.ids["mainLayout"].size[0],size), duration=.1)
         animation.start(self.objectMenu.ids["mainLayout"])
 
-    #Closes/Opens object menu
+    # Closes/Opens object menu
     def toggleStateInfoBar(self, state):
         if(state == "normal"):
             self.remove_widget(self.stateInfoBar)
         else:
             self.add_widget(self.stateInfoBar)
 
-    #Ends level editor & closes everything 
+    # Ends level editor & closes everything 
     def endLevelEditor(self):
         self.remove_widget(self.editorToolbar)
         self.add_widget(self.gameToolbar)
@@ -589,7 +588,7 @@ class CanvasWindow(Screen):
 
         self.game.changeState("game")
 
-    #OPens level editor & opens everything
+    # OPens level editor & opens everything
     def startLevelEditor(self):
         self.add_widget(self.editorToolbar)
         self.remove_widget(self.gameToolbar)

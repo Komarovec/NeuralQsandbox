@@ -1,57 +1,51 @@
-
-import random
-random.seed(5)
-
-#Kivy
+# Kivy
 from kivy.graphics import Color
 
-#Tensorflow
+# Tensorflow
 import tensorflow as tf
 
-#Pymunk
+# Pymunk
 import cffi
 import pymunk
 import pymunk.autogeometry
 from pymunk.vec2d import Vec2d
 
-import math
-
-#Threading
 import threading as th
-
 from time import sleep
 import os
 import sys
+import math
+import random
 
-#Custom function and classes
 from objs.GameObjects import StaticGameObject
 from objs.CarAI import CarAI
 from objs.Car import Car
 from objs.kivyObjs import distXY, centerPoint
 from windows.ImportExport import IELevel
-
 from ai.GameController import GameController
+
+random.seed(5)
 
 class Simulation():
     def __init__(self, canvasWindow):
-        #Important values
-        self.step = 1/60. # <---- ? Dynamic ?
+        # Important values
+        self.step = 1/60.
         self.canvasWindow = canvasWindow
         self.simulationSpeed = 2
 
-        #Learning vars
+        # Learning vars
         self.gameController = GameController(self)
 
-        #Create thread for physics
+        # Create thread for physics
         self.stopThread = True
 
-        #Tensorflow computational graph
+        # Tensorflow computational graph
         self.graph = tf.get_default_graph()
 
-        #Default level
+        # Default level
         self.defaultLevel = os.path.abspath(os.path.dirname(sys.argv[0]))+"/levels/conti.lvl"
 
-    #Create new space
+    # Create new space
     def setupSpace(self):
         self.endPhysicsThread()
 
@@ -67,7 +61,7 @@ class Simulation():
 
         return space
 
-    #Prepare collisions callbacks
+    # Prepare collisions callbacks
     def addCallbacks(self):
         self.handler = self.space.add_collision_handler(0,0)
         self.handler.begin = self.coll_begin
@@ -75,7 +69,7 @@ class Simulation():
         self.handler.post_solve = self.coll_post
         self.handler.separate = self.coll_separate
 
-    #Remove collisions callbacks
+    # Remove collisions callbacks
     def removeCallbacks(self):
         self.handler.begin = None
         self.handler.pre_solve = None
@@ -83,27 +77,29 @@ class Simulation():
         self.handler.separate = None
         self.handler = None
 
-    #Delete everything from space & canvas
+    # Delete everything from space & canvas
     def deleteSpace(self):
         for shape in self.space.shapes:
             self.canvasWindow.canvas.remove(shape.ky)
 
         self.setupSpace()
 
-    #Load shapes from space to current space
+    # Load shapes from space to current space
     def loadSpace(self, loadedSpace):
         for shape in loadedSpace.shapes:
             self.space.add(shape.copy().body, shape.copy())
 
         self.addCallbacks()
 
-    #First start, setup space and import level
+    # First start, setup space and import level
     def start(self):
         self.setupSpace()
 
-        #Check if default level exists
+    # Load default level
+    def loadDefaultLevel(self):
+        # Check if default level exists
         if(not IELevel.importLevelSilent(self, self.defaultLevel)):
-            #Spawning objects
+            # Spawning objects
             StaticGameObject(StaticGameObject.BARRIER).createSegment((0,0), (2000,0), 20, self.canvasWindow)
             StaticGameObject(StaticGameObject.BARRIER).createSegment((2000,0), (2000,1000), 20, self.canvasWindow)
             StaticGameObject(StaticGameObject.BARRIER).createSegment((2000,1000), (0,1000), 20, self.canvasWindow)
@@ -118,18 +114,18 @@ class Simulation():
     """ 
             Threaded loop functions 
     """
-    #Start thread --> MUST BE CALLED FROM MAIN THREAD
+    # Start thread --> MUST BE CALLED FROM MAIN THREAD
     def startPhysicsThread(self):
         if(hasattr(self, "thread")):
             if(self.thread != None):
                 self.endPhysicsThread()
-                print("Tried to start a new thread when there still is running thread!") #DEBUG
+                print("Tried to start a new thread when there is still a running thread!") # DEBUG
 
         self.stopThread = False
         self.thread = th.Thread(target=self.physicsThread, name="PhysicsThread")
         self.thread.start()
 
-    #End thread --> MUST BE CALLED FROM MAIN THREAD
+    # End thread --> MUST BE CALLED FROM MAIN THREAD
     def endPhysicsThread(self):
         if(hasattr(self, "thread")):
             if(self.thread != None):
@@ -137,31 +133,31 @@ class Simulation():
                 self.thread.join()
                 self.thread = None
             else:
-                print("Tried to end non-existing thread! NONE") #DEBUG
+                print("Tried to end non-existing thread! NONE") # DEBUG
         else:
-            print("Tried to end non-existing thread! ATTR") #DEBUG
+            print("Tried to end non-existing thread! ATTR") # DEBUG
 
-    #Thread function for physics
+    # Thread function for physics
     def physicsThread(self):
         while True:
             self.update()
             if(self.stopThread):
                 break
 
-    #Main looping function - Run in thread
+    # Main looping function - Run in thread
     def update(self):
-        #Game logic loop
+        # Game logic loop
         if(self.gameController != None):
             self.gameController.loop()
 
-        #Physics loop
+        # Physics loop
         self.stepSpace()
 
-    #Step simulation space
+    # Step simulation space
     def stepSpace(self):
         for shape in self.space.shapes:
             if(not shape.body.is_sleeping):
-                #If there is friction set by class use it
+                # If there is friction set by class use it
                 if(isinstance(shape, Car)):
                     friction = shape.ground_friction
                     angular_friction = shape.angular_friction
@@ -169,15 +165,15 @@ class Simulation():
                     friction = 0.9
                     angular_friction = 0.9
 
-                #Zero-out velocity vector if it is approaching 0
+                # Zero-out velocity vector if it is approaching 0
                 if(shape.body.velocity.length < 0.001):
                     shape.body.velocity = Vec2d(0,0)
 
-                #Apply friction every step
+                # Apply friction every step
                 shape.body.velocity *= 1 - (self.step*friction)
                 shape.body.angular_velocity *= 1 - (self.step*angular_friction)
 
-        #Stepping space simul
+        # Stepping space simul
         self.space.step(self.step)
         self.space.steps += 1
 
@@ -185,18 +181,18 @@ class Simulation():
     """ 
         Enviroment functions 
     """
-    #Reset level
+    # Reset level
     def resetLevel(self):
-        #Delete all Cars from level and canvas
+        # Delete all Cars from level and canvas
         for shape in self.space.shapes:
             if(isinstance(shape, Car)):
-                #Delete any raycast if CarAI
+                # Delete any raycast if CarAI
                 if(isinstance(shape, CarAI)):
                     shape.deleteRaycasts(self)
                 self.space.remove(shape.body, shape)
                 self.canvasWindow.canvas.remove(shape.ky)
 
-    #Adding
+    # Adding
     def addSegment(self, a, b, radius, typeVal, collisions, rgba, change="change"):
         if(typeVal == "Finish"):
             segment = StaticGameObject(StaticGameObject.FINISH, rgba=rgba)
@@ -210,7 +206,7 @@ class Simulation():
         segment.createSegment(a, b, radius, self.canvasWindow)
         self.repaintObjects()
 
-        #Undo system
+        # Undo system
         if(change == "change"):
             self.canvasWindow.changes.append(segment.shape)
 
@@ -227,7 +223,7 @@ class Simulation():
         circle.createCircle(a, radius, self.canvasWindow)
         self.repaintObjects()
 
-        #Undo system
+        # Undo system
         if(change == "change"):
             self.canvasWindow.changes.append(circle.shape)
 
@@ -244,20 +240,20 @@ class Simulation():
         box.createBoxPoints(points, self.canvasWindow)
         self.repaintObjects()
 
-        #Undo system
+        # Undo system
         if(change == "change"):
             self.canvasWindow.changes.append(box.shape)
 
-    #Delete object from space
+    # Delete object from space
     def deleteObject(self, obj, change="change"):
         self.space.remove(obj)
         self.canvasWindow.canvas.remove(obj.ky)
 
-        #Undo system
+        # Undo system
         if(change == "change"):
             self.canvasWindow.changes.append(obj)
 
-    #Repaints all object and keeps layering in mind
+    # Repaint all object and keep layering in mind
     def repaintObjects(self):
         cars = []
 
@@ -272,11 +268,11 @@ class Simulation():
             else:
                 self.canvasWindow.canvas.add(shape.ky)
 
-        #Paint cars on top of everything
+        # Paint cars on top of everything
         for car in cars:
             car.paint(self.canvasWindow)
 
-    #Add one car as an AI model
+    # Add one car as an AI model
     def addCarAI(self, model=None):
         point = self.findSpawnpoint()
         if(point != None):
@@ -288,7 +284,7 @@ class Simulation():
         else:
             return None
 
-    #Add one car as a player
+    # Add one car as a player
     def addPlayer(self):
         point = self.findSpawnpoint()
         if(point != None):
@@ -299,7 +295,7 @@ class Simulation():
         else:
             return None
 
-    #Returns all car instances from space.shapes
+    # Returns all car instances from space.shapes
     def getCars(self):
         cars = []
         for shape in self.space.shapes:
@@ -308,9 +304,9 @@ class Simulation():
         
         return cars
 
-    #Load cars from an array
+    # Load cars from an array
     def loadCars(self, cars):
-        #If empty array return
+        # If empty array return
         if(cars == []):
             return False
         
@@ -324,11 +320,11 @@ class Simulation():
 
         return True
 
-    #Remove player from space (all car class instances)
+    # Remove player from space (all car class instances)
     def removeCars(self):
         for shape in self.space.shapes:
             if(isinstance(shape, Car)):
-                #Delete any raycast if CarAI
+                # Delete any raycast if CarAI
                 if(isinstance(shape, CarAI)):
                     shape.deleteRaycasts(self)
                 self.space.remove(shape.body, shape)
@@ -336,7 +332,7 @@ class Simulation():
 
         self.canvasWindow.selectedCar = None
 
-    #Find spawnpoint for car
+    # Find spawnpoint for car
     def findSpawnpoint(self):
         spawnPoint = None
 
@@ -347,7 +343,7 @@ class Simulation():
         
         return spawnPoint
     
-    #Find nearest finish
+    # Find nearest finish
     def findNearestFinish(self, point):
         finishPoint = None
 
@@ -358,7 +354,7 @@ class Simulation():
         
         return finishPoint
 
-    #Get center position of any shape
+    # Get center position of any shape
     def getCenterPos(self, shape):
         point = None
         if(isinstance(shape, pymunk.Segment)):
@@ -371,7 +367,7 @@ class Simulation():
         
         return point
 
-    #Shift layer shif --> direction, spec --> special TOP, BOTTOM --> ALL THE WAY
+    # Shift layer shif --> direction, spec --> special TOP, BOTTOM --> ALL THE WAY
     def shiftLayer(self, obj, shift, spec):
         temp = None
         tempShapes = []
@@ -398,7 +394,7 @@ class Simulation():
 
             self.repaintObjects()
         else:
-            #Save moving object, Save all object from moving one --> tempShapes
+            # Save moving object, Save all object from moving one --> tempShapes
             for index, shape in enumerate(self.space.shapes):
                 if(shape == obj):
                     splitIndex = index
@@ -411,36 +407,36 @@ class Simulation():
                     tempShapes.append(shape)
 
             if(len(tempShapes) != 0):
-                #Delete all tempShapes from space
+                # Delete all tempShapes from space
                 for tempShape in tempShapes:
                     self.space.remove(tempShape)
 
-                #Delete moving object from space
+                # Delete moving object from space
                 self.space.remove(temp)
 
-                #Add first from tempShapes and then moving object itself
+                # Add first from tempShapes and then moving object itself
                 if(shift > 0):
                     self.space.add(tempShapes[0])
 
                 self.space.add(temp)
 
-                #Add rest of tempShapes except of the first one
+                # Add rest of tempShapes except of the first one
                 for index, tempShape in enumerate(tempShapes):
                     if(index == 0 and shift > 0):
                         continue
 
                     self.space.add(tempShape)
 
-                #Repaint everything
+                # Repaint everything
                 self.repaintObjects()
 
-    #Get layer of object     
+    # Get layer of object     
     def getLayer(self, obj):
         for index, shape in enumerate(self.space.shapes):
             if(shape == obj):
                 return index
 
-    #Collistions handlers
+    # Collistions handlers
     def coll_begin(self, arbiter, space, data):
         if(isinstance(arbiter.shapes[0], Car) or isinstance(arbiter.shapes[1], Car)):        
             car = None

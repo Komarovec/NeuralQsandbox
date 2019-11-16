@@ -4,7 +4,7 @@ import pymunk.autogeometry
 from pymunk.vec2d import Vec2d
 from kivy.graphics import Color, Quad
 
-#Custom functions and classes
+# Custom functions and classes
 from objs.kivyObjs import points_from_poly
 
 class Car(pymunk.Poly):
@@ -32,7 +32,7 @@ class Car(pymunk.Poly):
 
         self.filter = pymunk.ShapeFilter(categories=1, mask=pymunk.ShapeFilter.ALL_MASKS ^ 1)
 
-    #Respawn at the first spawnpoint in shapes array
+    # Respawn at the first spawnpoint in shapes array
     def respawn(self, simulation):
         self.body.position = simulation.findSpawnpoint()
         self.body.angle = 0
@@ -40,15 +40,15 @@ class Car(pymunk.Poly):
         
         self.isDead = False
 
-    #Paint Car
+    # Paint Car
     def paint(self, canvasHandler):
         with canvasHandler.canvas:
             Color(rgba=self.rgba)
             
-            #self.ky = Quad(points=points_from_poly(self, scaller), texture=self.texture)
+            # self.ky = Quad(points=points_from_poly(self, scaller), texture=self.texture)
             self.ky = Quad(points=points_from_poly(self, canvasHandler.scaller))
 
-    #Control methods
+    # Control methods
     def forward(self, vel):
         self.body.apply_force_at_local_point(Vec2d(self.forward_speed*vel,0), (0,0))
 

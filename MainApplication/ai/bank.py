@@ -8,12 +8,12 @@ Function bank for AI
 
 """
 
-#Print packet data
+# Print packet data
 def printPackets(packets):
     for packet in packets:
         print("Score: {}, Data len: {}".format(packet["score"], len(packet["data"])))
 
-#Unpack packet data 
+# Unpack packet data 
 def unpack(packets):
     observations = []
     actions = []

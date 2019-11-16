@@ -20,53 +20,53 @@ def getIcon(picture):
 
 class InfoPopup():
     def __init__(self, text, title="Information", picture=None, size=(400,300)):
-            #Popup layouts
+            # Popup layouts
             content = BoxLayout(orientation="vertical")
             subcontent = BoxLayout(orientation="horizontal")
 
-            #Create popup object
+            # Create popup object
             popup = Popup(title=title, content=content, size_hint=(None,None), size=size)
 
-            #Add text and icon
+            # Add text and icon
             subcontent.add_widget(Label(text=text))
             icon = getIcon(picture)
             if(icon != None):
                 subcontent.add_widget(icon)
 
-            #Create popup
+            # Create popup
             content.add_widget(subcontent)
             content.add_widget(Button(text="Close", on_press=popup.dismiss, size_hint=(1, 0.2)))
             popup.open()
 
 class ConfirmPopup():
     def __init__(self, text, title, fnc, picture=None, size=(400,300)):
-            #Execute this function when clicked yes
+            # Execute this function when clicked yes
             self.fnc = fnc
 
-            #Popup layouts
+            # Popup layouts
             content = BoxLayout(orientation="vertical")
             subcontent = BoxLayout(orientation="horizontal")
             buttons = BoxLayout(orientation="horizontal", size_hint=(1, 0.2))
 
-            #Create popup object
+            # Create popup object
             self.popup = popup = Popup(title=title, content=content, size_hint=(None,None), size=size)
 
-            #Add text and icon
+            # Add text and icon
             subcontent.add_widget(Label(text=text))
             icon = getIcon(picture)
             if(icon != None):
                 subcontent.add_widget(icon)
 
-            #When user wants to continue
+            # When user wants to continue
             def clickedYes(*args):
                 self.fnc()
                 self.popup.dismiss()
 
-            #Add buttons
+            # Add buttons
             buttons.add_widget(Button(text="Cancel", on_press=popup.dismiss))
             buttons.add_widget(Button(text="Continue", on_press=clickedYes))
 
-            #Create popup
+            # Create popup
             content.add_widget(subcontent)
             content.add_widget(buttons)
             popup.open()

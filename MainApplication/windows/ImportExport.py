@@ -19,13 +19,13 @@ class IENetwork():
     NETWORK_TYPES = [("Hierarchical Data Format (*.h5)","*.h5")]
 
     @classmethod
-    def exportNetwork(self, model):
-        #Check if model exists
+    def exportNetwork(self, model, simulation):
+        # Check if model exists
         if(model == None):
             InfoPopup("No model loaded!")
             return
 
-        #Create filedialog
+        # Create filedialog
         root = tk.Tk()
         root.withdraw()
 
@@ -36,21 +36,25 @@ class IENetwork():
         file_path = filedialog.asksaveasfilename(initialdir = pathname, title = "Save neural network", defaultextension=".h5", filetypes=self.NETWORK_TYPES)
 
         if(file_path != ""):
-            #Try exporting model
+            simulation.canvasWindow.stopDrawing()
+            simulation.endPhysicsThread()
+
+            # Try exporting model
             try:
                 model.save(file_path)
-
-            #If exception occured print something
+            # If exception occured print something
             except:
                 InfoPopup("Something went wrong!", "Network export", PN.DANGER_ICON)
-
-            #If everything went ok
+            # If everything went ok
             else:
                 InfoPopup("Neural network\nsuccessfully exported!", "Network export", PN.INFO_ICON)
 
+            simulation.startPhysicsThread()
+            simulation.canvasWindow.startDrawing()
+
     @classmethod
-    def importNetwork(self):
-        #Create filedialog
+    def importNetwork(self, simulation):
+        # Create filedialog
         root = tk.Tk()
         root.withdraw()
 
@@ -61,18 +65,23 @@ class IENetwork():
         file_path = filedialog.askopenfilename(initialdir = pathname, title = "Load neural network", defaultextension=".h5", filetypes=self.NETWORK_TYPES)
 
         if(file_path != ""):
-            #Try importing model
+            simulation.canvasWindow.stopDrawing()
+            simulation.endPhysicsThread()
+
+            model = None
+            # Try importing model
             try:
                 model = load_model(file_path)
-
-            #If exception occured print something
+            # If exception occured print something
             except:
                 InfoPopup("Something went wrong!", "Network import", PN.DANGER_ICON)
-
-            #If everything went ok
+            # If everything went ok
             else:
                 InfoPopup("Neural network\nsuccessfully imported!", "Network import", PN.INFO_ICON)
-                return model
+            
+            simulation.startPhysicsThread()
+            simulation.canvasWindow.startDrawing()    
+            return model
 
 
 class IELevel():
@@ -80,19 +89,20 @@ class IELevel():
 
     @classmethod
     def exportLevel(self, simulation):     
-        simulation.canvasWindow.stopDrawing()
-
         pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"/levels"
         if not os.path.exists(pathname):
             os.makedirs(pathname)
 
-        #Create filedialog
+        # Create filedialog
         root = tk.Tk()
         root.withdraw()
 
         file_path = filedialog.asksaveasfilename(initialdir = pathname,title = "Save level", defaultextension=".lvl", filetypes=self.LEVEL_TYPES)
 
         if(file_path != ""):
+            simulation.canvasWindow.stopDrawing()
+            simulation.endPhysicsThread()
+
             cars = []
             space = simulation.space
             for shape in space.shapes:
@@ -112,48 +122,49 @@ class IELevel():
             for car in cars:
                 simulation.space.add(car.body, car)
 
-            #Try exporting level
+            # Try exporting level
             try:
                 with open(file_path, "wb") as f:
                     pickle.dump(space_copy, f, pickle.HIGHEST_PROTOCOL)
 
-            #If exception occured print something
+            # If exception occured print something
             except:
                 InfoPopup("Something went wrong!", "Level export", PN.DANGER_ICON)
             
-            #If everything went ok
+            # If everything went ok
             else:
                 for shape in space.shapes:
                     paintObject(shape, simulation.canvasWindow)
                 InfoPopup("Level successfully exported!", "Level export", PN.INFO_ICON)
 
-
-        simulation.canvasWindow.startDrawing()
+            simulation.startPhysicsThread()
+            simulation.canvasWindow.startDrawing()
 
     @classmethod
     def importLevel(self, simulation):
-        simulation.canvasWindow.stopDrawing()
-
         pathname = os.path.abspath(os.path.dirname(sys.argv[0]))+"/levels"   
         if not os.path.exists(pathname):
             os.makedirs(pathname) 
 
-        #Create filedialog
+        # Create filedialog
         root = tk.Tk()
         root.withdraw()
         file_path = filedialog.askopenfilename(initialdir = pathname,title = "Load level", defaultextension=".lvl", filetypes=self.LEVEL_TYPES)
 
         if(file_path != ""):
+            simulation.canvasWindow.stopDrawing()
+            simulation.endPhysicsThread()
+
             space = simulation.space
 
-            #Try importing level
+            # Try importing level
             try:
                 with open(file_path, "rb") as f:
                     loaded_space = pickle.load(f)
-            #If exception occured print something
+            # If exception occured print something
             except:
                 InfoPopup("Something went wrong!", "Level import", PN.DANGER_ICON)
-            #If everything went ok
+            # If everything went ok
             else:
                 simulation.deleteSpace()
                 simulation.loadSpace(loaded_space)
@@ -163,13 +174,15 @@ class IELevel():
 
                 InfoPopup("Level successfully imported!", "Level import", PN.INFO_ICON)
             
-
+            simulation.startPhysicsThread()
             simulation.canvasWindow.startDrawing()
 
     @classmethod
     def exportLevelSilent(self, simulation, path):
         if(path != ""):
             simulation.canvasWindow.stopDrawing()
+            simulation.endPhysicsThread()
+
             cars = []
             space = simulation.space
             for shape in space.shapes:
@@ -189,22 +202,24 @@ class IELevel():
             for car in cars:
                 simulation.space.add(car.body, car)
 
-            #Try exporting level
+            # Try exporting level
             try:
                 with open(path, "wb") as f:
                     pickle.dump(space_copy, f, pickle.HIGHEST_PROTOCOL)
 
-            #If exception occured print something
+            # If exception occured print something
             except:
                 InfoPopup("Something went wrong!", "Level export", PN.DANGER_ICON)
+                simulation.startPhysicsThread()
                 simulation.canvasWindow.startDrawing()
                 return False
             
-            #If everything went ok
+            # If everything went ok
             else:
                 for shape in space.shapes:
                     paintObject(shape, simulation.canvasWindow)
                 InfoPopup("Level successfully exported!", "Level export", PN.INFO_ICON)
+                simulation.startPhysicsThread()
                 simulation.canvasWindow.startDrawing()
                 return True
         else:
@@ -213,20 +228,26 @@ class IELevel():
     @classmethod
     def importLevelSilent(self, simulation, path):
         if(path != ""):
+            simulation.canvasWindow.stopDrawing()
+            simulation.endPhysicsThread()
+
             loaded_space = None
 
-            try: #Try importing level
+            try: # Try importing level
                 with open(path, "rb") as f:
                     loaded_space = pickle.load(f)
-            except: #If exception occured print something
+            except: # If exception occured print something
+                simulation.startPhysicsThread()
+                simulation.canvasWindow.startDrawing()
                 return False
-            else: #If everything went ok
+            else: # If everything went ok
                 simulation.deleteSpace()
                 simulation.loadSpace(loaded_space)
-
                 for shape in simulation.space.shapes:
                     paintObject(shape, simulation.canvasWindow)
-
+            
+            simulation.startPhysicsThread()
+            simulation.canvasWindow.startDrawing()
             return True
         else:
             return False

@@ -12,7 +12,7 @@ class StaticGameObject():
     FINISH = "finish"
 
     def __init__(self, objectType, rgba=(0.2,0.2,0.2,1), friction=1, elasticity=0.85, texture=None):
-        #Common attrs
+        # Common attrs
         self.objectType = objectType
         self.rgba = rgba
         self.friction = friction

@@ -25,7 +25,7 @@ from pymunk.vec2d import Vec2d
 import math
 import numpy as np
 
-#Kivy functions
+# Kivy functions
 def paintObject(shape, canvasHandler):
     with canvasHandler.canvas:
         Color(rgba=shape.rgba)
@@ -56,7 +56,7 @@ def newRectangle(shape, scaller=1):
     return Quad(points=points_from_poly(shape, scaller))
 
 
-#Math functions
+# Math functions
 def centerPoint(a, b):
     return ((a[0]+b[0])/2,(a[1]+b[1])/2)
 
@@ -77,7 +77,7 @@ def calculateRectangle(a, b, c):
     if(distXY(a,b) <= 0 or distXY(a,c) <= 0 or distXY(b,c) <= 0):
         return (None,None,None,None)
 
-    #Calculate remaining points for Rectangle !!!MATH WARNING!!!
+    # Calculate remaining points for Rectangle !!!MATH WARNING!!!
     alpha = math.atan2(c[1]-a[1], c[0]-a[0]) - math.atan2(b[1]-a[1], b[0]-a[0])
     distAT = distXY(a, c) * math.cos(alpha)
     t = distAT/distXY(a,b)
@@ -88,9 +88,9 @@ def calculateRectangle(a, b, c):
 
     Cdash = (a[0]+vectTC[0], a[1]+vectTC[1])
     D = (b[0]+vectTC[0], b[1]+vectTC[1])
-    #END OF !!!MATH WARNING!!!
+    # END OF !!!MATH WARNING!!!
 
-    #Rename
+    # Rename
     c = Cdash
     d = D
     return (a,b,c,d)

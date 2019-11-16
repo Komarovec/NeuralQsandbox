@@ -29,15 +29,15 @@ Config.write()
 
 import numpy as np
 
-#Window classes
+# Window classes
 class MainMenuWindow(Screen):
     pass
 
-#KV files import
+# KV files import
 Builder.load_file("templates/mainmenu.kv")
 Builder.load_file("templates/canvas.kv")
 
-#Screen manager
+# Screen manager
 sm = ScreenManager()
 mainMenu = MainMenuWindow(name="mainmenu")
 canvasWindow = CanvasWindow(name="canvas")
@@ -47,7 +47,7 @@ sm.add_widget(canvasWindow)
 
 sm.current = "mainmenu"
 
-#Settings classes
+# Settings classes
 class ValidatedSettingsInterface(SettingsWithSidebar):  
     pass
 
@@ -66,15 +66,15 @@ class ValidatedSettings(Settings):
 """
 Custom datatypes
 """
-#Validate percentage multipliers <0,1>
+# Validate percentage multipliers <0,1>
 class MultiplierValue(SettingString):
     def __init__(self, **kwargs):
         super(MultiplierValue, self).__init__(**kwargs)
 
     def _validate(self, instance):
-        self._dismiss()    # closes the popup
+        self._dismiss()    #  closes the popup
 
-        #Clamp the value between <0,1>
+        # Clamp the value between <0,1>
         try:
             val = float(self.textinput.text)
             val = np.clip(val, 0, 1)
@@ -82,15 +82,15 @@ class MultiplierValue(SettingString):
         except:
             return
 
-#Validate angles
+# Validate angles
 class AngleValue(SettingString):
     def __init__(self, **kwargs):
         super(AngleValue, self).__init__(**kwargs)
 
     def _validate(self, instance):
-        self._dismiss()    # closes the popup
+        self._dismiss()    #  closes the popup
 
-        #Clamp the value between <0,1>
+        # Clamp the value between <0,1>
         try:
             val = float(self.textinput.text)
             val = np.clip(val, 1, 180)
@@ -98,15 +98,15 @@ class AngleValue(SettingString):
         except:
             return
 
-#Validate raycasts
+# Validate raycasts
 class RaycastsValue(SettingString):
     def __init__(self, **kwargs):
         super(RaycastsValue, self).__init__(**kwargs)
 
     def _validate(self, instance):
-        self._dismiss()    # closes the popup
+        self._dismiss()    #  closes the popup
 
-        #Clamp the value between <0,1>
+        # Clamp the value between <0,1>
         try:
             val = int(round(float(self.textinput.text)))
             val = np.clip(val, 1, 20)
@@ -114,15 +114,15 @@ class RaycastsValue(SettingString):
         except:
             return
 
-#Validate batch size DQN
+# Validate batch size DQN
 class BatchValue(SettingString):
     def __init__(self, **kwargs):
         super(BatchValue, self).__init__(**kwargs)
 
     def _validate(self, instance):
-        self._dismiss()    # closes the popup
+        self._dismiss()    #  closes the popup
 
-        #Clamp the value between <0,1>
+        # Clamp the value between <0,1>
         try:
             val = int(round(float(self.textinput.text)))
             val = np.clip(val, 10, 100)
@@ -130,15 +130,15 @@ class BatchValue(SettingString):
         except:
             return
 
-#Validate population size SGA
+# Validate population size SGA
 class PopulationValue(SettingString):
     def __init__(self, **kwargs):
         super(PopulationValue, self).__init__(**kwargs)
 
     def _validate(self, instance):
-        self._dismiss()    # closes the popup
+        self._dismiss()    #  closes the popup
 
-        #Clamp the value between <0,1>
+        # Clamp the value between <0,1>
         try:
             val = int(round(float(self.textinput.text)))
             val = np.clip(val, 8, 50)
@@ -146,7 +146,7 @@ class PopulationValue(SettingString):
         except:
             return
 
-#Main class
+# Main class
 class NeuralApp(App):
     def build(self):
         self.settings_cls = ValidatedSettings
@@ -185,7 +185,7 @@ class NeuralApp(App):
     def on_config_change(self, config, section, key, value):
         pass
 
-    #Config reset confirmed
+    # Config reset confirmed
     def config_reset_confirmed(self):
         config = self.config
 
@@ -209,34 +209,29 @@ class NeuralApp(App):
             "dqn_experience_type": "ER",
         })
 
-        config.setall("SGA", {
-            "sga_mutation_rate": 0.01,
-            "sga_population_size": 30,
-        })
-
         config.write()
 
         self.stop()
 
-    #Reset of config
+    # Reset of config
     def config_reset(self):
         ConfirmPopup("Reset will result in application restart!\n Do you really wish to continue?", 
         "Config reset", self.config_reset_confirmed, PN.DANGER_ICON)
 
-    #Exiting confirmed
+    # Exiting confirmed
     def exit_game_confirmed(self):
         sm.transition.direction = 'right'
         sm.current = 'mainmenu'
 
-    #On config change
+    # On config change
     def on_config_change(self, config, section, key, value):
         global canvasWindow
         if config is self.config:
             token = (section, key)
             if token == ('Game', 'boolraycasts'):
-                canvasWindow.game.isDrawingRaycasts = (int(value) != 0)
+                canvasWindow.game.raycastsVisibility((int(value) != 0))
 
-    #Called when exiting canvas
+    # Called when exiting canvas
     def exit_game(self):
         ConfirmPopup("Exiting will erase your progress!\n Do you really wish to continue?", 
         "Game exit", self.exit_game_confirmed, PN.DANGER_ICON)

@@ -11,7 +11,7 @@ import pymunk.autogeometry
 from pymunk.vec2d import Vec2d
 
 import threading as th
-from time import sleep
+from time import sleep, time
 import os
 import sys
 import math
@@ -27,11 +27,11 @@ from ai.GameController import GameController
 random.seed(5)
 
 class Simulation():
+
     def __init__(self, canvasWindow):
         # Important values
         self.step = 1/60.
         self.canvasWindow = canvasWindow
-        self.simulationSpeed = 2
 
         # Learning vars
         self.gameController = GameController(self)
@@ -44,6 +44,11 @@ class Simulation():
 
         # Default level
         self.defaultLevel = os.path.abspath(os.path.dirname(sys.argv[0]))+"/levels/conti.lvl"
+
+        #Simulation speed cap
+        self.fast_update_frequency = 1000
+        self.normal_update_frequency = 150
+        self.update_frequency = self.normal_update_frequency
 
     # Create new space
     def setupSpace(self):
@@ -139,10 +144,19 @@ class Simulation():
 
     # Thread function for physics
     def physicsThread(self):
+        _last_time = 0
         while True:
-            self.update()
+            _now = time()
+            if(_now - _last_time > (1/self.update_frequency)):
+                self.update()
+                _last_time = _now
+            else:
+                sleep(_now - _last_time)
+
             if(self.stopThread):
                 break
+
+        return True
 
     # Main looping function - Run in thread
     def update(self):
@@ -157,6 +171,8 @@ class Simulation():
     def stepSpace(self):
         for shape in self.space.shapes:
             if(not shape.body.is_sleeping):
+                if(hasattr(shape, "raycast")): continue
+
                 # If there is friction set by class use it
                 if(isinstance(shape, Car)):
                     friction = shape.ground_friction

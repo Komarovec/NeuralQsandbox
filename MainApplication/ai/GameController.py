@@ -108,6 +108,9 @@ class GameController():
         # Pause physics thread
         self.simulation.endPhysicsThread()
 
+        # Change speed of physics simulation
+        self.simulation.update_frequency = self.simulation.fast_update_frequency
+
         # Prepare game vars
         self.simulation.simulationSpeed = self.trainingSpeed
         self.game = 0
@@ -179,6 +182,9 @@ class GameController():
     def startIdle(self):
         # Pause physics thread
         self.simulation.endPhysicsThread()
+
+        # Change speed of physics simulation
+        self.simulation.update_frequency = self.simulation.normal_update_frequency
 
         # Save model first, but do not save model when playing --> nothing to save
         if(self.state != self.PLAYING_STATE):

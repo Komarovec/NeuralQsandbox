@@ -23,7 +23,7 @@ from ai.models import SequentialModel
 class CarAI(Car):
     CARAI = "carai"
 
-    def __init__(self, mass=50, size=(100,50), pos=(100,100), friction=1, ground_friction=1, angular_friction=0.9, forward_speed = 5000, 
+    def __init__(self, mass=10, size=(100,50), pos=(100,100), friction=1, ground_friction=0.9, angular_friction=0.9, forward_speed = 5000, 
                 backward_speed = 5000, angular_speed = 500, elasticity=0.4, rgba=(0.8,0,0,1), texture=None, model=None, learningRate=0.001):
         super(CarAI, self).__init__(mass, size, pos, friction, ground_friction, angular_friction, forward_speed, 
                                     backward_speed, angular_speed, elasticity, rgba, texture)
@@ -43,6 +43,9 @@ class CarAI(Car):
         self.learningRate = learningRate
         self.isDead = False
         self.reward = 0
+
+        # Speed
+        self.speed = 10
 
         # LastAction
         self.lastAction = None
@@ -98,11 +101,14 @@ class CarAI(Car):
         for vect in queryVectors:
             # Calculate second point with direction vector
             b = (vect[0]*self.raycastLenght+origin[0],vect[1]*self.raycastLenght+origin[1])
-            segment = pymunk.Segment(self.body, (0,0), b, 5)
+            segment = pymunk.Segment(None, (0,0), b, 5)
             segment.sensor = True
             segment.filter = pymunk.ShapeFilter(mask=pymunk.ShapeFilter.ALL_MASKS ^ 1 ^ 10)
             segment.rgba = self.raycastColor
             segment.raycast = True
+            segment.mass = 0
+            segment.density = 0
+            segment.body = self.body
             segment.lastContact = segment.body.local_to_world(b)
             self.raycastObjects.append(segment)
             space.add(segment)
@@ -213,12 +219,12 @@ class CarAI(Car):
 
         # Take appropriate action
         if(action == 0):
-            self.forward(6)
+            self.forward(2)
         elif(action == 1):
             self.left(1)
-            self.forward(6)
+            self.forward(2)
         elif(action == 2):
             self.right(1)
-            self.forward(6)
+            self.forward(2)
 
         return action

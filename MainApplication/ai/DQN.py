@@ -131,7 +131,7 @@ class DQN():
         pos1 = self.dqnCar.body.position
         self.pos0 = pos1
         vel = distXY(pos0, pos1)
-        if(vel >= 10 and vel < 15):
+        if(vel >= 12 and vel < 20):
             reward = 2
             
         # Punish if close to the wall

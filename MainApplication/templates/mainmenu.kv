@@ -25,8 +25,7 @@
                 text: "SandBox!"
                 font_size: (root.width + root.height) / 100
                 on_press: 
-                    root.manager.transition.direction = 'left'
-                    root.manager.current = 'canvas'
+                    app.start_game()
             Button:
                 text: "Options"
                 font_size: (root.width + root.height) / 100

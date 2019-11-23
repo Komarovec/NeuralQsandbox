@@ -76,3 +76,4 @@
 7.11.2019 - 6h - Threading implementován., Grafy konečně ukazují správné hodnoty pořád, Více možností v nastavení (Uhel a počet raycastů)
 15.11.2019 - 5h - Raycasty nyni funguji mnohem lepe a jsou optimalizovane /Kivy best practices/ :), DQN Memory step implementovany i do test módu  
 16.11.2019 - 10h - Novy raycast system je nyni plne implementovany, Raycasty se nyni daji vypinat pres GUI, Vypinani PhysicsThreadu pri manipulaci se soubory
+17.11.2019 - 6h - Variabilni simulacni rychlost, oprava odporu raycastů (nerealisticke zataceni)

@@ -128,6 +128,7 @@ class Simulation():
 
         self.stopThread = False
         self.thread = th.Thread(target=self.physicsThread, name="PhysicsThread")
+        self.thread.daemon = True
         self.thread.start()
 
     # End thread --> MUST BE CALLED FROM MAIN THREAD

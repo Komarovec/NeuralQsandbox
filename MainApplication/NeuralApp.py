@@ -17,6 +17,7 @@ from kivy.uix.settings import InterfaceWithNoMenu
 from kivy.config import ConfigParser
 
 from windows.CanvasWindow import CanvasWindow
+from windows.LayersWindow import LayersWindow
 from windows.PopNot import ConfirmPopup, InfoPopup
 import windows.PopNot as PN
 from config import ai_settings_json, game_settings_json
@@ -36,16 +37,6 @@ class MainMenuWindow(Screen):
 # KV files import
 Builder.load_file("templates/mainmenu.kv")
 Builder.load_file("templates/canvas.kv")
-
-# Screen manager
-sm = ScreenManager()
-mainMenu = MainMenuWindow(name="mainmenu")
-canvasWindow = CanvasWindow(name="canvas")
-
-sm.add_widget(mainMenu)
-sm.add_widget(canvasWindow)
-
-sm.current = "mainmenu"
 
 # Settings classes
 class ValidatedSettingsInterface(SettingsWithSidebar):  
@@ -148,9 +139,23 @@ class PopulationValue(SettingString):
 
 # Main class
 class NeuralApp(App):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Screen manager
+        self.sm = ScreenManager()
+        self.mainMenu = MainMenuWindow(name="mainmenu")
+        self.canvasWindow = CanvasWindow(name="canvas")
+        self.layersWindow = LayersWindow(name="layers")
+
+        self.sm.add_widget(self.mainMenu)
+        self.sm.add_widget(self.canvasWindow)
+        self.sm.add_widget(self.layersWindow)
+
+        self.sm.current = "mainmenu"
+
     def build(self):
         self.settings_cls = ValidatedSettings
-        return sm
+        return self.sm
 
     def build_config(self, config):
         config.setdefaults("Game", {
@@ -218,23 +223,32 @@ class NeuralApp(App):
         ConfirmPopup("Reset will result in application restart!\n Do you really wish to continue?", 
         "Config reset", self.config_reset_confirmed, PN.DANGER_ICON)
 
-    # Exiting confirmed
-    def exit_game_confirmed(self):
-        sm.transition.direction = 'right'
-        sm.current = 'mainmenu'
-
     # On config change
     def on_config_change(self, config, section, key, value):
-        global canvasWindow
         if config is self.config:
             token = (section, key)
             if token == ('Game', 'boolraycasts'):
-                canvasWindow.game.raycastsVisibility((int(value) != 0))
+                self.canvasWindow.game.raycastsVisibility((int(value) != 0))
 
-    # Called when exiting canvas
+    # Layers screen
+    def start_layers(self):
+        self.sm.transition.direction = 'down'
+        self.sm.current = 'layers'
+
+    # Layers screen
+    def exit_layers(self, *_):
+        self.sm.transition.direction = 'up'
+        self.sm.current = 'canvas'
+
+    # Start sandbox
+    def start_game(self):
+        self.sm.transition.direction = 'left'
+        self.sm.current = 'canvas'
+
+    # Exit sandbox to mainmenu
     def exit_game(self):
-        ConfirmPopup("Exiting will erase your progress!\n Do you really wish to continue?", 
-        "Game exit", self.exit_game_confirmed, PN.DANGER_ICON)
+        self.sm.transition.direction = 'right'
+        self.sm.current = 'mainmenu'
 
 
 if __name__ == '__main__':

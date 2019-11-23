@@ -77,4 +77,4 @@
 15.11.2019 - 5h - Raycasty nyni funguji mnohem lepe a jsou optimalizovane /Kivy best practices/ :), DQN Memory step implementovany i do test módu  
 16.11.2019 - 10h - Novy raycast system je nyni plne implementovany, Raycasty se nyni daji vypinat pres GUI, Vypinani PhysicsThreadu pri manipulaci se soubory
 17.11.2019 - 6h - Variabilni simulacni rychlost, oprava odporu raycastů (nerealisticke zataceni)
-23.11.2019 - 13h - Struktura neuralni site + GUI pro navrg site
+23.11.2019 - 13h - Vytváření ns pomocí struktur + GUI pro návrh neurální sítě

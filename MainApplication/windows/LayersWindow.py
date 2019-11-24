@@ -21,6 +21,8 @@ from windows.GameWidgets import BGLabel, ActivationDropDown
 from functools import partial
 import re
 
+from ai.models import DEFAULT_STRUCTURE
+
 class ControlsWidget(BoxLayout):
     def __init__(self, addfun=None, resetfun=None, applyfun=None, **kwargs):
         super().__init__(orientation="vertical", size=(150,100), size_hint=(None, 1), padding=10,
@@ -64,20 +66,20 @@ class ControlsWidget(BoxLayout):
             self.applyBtn.bind(on_press=applyfun)
 
 class DenseLayerWidget(BoxLayout):
-    def __init__(self, num, remfun, **kwargs):
+    def __init__(self, num, remfun, units=128, activation="relu", **kwargs):
         super().__init__(orientation="horizontal", padding=10,spacing=10, size=(100,50), size_hint=(1, None), **kwargs)
         self.remfun = remfun
 
         # Default values
-        self.units = 128
-        self.activation = "relu"
+        self.units = units
+        self.activation = activation
 
         # Regex
         self.pat = re.compile('^[0-9]*$')
 
-        self.unitInput = TextInput(text="128")
+        self.unitInput = TextInput(text=str(self.units))
         self.unitInput.bind(text=self.units_change)
-        self.actiInput = Button(text="relu")
+        self.actiInput = Button(text=activation)
         self.dropdown = ActivationDropDown(func=self.activation_change)
         self.actiInput.bind(on_release=self.dropdown.open)
         self.dropdown.bind(on_select=lambda instance, x: setattr(self.actiInput, 'text', x))
@@ -131,24 +133,47 @@ class LayersWidget(Widget):
         self.app = App.get_running_app()
 
         self.allLayers = []
-
+        
         self.layout = BoxLayout(orientation="vertical", size_hint_y=None, padding=10, spacing=10)
         self.layout.bind(minimum_height=self.layout.setter('height'))
 
         self.sv = ScrollView(size_hint=(1, None), size=self.size, pos=self.pos)
         self.sv.add_widget(self.layout)
-        self.add_widget(self.sv)
+        self.add_widget(self.sv) 
 
-    def on_size(self, *args):
+    def save_structure(self, *_):
+        structure = []
+        for layer in self.allLayers:
+            structure.append(["dense", {"units":int(layer.units), "activation":layer.activation}])
+
+        self.app.nstructure = structure
+
+    def load_structure(self, *_):
+        self.remove_all_layers()
+        structure = self.app.nstructure
+        if(structure == None):
+            structure = DEFAULT_STRUCTURE
+
+        for i, layer in enumerate(structure):
+            if(layer[0] == "dense"): # Dense class
+                self.add_layer(units=layer[1]["units"], activation=layer[1]["activation"])
+
+    def on_size(self, *_):
         if(self.canvas == None): return
 
         self.sv.size = self.size
         self.sv.pos = self.pos
 
-    def add_layer(self, *_):
-        newLayer = DenseLayerWidget(self.allLayers.__len__(), remfun=self.remove_layer)
+    def add_layer(self, *_, units=128, activation="relu"):
+        newLayer = DenseLayerWidget(self.allLayers.__len__(), remfun=self.remove_layer, units=units, activation=activation)
         self.layout.add_widget(newLayer)
         self.allLayers.append(newLayer)
+    
+    def remove_all_layers(self):
+        for layer in self.allLayers:
+            self.layout.remove_widget(layer)
+
+        self.allLayers = []
 
     def remove_layer(self, obj, *_):
         self.allLayers.remove(obj)
@@ -168,7 +193,9 @@ class LayersWindow(Screen):
         self.controls = ControlsWidget()
         self.layers = LayersWidget()
 
-        self.controls.bindFun(addfun=self.layers.add_layer)
+        self.controls.bindFun(addfun=self.layers.add_layer, 
+                              resetfun=self.layers.load_structure, 
+                              applyfun=self.layers.save_structure)
 
     # Entered the screen
     def on_enter(self):
@@ -177,6 +204,7 @@ class LayersWindow(Screen):
             self.mainLayout.add_widget(self.controls)
             self.mainLayout.add_widget(self.createLayers())
             self.add_widget(self.mainLayout)
+        self.layers.load_structure()
 
     def createLayers(self):
         layersLayout = BoxLayout(orientation='vertical')

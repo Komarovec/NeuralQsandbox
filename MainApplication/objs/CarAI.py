@@ -28,7 +28,8 @@ class CarAI(Car):
         super(CarAI, self).__init__(mass, size, pos, friction, ground_friction, angular_friction, forward_speed, 
                                     backward_speed, angular_speed, elasticity, rgba, texture)
         
-        config = App.get_running_app().config
+        app = App.get_running_app()
+        config = app.config
 
         self.objectType = self.CARAI
         self.raycastLenght = 2000
@@ -52,7 +53,7 @@ class CarAI(Car):
 
         # Create sequential model
         if(model == None):
-            self.model = SequentialModel(self.raycastCount+1, self.action_space, self.learningRate)
+            self.model = SequentialModel(self.raycastCount+1, self.action_space, self.learningRate, structure=app.nstructure)
         else:
             self.model = model
             self.raycastCount = self.model.layers[0].input_shape[1]-1
@@ -205,7 +206,8 @@ class CarAI(Car):
     # Take last action
     def takeLastAction(self):
         if(self.lastAction != None):
-            self.think(None, self.lastAction)
+            pass
+            # self.takeAction(self.lastAction)
 
     # Makes car think
     def takeAction(self, action=None, dist=None, graph=None):
@@ -227,4 +229,5 @@ class CarAI(Car):
             self.right(1)
             self.forward(2)
 
+        self.lastAction = action
         return action

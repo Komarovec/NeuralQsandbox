@@ -22,6 +22,8 @@ from windows.PopNot import ConfirmPopup, InfoPopup
 import windows.PopNot as PN
 from config import ai_settings_json, game_settings_json
 
+from keras.layers import Dense
+
 from kivy.config import Config
 Config.set('graphics', 'width', '1280')
 Config.set('graphics', 'height', '720')
@@ -141,6 +143,10 @@ class PopulationValue(SettingString):
 class NeuralApp(App):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        # Internal var for tranfering neural structure between GUI and Game --> LayersWindow x CarAI x models
+        self.nstructure = None
+
         # Screen manager
         self.sm = ScreenManager()
         self.mainMenu = MainMenuWindow(name="mainmenu")
@@ -193,6 +199,10 @@ class NeuralApp(App):
     # Config reset confirmed
     def config_reset_confirmed(self):
         config = self.config
+
+        config.setdefaults("NV", {
+            "structure": [["dense", {"units":64, "activation":"relu"}],["dense", {"units":128, "activation":"relu"}],["dense", {"units":64, "activation":"relu"}]],
+        })
 
         config.setall("Game", {
             "boolraycasts": False,

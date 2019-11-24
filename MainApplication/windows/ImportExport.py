@@ -13,6 +13,8 @@ from keras.models import load_model
 from windows.PopNot import InfoPopup
 import windows.PopNot as PN
 
+import tensorflow as tf
+
 import pickle
 import sys, os
 
@@ -72,7 +74,9 @@ class IENetwork():
             model = None
             # Try importing model
             try:
-                model = load_model(file_path)
+                graph = tf.get_default_graph()
+                with graph.as_default():
+                    model = load_model(file_path)
             # If exception occured print something
             except:
                 InfoPopup("Something went wrong!", "Network import", PN.DANGER_ICON)

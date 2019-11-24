@@ -74,14 +74,15 @@ class DQN():
         self.dqnCar.reward = 0
 
     # Choose action based in observation or explore
-    def act(self, model, obs, action_space=2):
+    def act(self, model, obs, graph=None, action_space=2):
         if(np.random.random() < self.exploration_rate):
             # Take random action
             return np.random.randint(action_space)
 
         else:
             # Predict action from AI model
-            return np.argmax(model.predict(obs)[0]) # Return only highest predicted index
+            with graph.as_default():
+                return np.argmax(model.predict(obs)[0]) # Return only highest predicted index
 
     # Save state-action pair
     def remember(self, obs, action, obs1, reward):
@@ -149,7 +150,7 @@ class DQN():
     def step(self, simulation):
         # Take observation
         obs1 = self.dqnCar.calculateRaycasts(simulation.space)
-        action1 = self.act(self.dqnCar.model, obs1, action_space=self.dqnCar.action_space)
+        action1 = self.act(self.dqnCar.model, obs1, graph=simulation.graph, action_space=self.dqnCar.action_space)
 
         self.lastAction = action1
         self.dqnCar.takeAction(action1)

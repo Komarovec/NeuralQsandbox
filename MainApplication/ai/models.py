@@ -3,39 +3,35 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
 
+import tensorflow as tf
+
+DEFAULT_STRUCTURE = [["dense", {"units":64, "activation":"relu"}],["dense", {"units":128, "activation":"relu"}],["dense", {"units":64, "activation":"relu"}]]
+
 # Creates sequential model
 def SequentialModel(input_size, output_size, learningRate, structure=None):
     print("creating new model")
-    
-    # Example structure
-    #structure = [[Dense, {"units":32, "activation":"relu"}],
-    #             [Dense, {"units":64, "activation":"relu"}],
-    #             [Dense, {"units":32, "activation":"relu"}]]
+
+    graph = tf.get_default_graph()
 
     # Default model
-    if(structure==None):
-        # Create model
-        model = Sequential([
-            Dense(64, activation="relu", input_dim=input_size),
-            Dense(128, activation="relu"),
-            Dense(64, activation="relu"),
-            Dense(output_size, activation="linear")
-        ])
-    # Custom model
-    else:
+    with graph.as_default():
+        if(structure == None):
+            structure = DEFAULT_STRUCTURE
+
         model = Sequential()
         for i, layer in enumerate(structure):
-            if(layer[0] == Dense): # Dense class
+            if(layer[0] == "dense"): # Dense class
                 if(i == 0): # Input layer
-                    model.add(layer[0](layer[1]["units"], activation=layer[1]["activation"], input_dim=input_size))
+                    model.add(Dense(layer[1]["units"], activation=layer[1]["activation"], input_dim=input_size))
                 else: # Hidden layers
-                    model.add(layer[0](layer[1]["units"], activation=layer[1]["activation"]))
+                    model.add(Dense(layer[1]["units"], activation=layer[1]["activation"]))
         model.add(Dense(output_size, activation="linear")) # Output layer
 
-    # Optimizer
-    adam = Adam(lr=learningRate)
+        # Optimizer
+        adam = Adam(lr=learningRate)
 
-    # Compile model
-    model.compile(loss='mean_squared_error', optimizer=adam)
+        # Compile model
+        model.compile(loss='mean_squared_error', optimizer=adam)
+        model.summary()
 
     return model

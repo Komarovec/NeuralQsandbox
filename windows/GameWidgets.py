@@ -13,7 +13,7 @@ from kivy.uix.colorpicker import ColorPicker
 from kivy.uix.image import Image
 from kivy.uix.behaviors import ToggleButtonBehavior
 from kivy.graphics import Color, Rectangle
-from kivy.garden.graph import Graph, MeshLinePlot
+from kivy_garden.graph import Graph, MeshLinePlot
 
 # Animation
 from kivy.animation import Animation

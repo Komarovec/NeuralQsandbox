@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
-
 from kivy_deps import sdl2, glew, gstreamer
 import os, pymunk, numpy
+
 pymunk_dir = os.path.dirname(pymunk.__file__)
 chipmunk_libs = [
     ('chipmunk.dll', os.path.join(pymunk_dir, 'chipmunk.dll'), 'DATA'),
@@ -11,17 +11,17 @@ block_cipher = None
 
 
 a = Analysis(['NeuralApp.py'],
-             pathex=['D:\\Entertaiment\\Programy\\Python\\NeuralSandbox2\\MainApplication'],
+             pathex=['D:\\Entertaiment\\Programy\\Python\\NeuralSandbox2'],
              binaries=None,
              datas=None,
-             hiddenimports=[],
+             hiddenimports=['h5py','h5py.defs','h5py.utils','h5py.h5ac','h5py._proxy'],
              hookspath=[],
              runtime_hooks=[],
              excludes=[],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
-             cipher=block_cipher,
-             noarchive=False)
+             cipher=block_cipher
+             )
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 
@@ -30,7 +30,7 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='NeuralTester',
+          name='NeuralQsandbox',
           debug=True,
           strip=False,
           upx=True,
@@ -43,4 +43,4 @@ coll = COLLECT(exe,
                *[Tree(p) for p in (sdl2.dep_bins + glew.dep_bins)],
                strip=False,
                upx=True,
-               name='NeuralTester')
+               name='NeuralQsandbox')

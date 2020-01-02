@@ -1,6 +1,7 @@
 # NeuralQsandbox
 
 NeuralQsandbox is an environment for playing with artificial intelligence. 
+![NeuralQsandbox logo](https://raw.githubusercontent.com/Komarovec/NeuralQsandbox/master/icon.png)
 
 ## Installation
 

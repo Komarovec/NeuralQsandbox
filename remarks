@@ -78,4 +78,4 @@
 16.11.2019 - 10h - Novy raycast system je nyni plne implementovany, Raycasty se nyni daji vypinat pres GUI, Vypinani PhysicsThreadu pri manipulaci se soubory
 17.11.2019 - 6h - Variabilni simulacni rychlost, oprava odporu raycastů (nerealisticke zataceni)
 23.11.2019 - 13h - Vytváření ns pomocí struktur + GUI pro návrh neurální sítě
-24.11.2019 -> 1.1.2020 - 100h - Vytváření dokumentace (U no belif? https://i.gyazo.com/9f73a0528bedb96ff41ecafc3e0a801e.png)
+24.11.2019 -> 1.1.2020 - 130h - Vytváření dokumentace (U no belif? https://i.gyazo.com/9f73a0528bedb96ff41ecafc3e0a801e.png)

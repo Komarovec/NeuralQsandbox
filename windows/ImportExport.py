@@ -155,30 +155,20 @@ class IELevel():
         file_path = filedialog.askopenfilename(initialdir = pathname,title = "Load level", defaultextension=".lvl", filetypes=self.LEVEL_TYPES)
 
         if(file_path != ""):
-            simulation.canvasWindow.stopDrawing()
-            simulation.endPhysicsThread()
-
-            space = simulation.space
-
             # Try importing level
             try:
                 with open(file_path, "rb") as f:
                     loaded_space = pickle.load(f)
+                # print("DEBUG: External space loaded")
             # If exception occured print something
             except:
                 InfoPopup("Something went wrong!", "Level import", PN.DANGER_ICON)
             # If everything went ok
             else:
                 simulation.deleteSpace()
-                simulation.loadSpace(loaded_space)
-
-                for shape in simulation.space.shapes:
-                    paintObject(shape, simulation.canvasWindow)
+                simulation.space.add_post_step_callback(simulation.loadSpace, loaded_space)
 
                 InfoPopup("Level successfully imported!", "Level import", PN.INFO_ICON)
-            
-            simulation.startPhysicsThread()
-            simulation.canvasWindow.startDrawing()
 
     @classmethod
     def exportLevelSilent(self, simulation, path):
@@ -235,9 +225,6 @@ class IELevel():
     @classmethod
     def importLevelSilent(self, simulation, path):
         if(path != ""):
-            simulation.canvasWindow.stopDrawing()
-            simulation.endPhysicsThread()
-
             loaded_space = None
 
             try: # Try importing level
@@ -249,12 +236,8 @@ class IELevel():
                 return False
             else: # If everything went ok
                 simulation.deleteSpace()
-                simulation.loadSpace(loaded_space)
-                for shape in simulation.space.shapes:
-                    paintObject(shape, simulation.canvasWindow)
-            
-            simulation.startPhysicsThread()
-            simulation.canvasWindow.startDrawing()
+                simulation.space.add_post_step_callback(simulation.loadSpace, loaded_space)
+                
             return True
         else:
             return False

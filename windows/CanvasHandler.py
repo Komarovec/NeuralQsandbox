@@ -126,7 +126,7 @@ class CanvasHandler(RelativeLayout):
 
     # Reset enviroment
     def reset(self):
-        self.changeGameState("exit")
+        self.changeGameState("exit-idle")
         self.simulation.gameController.forceStop()
         self.simulation.gameController = GameController(self.simulation)
 
@@ -288,7 +288,7 @@ class CanvasHandler(RelativeLayout):
 
         if(self.t_signal == self.TS_SPAWN_ERROR):
             InfoPopup("Error! Can't spawn agent!\nMaybe Start is missing?", "Spawn error", PN.WARNING_ICON)
-            self.simulation.canvasWindow.changeGameState("exit")
+            self.simulation.canvasWindow.changeGameState("exit-idle")
             self.t_signal = None
 
     # Painting all objects in space.shapes // calculates scaller
@@ -381,7 +381,7 @@ class CanvasHandler(RelativeLayout):
 
     # Pickle export
     def exportFile(self):
-        self.changeGameState("exit")
+        self.changeGameState("exit-idle")
         IELevel.exportLevel(self.simulation)
         self.focus = True
 
@@ -389,7 +389,7 @@ class CanvasHandler(RelativeLayout):
     def importFile(self):
         IELevel.importLevel(self.simulation)
         self.focus = True
-        self.changeGameState("exit")
+        self.changeGameState("exit-idle")
 
     # Export neural network
     def exportNetwork(self):
@@ -403,7 +403,7 @@ class CanvasHandler(RelativeLayout):
             model = IENetwork.importNetwork(self.simulation)
             self.simulation.gameController.setNetwork(model)
             self.focus = True
-            self.changeGameState("exit")
+            self.changeGameState("exit-idle")
 
         ConfirmPopup("All progress will be lost!\nAre you sure?", "Importing network", importNetworkConfirmed, PN.WARNING_ICON)
 
@@ -460,8 +460,8 @@ class CanvasHandler(RelativeLayout):
             self.simulation.startPhysicsThread()
 
             # Load cars
-            self.simulation.loadCars(self.savedCars)
-            self.savedCars = []
+            print("DEBUG: Loading cars")
+            self.simulation.space.add_post_step_callback(self.simulation.loadCars, None)
 
             # Delete highlight
             if(self.tempHighlight != None):
@@ -481,9 +481,11 @@ class CanvasHandler(RelativeLayout):
             self.simulation.endPhysicsThread()
 
             # Save cars
+            print("DEBUG: Saving cars")
             self.savedCars = self.simulation.getCars()
 
             # Despawn all cars
+            print("DEBUG: Removing cars")
             self.simulation.removeCars()
 
             # ToogleStart Menu
@@ -509,11 +511,13 @@ class CanvasHandler(RelativeLayout):
             self.simulation.gameController.startFreePlay()
 
         # Idle state
-        elif(state == "exit"):
+        elif(state == "exit" or state == "exit-idle"):
             if(self.simulation.gameController.state != self.simulation.gameController.IDLE_STATE):
                 self.simulation.gameController.startIdle()
                 self.window.toggleStartMenu(True)
                 self.updateStatebar()
+            elif(state == "exit"):
+                App.get_running_app().exit_game()
             return
 
         self.updateStatebar()

@@ -20,7 +20,7 @@ import random
 from objs.GameObjects import StaticGameObject
 from objs.CarAI import CarAI
 from objs.Car import Car
-from objs.kivyObjs import distXY, centerPoint
+from objs.kivyObjs import distXY, centerPoint, paintObject
 from windows.ImportExport import IELevel
 from ai.GameController import GameController
 
@@ -52,6 +52,8 @@ class Simulation():
 
     # Create new space
     def setupSpace(self):
+        # print("DEBUG: Setting up space")
+
         self.endPhysicsThread()
 
         self.space = space = pymunk.Space()
@@ -64,6 +66,7 @@ class Simulation():
 
         self.startPhysicsThread()
 
+        # print("DEBUG: Space set up")
         return space
 
     # Prepare collisions callbacks
@@ -90,11 +93,17 @@ class Simulation():
         self.setupSpace()
 
     # Load shapes from space to current space
-    def loadSpace(self, loadedSpace):
+    def loadSpace(self, space, loadedSpace):
         for shape in loadedSpace.shapes:
             self.space.add(shape.copy().body, shape.copy())
 
+        # print("DEBUG: Space loaded")
         self.addCallbacks()
+        # print("DEBUG: Space callbacks added")
+
+        for shape in self.space.shapes:
+            paintObject(shape, self.canvasWindow)
+        # print("DEBUG: Shapes drawn")
 
     # First start, setup space and import level
     def start(self):
@@ -324,10 +333,12 @@ class Simulation():
         return cars
 
     # Load cars from an array
-    def loadCars(self, cars):
+    def loadCars(self, space, *_):
+        cars = self.canvasWindow.savedCars
+
         # If empty array return
         if(cars == []):
-            return False
+            return
         
         for car in cars:
             self.space.add(car.body, car)
@@ -336,8 +347,8 @@ class Simulation():
             car.paint(self.canvasWindow)
         
         self.canvasWindow.selectedCar = cars[0]
+        self.canvasWindow.savedCars = []
 
-        return True
 
     # Remove player from space (all car class instances)
     def removeCars(self):

@@ -23,7 +23,3 @@ pip install -r requirements.txt
 - Reinforcement learning (DQN)
 - Exporting/Importing models
 - Control many DQN variables
-
-## Known bugs
-- The application sometimes crashes on start, changing modes and loading level -> *!space->locked*
-

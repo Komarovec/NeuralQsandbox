@@ -25,4 +25,5 @@ pip install -r requirements.txt
 - Control many DQN variables
 
 ## Known bugs
-- The application sometimes crashes on start and when changing modes -> *space.locked!*
+- The application sometimes crashes on start, changing modes and loading level -> *!space->locked*
+

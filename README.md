@@ -11,10 +11,10 @@ Create a level and watch agent with artificial brain try to solve it. Modify lea
 Download latest release [here](https://github.com/Komarovec/NeuralQsandbox/releases) and simply run *NeuralQsandbox.exe*
 
 ### Linux
-Create a virtual environment with Python 3.5 (or newer), and with pip install all requirements specified in *requirements.txt*.
+Create a virtual environment with Python 3.5 (or newer), and with pip install all requirements specified in *requirements_linux.txt*.
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements_linux.txt
 ```
 
 ## Features

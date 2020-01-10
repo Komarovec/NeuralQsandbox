@@ -17,6 +17,12 @@ Create a virtual environment with Python 3.5 (or newer), and with pip install al
 pip install -r requirements_linux.txt
 ```
 
+This project also uses tkinter. If you don't have it installed already, you can install it by typing:
+
+```bash
+sudo apt-get install python python3-tk
+```
+
 ## Features
 - Custom levels with level editor
 - Exporting/Importing levels

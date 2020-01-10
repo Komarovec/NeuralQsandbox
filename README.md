@@ -20,7 +20,7 @@ pip install -r requirements_linux.txt
 This project also uses tkinter. If you don't have it installed already, you can install it by typing:
 
 ```bash
-sudo apt-get install python python3-tk
+sudo apt install python3-tk
 ```
 
 ## Features

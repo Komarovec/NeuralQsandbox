@@ -104,7 +104,7 @@ class DQN():
                 q_update = reward + self.discount * np.amax(model.predict(obs1)[0])
 
                 # Predict on current value
-                q_values = model.predict(obs)
+                q_values = model.predict(obs) # Predict overhead? -> Faster?
 
             # Update actual Q-Value
             q_values[0][action] = q_update

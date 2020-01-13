@@ -171,6 +171,7 @@ class CarAI(Car):
             simulation.space.remove(raycast)
             simulation.canvasWindow.canvas.remove(raycast.ky)
 
+
     # Load raycasts
     def loadRaycasts(self, simulation):
         for raycast in self.raycastObjects:

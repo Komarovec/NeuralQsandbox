@@ -62,7 +62,10 @@ class DQN():
             self.dqnCar = simulation.addCarAI(self.dqnCar.model)
         # First spawn --> create brain
         else:
-            self.dqnCar = simulation.addCarAI()
+            if(simulation.gameController.exportModel != None):
+                self.dqnCar = simulation.addCarAI(simulation.gameController.exportModel)
+            else:
+                self.dqnCar = simulation.addCarAI()
 
         # Test car
         if(self.dqnCar == None): return

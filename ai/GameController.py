@@ -69,8 +69,6 @@ class GameController():
         learn_type = config.get('AI', 'learn_type')
         if(learn_type == "DQN"):
             self.learningType = self.REINFORCEMENT_LEARN
-        elif(learn_type == "SGA"):
-            self.learningType = self.GENETIC_LEARN
 
         # Reset all learning object and values
         self.DQN = DQN(float(config.get('DQN','dqn_discount_factor')), float(config.get('DQN','dqn_exploration_min')),
@@ -84,7 +82,7 @@ class GameController():
         self.updateGUI()
 
         # Start idling
-        self.simulation.canvasWindow.changeGameState("exit")
+        self.simulation.canvasWindow.changeGameState("exit-idle")
 
     # Get neural model from states
     def getNetworkFromCar(self):

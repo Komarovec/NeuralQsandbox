@@ -29,3 +29,7 @@ sudo apt install python3-tk
 - Reinforcement learning (DQN)
 - Exporting/Importing models
 - Control many DQN variables
+
+## Documentation
+Paper describing this project can be found here: 
+https://github.com/Komarovec/NeuralQsandbox/blob/master/docs/dokumentace_projektu_cs.pdf

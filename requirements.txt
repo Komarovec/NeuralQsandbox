@@ -31,7 +31,7 @@ pymunk==5.6.0
 pypiwin32==223
 pywin32==227
 pywin32-ctypes==0.2.0
-PyYAML==5.2
+PyYAML==5.4
 requests==2.22.0
 scipy==1.4.1
 six==1.13.0
